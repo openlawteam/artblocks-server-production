@@ -1,7 +1,7 @@
 {
-  "name": "museum_gift_shop",
+  "name": "Art Blocks Server",
   "version": "1.0.0",
-  "description": "Serves script outputs for the Muesum Gift Shop smart contract.",
+  "description": "Serves script outputs for the Art Blocks smart contract.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/snowfro/museum_gift_shop.git"
+    "url": "git+https://github.com/snowfro/artblocks-server-production.git"
   },
   "author": "Erick Calderon",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/snowfro/museum_gift_shop/issues"
+    "url": "https://github.com/snowfro/artblocks-server-production/issues"
   },
-  "homepage": "https://github.com/snowfro/museum_gift_shop#readme",
+  "homepage": "https://github.com/snowfro/artblocks-server-production#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
