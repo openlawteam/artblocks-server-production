@@ -24,6 +24,7 @@ var favicon = require('serve-favicon')
 const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
+var beautify = require('js-beautify').js;
 // https://oneclickdapp.com/spark-siren/
 
 
@@ -56,6 +57,7 @@ app.get("/project/:projectId", async (request, response) =>{
   if (exists){
     const projectDetails = await getDetails(request.params.projectId);
 	  let script = await getScript(request.params.projectId,projectDetails.projectScriptInfo.scriptCount);
+    let beautifulScript = beautify(script, { indent_size: 5, space_in_empty_paren: true });
     response.render('projectInfo', {
 		     name:projectDetails.projectDescription.projectName,
 		     artist: projectDetails.projectDescription.artistName,
@@ -67,7 +69,7 @@ app.get("/project/:projectId", async (request, response) =>{
          scriptVersion: projectDetails.projectScriptInfo.scriptJSON.version,
          scriptRatio: projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
          instructions: projectDetails.projectScriptInfo.scriptJSON.instructions,
-		     script: script,
+		     script: beautifulScript,
 		     hashesGen: projectDetails.projectScriptInfo.hashesPerToken,
 		     isDynamic: projectDetails.projectDescription.dynamic,
          artistAddress: projectDetails.projectTokenInfo.artistAddress,
@@ -174,7 +176,7 @@ app.get('/generator/:tokenId', async (request, response) => {
 	    let tokenDetails = await getToken(request.params.tokenId);
 	    let projectDetails = await getDetails(tokenDetails.projectId);
 	    let script = await getScript(tokenDetails.projectId,projectDetails.projectScriptInfo.scriptCount);
-	    let data = buildData(tokenDetails.hashes, request.params.tokenId, projectDetails.projectScriptInfo.scriptJSON);
+	    let data = buildData(tokenDetails.hashes, request.params.tokenId);
 
       if (projectDetails.projectScriptInfo.scriptJSON.type==='p5js'){
         response.render('generator_p5js', { script: script, data: data})
@@ -211,7 +213,7 @@ app.get("/vox/:tokenId", async (request, response)=>{
 	    let projectDetails = await getDetails(tokenDetails.projectId);
       if (projectDetails.projectScriptInfo.scriptJSON.type==='vox' || projectDetails.projectScriptInfo.scriptJSON.type==='megavox'){
 	       let script = await getScript(tokenDetails.projectId,projectDetails.projectScriptInfo.scriptCount);
-         let data = buildData(tokenDetails.hashes, request.params.tokenId, projectDetails.projectScript.scriptJSON.type);
+         let data = buildData(tokenDetails.hashes, request.params.tokenId);
          let scriptAndData = `${data}${script}`;
          var evalScript = eval(scriptAndData);
          let array = voxx.export();
@@ -240,8 +242,8 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call();
       const exists = tokensOfProject.includes(request.params.tokenId);
       const scriptInfo = await contract.methods.projectScriptInfo(projectId).call();
-      const scriptJSON = JSON.parse(scriptInfo[0]);
-      const ratio = scriptJSON.aspectRatio;
+      const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+      const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
       console.log("exists? "+exists);
       console.log('image request '+request.params.tokenId);
 
@@ -261,8 +263,8 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
 
 
 async function serveScriptResult(tokenId, ratio){
-  const width = Math.floor(ratio<=1?800*ratio:800);
-  const height = Math.floor(ratio<=1?800:800/ratio);
+  const width = Math.floor(ratio<=1?1200*ratio:1200);
+  const height = Math.floor(ratio<=1?1200:1200/ratio);
   const path = './images/'+tokenId+'.png';
   try {
 
@@ -318,7 +320,7 @@ async function getScript(projectId, scriptCount){
 
 async function getScriptInfo(projectId){
   const result = await contract.methods.projectScriptInfo(projectId).call();
-  return {scriptJSON:JSON.parse(result[0]), scriptCount:result[1], hashesPerToken:result[2], ipfsHash:result[3], locked:result[4], paused:result[5]};
+  return {scriptJSON:result[0] && JSON.parse(result[0]), scriptCount:result[1], hashesPerToken:result[2], ipfsHash:result[3], locked:result[4], paused:result[5]};
 }
 
 async function getProjectDescription(projectId){
@@ -367,10 +369,6 @@ function buildData(hashes, tokenId, type){
 	let data = {};
 	data.hashes = hashes;
 	data.tokenId = tokenId;
-  if (type === "processing"){
-    console.log(hashes[0]);
-    return `let tokenData = "${hashes[0]}"`;
-  }
 	return `let tokenData = ${JSON.stringify(data)}`;
 }
   function toBuffer(ab) {
