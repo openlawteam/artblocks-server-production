@@ -25,15 +25,15 @@ const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
 var beautify = require('js-beautify').js;
-// https://oneclickdapp.com/spark-siren/
+//https://oneclickdapp.com/child-cello/
 
 
 const PORT = process.env.PORT || 8080;
 const API_KEY = process.env.INFURA_KEY;
 
-var web3 = new Web3(`https://rinkeby.infura.io/v3/${API_KEY}`);
+var web3 = new Web3(`https://mainnet.infura.io/v3/${API_KEY}`);
 const {abi} = require('./artifacts/GenArt721.json');
-const address = "0x6917fFeAD6e58D3FE912f0d542e8dc88A9E3a5df";
+const address = "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a";
 const contract = new web3.eth.Contract(abi, address);
 console.log(address);
 
@@ -275,9 +275,9 @@ async function serveScriptResult(tokenId, ratio){
       height: height,
       deviceScaleFactor: 2,
     });
-    await page.goto('http://localhost:8080/generator/'+tokenId);
-    //await page.goto('https://rinkebyapi.artblocks.io/generator/'+tokenId);
-    //await timeout(1000);
+    //await page.goto('http://localhost:8080/generator/'+tokenId);
+    await page.goto('https://api.artblocks.io/generator/'+tokenId);
+    await timeout(500);
     const image = await page.screenshot();
     await browser.close();
     fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {

@@ -1,5 +1,5 @@
 {
-  "name": "Art Blocks Server",
+  "name": "Artblocks-Server",
   "version": "1.0.0",
   "description": "Serves script outputs for the Art Blocks smart contract.",
   "main": "index.js",

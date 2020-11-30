@@ -254,9 +254,9 @@ module.exports = {
     BOX:            41,
 
     // Arc drawing modes
-    //OPEN:          1, // shared with Shape closing modes   
+    //OPEN:          1, // shared with Shape closing modes
     CHORD:           2,
-    PIE:             3, 
+    PIE:             3,
 
 
     GROUP:          0,
@@ -7695,7 +7695,7 @@ module.exports = function withTouch(p, curElement, attachEventHandler, detachEve
    * that can be used to trigger context menu behaviour.
    */
   (function() {
-    var enabled = true,
+    var enabled = false,
         contextMenu = function(e) {
           e.preventDefault();
           e.stopPropagation();
@@ -7823,7 +7823,7 @@ module.exports = function withTouch(p, curElement, attachEventHandler, detachEve
       // prevent scroll from kicking in globally before
       // calling the scroll handler.
       e.stopPropagation();
-      e.preventDefault();   
+      e.preventDefault();
       p.mouseScrolled();
     }
   };
