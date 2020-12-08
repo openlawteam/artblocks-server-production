@@ -1,5 +1,7 @@
 {
   "contractName": "GenArt721",
+  "contractAddressMainnet":"0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
+  "contractAddressRinkeby":"0x7b404C05733344eA9a618b95B21Ad27090B53456",
   "abi": [
     {
       "inputs": [

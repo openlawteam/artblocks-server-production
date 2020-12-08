@@ -31,11 +31,17 @@ var beautify = require('js-beautify').js;
 const PORT = process.env.PORT || 8080;
 const API_KEY = process.env.INFURA_KEY;
 
-var web3 = new Web3(`https://mainnet.infura.io/v3/${API_KEY}`);
+const network = "rinkeby";
+
+var web3 = new Web3(`https://${network}.infura.io/v3/${API_KEY}`);
 const {abi} = require('./artifacts/GenArt721.json');
-const address = "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a";
+const address = network==="mainnet"?require('./artifacts/GenArt721.json').contractAddressMainnet:require('./artifacts/GenArt721.json').contractAddressRinkeby;
 const contract = new web3.eth.Contract(abi, address);
-console.log(address);
+const abi2 = require('./artifacts/GenArt721Core.json').abi;
+const address2 = network==="mainnet"?require('./artifacts/GenArt721Core.json').contractAddressMainnet:require('./artifacts/GenArt721Core.json').contractAddressRinkeby;
+const contract2 = new web3.eth.Contract(abi2, address2);
+
+console.log(address, address2);
 
 app.set('views', './views');
 app.set('view engine', 'pug');
@@ -52,7 +58,7 @@ app.get("/project/:projectId", async (request, response) =>{
     console.log("not integer");
     response.send('invalid request');
   } else {
-  const nextProjectId = await contract.methods.nextProjectId().call();
+  const nextProjectId = await contract2.methods.nextProjectId().call();
   const exists = request.params.projectId<nextProjectId;
   if (exists){
     const projectDetails = await getDetails(request.params.projectId);
@@ -76,6 +82,8 @@ app.get("/project/:projectId", async (request, response) =>{
          additionalPayee: projectDetails.projectTokenInfo.additionalPayee,
          additionalPayeePercentage: projectDetails.projectTokenInfo.additionalPayeePercentage,
          price: web3.utils.fromWei(projectDetails.projectTokenInfo.pricePerTokenInWei, 'ether'),
+         currency: projectDetails.projectTokenInfo.currency?projectDetails.projectTokenInfo.currency:"ETH",
+         currencyAddress: projectDetails.projectTokenInfo.currencyAddress && projectDetails.projectTokenInfo.currencyAddress!=="0x0000000000000000000000000000000000000000"?projectDetails.projectTokenInfo.currencyAddress:"N/A",
 	       invocations: projectDetails.projectTokenInfo.invocations,
          tokensOfProject: projectDetails.projectTokenInfo.tokens,
 		     maxInvocations: projectDetails.projectTokenInfo.maxInvocations,
@@ -102,7 +110,7 @@ app.get("/platform", async (request, response) =>{
   response.render('platformInfo', {
 		name:platformInfo.name,
 		symbol:platformInfo.symbol,
-    address:address,
+    address:[address, address2],
 		totalSupply: platformInfo.totalSupply,
 		projects: projects,
 		nextProjectId:platformInfo.nextProjectId
@@ -115,10 +123,11 @@ app.get('/token/:tokenId', async(request,response)=>{
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    //console.log(tokensOfProject);
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log("exists? "+exists);
-    console.log('image request '+request.params.tokenId);
+    console.log('token request '+request.params.tokenId);
 
     if (exists){
       let tokenDetails = await getToken(request.params.tokenId);
@@ -149,9 +158,9 @@ app.get('/token/:tokenId', async(request,response)=>{
            "is dynamic":projectDetails.projectDescription.dynamic,
            "script type":projectDetails.projectScriptInfo.scriptJSON.type,
            "aspect ratio (w/h)":projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
-           "hashes per token":projectDetails.projectScriptInfo.hashesPerToken,
+           "uses hash":(projectDetails.projectScriptInfo.hashesPerToken==true || projectDetails.projectScriptInfo.hashesPerToken==1)? true: false,
            "tokenID":request.params.tokenId,
-           "token hash(es)":tokenHashes,
+           "token hash":tokenHashes,
            "license":projectDetails.projectDescription.license,
            "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId
          });
@@ -167,10 +176,10 @@ app.get('/generator/:tokenId', async (request, response) => {
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log("exists? "+exists);
-    //console.log('image request '+request.params.tokenId);
+    console.log('generator request for token: '+request.params.tokenId);
 
     if (exists){
 	    let tokenDetails = await getToken(request.params.tokenId);
@@ -203,10 +212,10 @@ app.get("/vox/:tokenId", async (request, response)=>{
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log("exists? "+exists);
-    console.log('image request '+request.params.tokenId);
+    console.log('vox request for token: '+request.params.tokenId);
 
     if (exists){
       let tokenDetails = await getToken(request.params.tokenId);
@@ -228,7 +237,6 @@ app.get("/vox/:tokenId", async (request, response)=>{
 })
 
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
-  //check if token exists
   if (!Number.isInteger(Number(request.params.tokenId))){
     console.log("not integer");
     response.send('invalid request');
@@ -239,11 +247,12 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       response.sendFile(file);
     } else {
       const projectId = await getProjectId(request.params.tokenId);
-      const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call();
+      const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
       const exists = tokensOfProject.includes(request.params.tokenId);
-      const scriptInfo = await contract.methods.projectScriptInfo(projectId).call();
+      const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
       const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
       const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+      const delay = eval(scriptJSON.delay);
       console.log("exists? "+exists);
       console.log('image request '+request.params.tokenId);
 
@@ -262,7 +271,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
 });
 
 
-async function serveScriptResult(tokenId, ratio){
+async function serveScriptResult(tokenId, ratio, delay){
   const width = Math.floor(ratio<=1?1200*ratio:1200);
   const height = Math.floor(ratio<=1?1200:1200/ratio);
   const path = './images/'+tokenId+'.png';
@@ -276,8 +285,10 @@ async function serveScriptResult(tokenId, ratio){
       deviceScaleFactor: 2,
     });
     //await page.goto('http://localhost:8080/generator/'+tokenId);
-    await page.goto('https://api.artblocks.io/generator/'+tokenId);
-    await timeout(500);
+    let url = network==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:network==="mainnet"?'https://api.artblocks.io/generator/'+tokenId:'http://localhost:8080/generator/'+tokenId;
+    //await page.goto('https://api.artblocks.io/generator/'+tokenId);
+    await page.goto(url);
+    //await timeout(500+delay);
     const image = await page.screenshot();
     await browser.close();
     fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {
@@ -312,64 +323,108 @@ async function getDetails(projectId){
 async function getScript(projectId, scriptCount){
 	let scripts = [];
 	for (let i=0;i<scriptCount;i++){
-		let newScript = await contract.methods.projectScriptByIndex(projectId,i).call();
-		scripts.push(newScript);
+    if (projectId<3){
+      let newScript = await contract.methods.projectScriptByIndex(projectId,i).call();
+      scripts.push(newScript);
+    } else {
+      let newScript = await contract2.methods.projectScriptByIndex(projectId,i).call();
+      scripts.push(newScript);
+    }
 	}
 	return scripts.join(' ');
 }
 
 async function getScriptInfo(projectId){
-  const result = await contract.methods.projectScriptInfo(projectId).call();
-  return {scriptJSON:result[0] && JSON.parse(result[0]), scriptCount:result[1], hashesPerToken:result[2], ipfsHash:result[3], locked:result[4], paused:result[5]};
+  if (projectId<3){
+    const result = await contract.methods.projectScriptInfo(projectId).call();
+    return {scriptJSON:result[0] && JSON.parse(result[0]), scriptCount:result[1], hashesPerToken:result[2], ipfsHash:result[3], locked:result[4], paused:result[5]};
+  } else {
+    const result = await contract2.methods.projectScriptInfo(projectId).call();
+    return {scriptJSON:result[0] && JSON.parse(result[0]), scriptCount:result[1], hashesPerToken:result[2], ipfsHash:result[3], locked:result[4], paused:result[5]};
+  }
 }
 
 async function getProjectDescription(projectId){
-  const result = await contract.methods.projectDetails(projectId).call();
-  return {projectName:result[0], artistName:result[1], description: result[2], artistWebsite:result[3], license:result[4], dynamic:result[5]};
+  if (projectId<3){
+    const result = await contract.methods.projectDetails(projectId).call();
+    return {projectName:result[0], artistName:result[1], description: result[2], artistWebsite:result[3], license:result[4], dynamic:result[5]};
+  } else {
+    const result = await contract2.methods.projectDetails(projectId).call();
+    return {projectName:result[0], artistName:result[1], description: result[2], artistWebsite:result[3], license:result[4], dynamic:result[5]};
+  }
 }
 
 async function getURIInfo(projectId){
-  const result = await contract.methods.projectURIInfo(projectId).call();
-  return {projectBaseURI:result[0], projectBaseIpfsURI:result[1], useIpfs: result[2]};
+  if (projectId<3){
+    const result = await contract.methods.projectURIInfo(projectId).call();
+    return {projectBaseURI:result[0], projectBaseIpfsURI:result[1], useIpfs: result[2]};
+  } else {
+    const result = await contract2.methods.projectURIInfo(projectId).call();
+    return {projectBaseURI:result[0], projectBaseIpfsURI:result[1], useIpfs: result[2]};
+  }
 }
 
 async function getTokenDetails(projectId){
-	const tokens = await contract.methods.projectShowAllTokens(projectId).call();
-  const result = await contract.methods.projectTokenInfo(projectId).call();
-  return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],tokens:tokens};
+  if (projectId<3){
+    const tokens = await contract.methods.projectShowAllTokens(projectId).call();
+    const result = await contract.methods.projectTokenInfo(projectId).call();
+    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],tokens:tokens};
+  } else {
+    const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
+    const result = await contract2.methods.projectTokenInfo(projectId).call();
+    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],currency:result[7],currencyAddress:result[8], tokens:tokens};
+  }
 }
 
 async function getTokenRoyaltyInfo(tokenId){
-	const result = await contract.methods.getRoyaltyData(tokenId).call();
-  return {artistAddress:result[0], additionalPayee:result[1], additionalPayeePercentage:result[2], royaltyFeeByID:result[3]};
+
+  if (tokenId<3000000){
+    const result = await contract.methods.getRoyaltyData(tokenId).call();
+    return {artistAddress:result[0], additionalPayee:result[1], additionalPayeePercentage:result[2], royaltyFeeByID:result[3]};
+  } else {
+    const result = await contract2.methods.getRoyaltyData(tokenId).call();
+    return {artistAddress:result[0], additionalPayee:result[1], additionalPayeePercentage:result[2], royaltyFeeByID:result[3]};
+  }
 }
 
 async function getTokenHashes(tokenId){
-  const result = await contract.methods.showTokenHashes(tokenId).call();
-  return result;
+  if (tokenId<3000000){
+    const result = await contract.methods.showTokenHashes(tokenId).call();
+    return result;
+  } else {
+    const result = await contract2.methods.tokenIdToHash(tokenId).call();
+    return result;
+  }
+
 }
 
 async function getPlatformInfo(){
-  const totalSupply = await contract.methods.totalSupply().call();
-	//const projectIds = await contract.methods.showAllProjectIds().call(); //cap S
-	const nextProjectId = await contract.methods.nextProjectId().call(); //change platofrm_
+  const totalSupply = await contract.methods.totalSupply().call() + await contract2.methods.totalSupply().call();
+	const nextProjectId = await contract2.methods.nextProjectId().call();
 	const name = await contract.methods.name().call();
 	const symbol = await contract.methods.symbol().call();
-
   return {totalSupply, nextProjectId, name, symbol};
 }
 
 async function getProjectId(tokenId){
-  const result = await contract.methods.tokenIdToProjectId(tokenId).call();
-  return result;
+  console.log("projectId is: "+Math.floor(tokenId/1000000));
+  return Math.floor(tokenId/1000000);
 }
 
 function buildData(hashes, tokenId, type){
   //to expose token hashes use let hashes = tokenData.hashes[0] (example if only one hash is minted)
-	let data = {};
-	data.hashes = hashes;
-	data.tokenId = tokenId;
-	return `let tokenData = ${JSON.stringify(data)}`;
+  if (tokenId<3000000){
+    let data = {};
+  	data.hashes = hashes;
+  	data.tokenId = tokenId;
+  	return `let tokenData = ${JSON.stringify(data)}`;
+  } else {
+    let data = {};
+    data.hash = hashes;
+    data.tokenId = tokenId;
+    return `let tokenData = ${JSON.stringify(data)}`;
+  }
+
 }
   function toBuffer(ab) {
     var buf = Buffer.alloc(ab.byteLength);
