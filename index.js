@@ -27,18 +27,33 @@ const path = require('path');
 var beautify = require('js-beautify').js;
 //https://oneclickdapp.com/child-cello/
 
+var zlib = require('zlib');
+var AWS = require('aws-sdk');
+
+
+
 
 const PORT = process.env.PORT || 8080;
 const API_KEY = process.env.INFURA_KEY;
+//const ACCESS_KEY = process.env.OSS_ACCESS_KEY;
+//console.log(ACCESS_KEY);
 
-const network = "rinkeby";
+var s3  = new AWS.S3({
+          accessKeyId: process.env.OSS_ACCESS_KEY,
+          secretAccessKey: process.env.OSS_SECRET_KEY,
+          endpoint: process.env.OSS_ENDPOINT
+});
 
-var web3 = new Web3(`https://${network}.infura.io/v3/${API_KEY}`);
+
+
+const currentNetwork = "mainnet";
+
+var web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const {abi} = require('./artifacts/GenArt721.json');
-const address = network==="mainnet"?require('./artifacts/GenArt721.json').contractAddressMainnet:require('./artifacts/GenArt721.json').contractAddressRinkeby;
+const address = currentNetwork==="mainnet"?require('./artifacts/GenArt721.json').contractAddressMainnet:require('./artifacts/GenArt721.json').contractAddressRinkeby;
 const contract = new web3.eth.Contract(abi, address);
 const abi2 = require('./artifacts/GenArt721Core.json').abi;
-const address2 = network==="mainnet"?require('./artifacts/GenArt721Core.json').contractAddressMainnet:require('./artifacts/GenArt721Core.json').contractAddressRinkeby;
+const address2 = currentNetwork==="mainnet"?require('./artifacts/GenArt721Core.json').contractAddressMainnet:require('./artifacts/GenArt721Core.json').contractAddressRinkeby;
 const contract2 = new web3.eth.Contract(abi2, address2);
 
 console.log(address, address2);
@@ -242,7 +257,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send('invalid request');
   } else {
     const file = path.resolve(__dirname, "./images/"+request.params.tokenId+".png");
-    if (fs.existsSync(file) && !request.params.refresh) {
+    if (fs.existsSync(file) && !request.params.refresh&&1===7) {
       console.log('serving local');
       response.sendFile(file);
     } else {
@@ -252,17 +267,35 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
       const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
       const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
-      const delay = eval(scriptJSON.delay);
+      //const delay = eval(scriptJSON.delay);
       console.log("exists? "+exists);
       console.log('image request '+request.params.tokenId);
 
 
       if (exists){
-	       serveScriptResult(request.params.tokenId, ratio).then(result=>{
-         console.log("Running Puppeteer");
-				 response.set('Content-Type', 'image/png');
-				 response.send(result);
-			 });
+
+        var params = { Bucket: "mainnet", Key: request.params.tokenId+".png" };
+          s3.getObject(params, function(err, data) {
+
+              if (err) {
+
+                serveScriptResult(request.params.tokenId, ratio).then(result=>{
+                console.log("Running Puppeteer");
+               response.set('Content-Type', 'image/png');
+               response.send(result);
+
+             });
+           } else {
+              //console.log(data);
+
+            response.writeHead(200, {'Content-Type': 'image/jpeg'});
+            response.write(data.Body, 'binary');
+            response.end(null, 'binary');
+          }
+
+
+        })
+
     } else {
       response.send('token does not exist');
     }
@@ -271,7 +304,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
 });
 
 
-async function serveScriptResult(tokenId, ratio, delay){
+async function serveScriptResult(tokenId, ratio){
   const width = Math.floor(ratio<=1?1200*ratio:1200);
   const height = Math.floor(ratio<=1?1200:1200/ratio);
   const path = './images/'+tokenId+'.png';
@@ -285,21 +318,37 @@ async function serveScriptResult(tokenId, ratio, delay){
       deviceScaleFactor: 2,
     });
     //await page.goto('http://localhost:8080/generator/'+tokenId);
-    let url = network==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:network==="mainnet"?'https://api.artblocks.io/generator/'+tokenId:'http://localhost:8080/generator/'+tokenId;
+    let url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
+    //let url = "https://artblocks-server-temp-12964.nodechef.com/generator/"+tokenId;
+    console.log(url);
     //await page.goto('https://api.artblocks.io/generator/'+tokenId);
     await page.goto(url);
-    //await timeout(500+delay);
+    await timeout(500);
     const image = await page.screenshot();
     await browser.close();
-    fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {
+    fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {});
+    const params = {
+        Bucket: "mainnet",
+        Key: tokenId+".png", // File name you want to save as in S3
+        Body: image
+    };
 
+    // Uploading files to the bucket
+    s3.upload(params, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`File uploaded successfully. ${data.Location}`);
     });
+
     return image;
   } catch (error) {
     console.log(tokenId+ '| this is the error: '+error);
 
   }
 }
+
+
 
 
 function timeout(ms) {
@@ -333,6 +382,7 @@ async function getScript(projectId, scriptCount){
 	}
 	return scripts.join(' ');
 }
+
 
 async function getScriptInfo(projectId){
   if (projectId<3){
@@ -434,5 +484,71 @@ function buildData(hashes, tokenId, type){
     }
     return buf;
   }
+
+  function encode(data){
+    let buf = Buffer.from(data);
+    let base64 = buf.toString('base64');
+    return base64
+    }
+
+    async function getImage(tokenId){
+        const data =  s3.getObject(
+          {
+              Bucket: currentNetwork,
+              Key: tokenId+".png"
+            }
+
+        ).promise();
+        return data;
+      }
+
+  /*
+  app.get("/uploadImages/:projectId",async (request, response)=>{
+    //request.setTimeout(0)
+    const projectId=request.params.projectId;
+    console.log(projectId);
+    const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    //console.log(tokensOfProject);
+    for (let i=0;i<tokensOfProject.length;i++){
+      //const file = path.resolve(__dirname, "./images/"+tokensOfProject[i]+".png");
+      //if (fs.existsSync(file)) {
+        //console.log('serving local');
+        //response.send('serving');
+      //} else {
+
+        await uploadFile(tokensOfProject[i]);
+  }});
+  */
+
+  /*
+  app.get("/renderimages/:projectId",async (request, response)=>{
+    request.setTimeout(0)
+    const projectId=request.params.projectId;
+    console.log(projectId);
+    const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    console.log(tokensOfProject);
+    for (let i=0;i<tokensOfProject.length;i++){
+      const file = path.resolve(__dirname, "./images/"+tokensOfProject[i]+".png");
+      if (fs.existsSync(file)) {
+        console.log('serving local');
+        //response.send('serving');
+      } else {
+
+        await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+        console.log("Running Puppeteer");
+        //response.set('Content-Type', 'image/png');
+        //response.send(result);
+      //await serveScriptResult(tokensOfProject[i],ratio);
+      //setTimeout(x=>{},1000)
+    })
+  }
+  }});
+  */
 
 app.listen(PORT, () => console.log(`Art Blocks listening at http://localhost:${PORT}`))
