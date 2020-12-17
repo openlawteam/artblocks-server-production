@@ -257,7 +257,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send('invalid request');
   } else {
     const file = path.resolve(__dirname, "./images/"+request.params.tokenId+".png");
-    if (fs.existsSync(file) && !request.params.refresh&&1===7) {
+    if (fs.existsSync(file) && !request.params.refresh) {
       console.log('serving local');
       response.sendFile(file);
     } else {
@@ -277,7 +277,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         var params = { Bucket: "mainnet", Key: request.params.tokenId+".png" };
           s3.getObject(params, function(err, data) {
 
-              if (err) {
+              if (err || request.params.refresh) {
 
                 serveScriptResult(request.params.tokenId, ratio).then(result=>{
                 console.log("Running Puppeteer");
@@ -288,7 +288,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
            } else {
               //console.log(data);
 
-            response.writeHead(200, {'Content-Type': 'image/jpeg'});
+            response.writeHead(200, {'Content-Type': 'image/png'});
             response.write(data.Body, 'binary');
             response.end(null, 'binary');
           }
