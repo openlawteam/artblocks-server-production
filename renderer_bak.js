@@ -25,11 +25,11 @@ const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
 var beautify = require('js-beautify').js;
-const imgRequest = require('request');
-const stream = require('stream');
 var CombinedStream = require('combined-stream');
-require('dotenv').config()
+const stream = require('stream');
+const sharp = require('sharp');
 
+require('dotenv').config()
 //https://oneclickdapp.com/child-cello/
 
 var zlib = require('zlib');
@@ -38,7 +38,7 @@ var AWS = require('aws-sdk');
 
 
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 1234;
 const API_KEY = process.env.INFURA_KEY;
 //const ACCESS_KEY = process.env.OSS_ACCESS_KEY;
 //console.log(ACCESS_KEY);
@@ -51,9 +51,11 @@ var s3  = new AWS.S3({
 
 
 
-
 const currentNetwork = "mainnet";
-const testing = false;
+const testing = true;
+
+let queue = new Queue();
+let queueRef={};
 
 var web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const {abi} = require('./artifacts/GenArt721.json');
@@ -81,9 +83,7 @@ app.get("/project/:projectId", async (request, response) =>{
     response.send('invalid request');
   } else {
   const nextProjectId = await contract2.methods.nextProjectId().call();
-  //console.log(nextProjectId);
-  const exists = Number(request.params.projectId)<Number(nextProjectId);
-  //console.log(exists);
+  const exists = request.params.projectId<nextProjectId;
   if (exists){
     const projectDetails = await getDetails(request.params.projectId);
 	  let script = await getScript(request.params.projectId,projectDetails.projectScriptInfo.scriptCount);
@@ -226,8 +226,7 @@ app.get('/generator/:tokenId', async (request, response) => {
       } else if (projectDetails.projectScriptInfo.scriptJSON.type==='svg'){
         response.render('generator_svg', { script: script, data: data})
       } else if (projectDetails.projectScriptInfo.scriptJSON.type==='custom'){
-        response.send(`<script>${data}</script>${script}`);
-        //response.render('generator_js', { script: script, data: data})
+        response.render('generator_js', { script: script, data: data})
       } else {
        response.render('generator_threejs', { script: script, data: data})
      }
@@ -268,14 +267,16 @@ app.get("/vox/:tokenId", async (request, response)=>{
 })
 
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
-
-
-
+  const file = path.resolve(__dirname, "./src/rendering.png");
   if (!Number.isInteger(Number(request.params.tokenId))){
     console.log("not integer");
     response.send('invalid request');
   } else {
-
+    //const file = path.resolve(__dirname, "./images/"+request.params.tokenId+".png");
+    //if (fs.existsSync(file) && !request.params.refresh) {
+      //console.log('serving local');
+      //response.sendFile(file);
+    //} else {
       const projectId = await getProjectId(request.params.tokenId);
       const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
       const exists = tokensOfProject.includes(request.params.tokenId);
@@ -288,133 +289,111 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
 
 
       if (exists){
-        response.set('Content-Type', 'image/png');
+        console.log(queueRef);
 
-        var params = { Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb", Key: request.params.tokenId+".png"};
+        var params = { Bucket: currentNetwork, Key: request.params.tokenId+".png" };
           s3.getObject(params, function(err, data) {
-
               if (err || request.params.refresh) {
-                let url;
-                console.log("didn't find it or hard refresh");
-                //console.log(Number(request.params.tokenId%10));
-                //if (Number(request.paramstokenId)%10<)
-                if (!testing){
-                  if (currentNetwork === "mainnet"){
-                    if (isEven(Number(request.params.tokenId))){
-                      url = request.params.refresh?"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId;
-                    } else {
-                      url = request.params.refresh?"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId;
-                    }
+                if (queueRef[request.params.tokenId]){
+                  //response.send("Your image is still rendering, please come back later!");
+                  //response.set('Content-Type','image/png');
+                  response.sendFile(file);
+                  //response.sendFile(file);
+                } else {
+                  console.log("new image request");
+                  queue.enqueue([request.params.tokenId,ratio]);
+                  queueRef[request.params.tokenId]=true;
+                  let queueSize = Object.keys(queueRef).length;
+                  console.log("queueSize: "+queueSize);
+                  if (queueSize<5){
+                    console.log("Running Puppeteer for token: "+request.params.tokenId);
+                    serveScriptResult(request.params.tokenId,ratio).then(result=>{
+                      console.log("Image rendered: "+request.params.tokenId);
+                      console.log(queueRef);
+                      response.set('Content-Type', 'image/png');
+                      response.send(result);
+                    });
                   } else {
-                    url = request.params.refresh?"http://render-engine-rinkeby-1-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-rinkeby-1-11808.nodechef.com/image/"+request.params.tokenId;
-                  }
-              } else {
-                url = request.params.refresh?"http://localhost:1234/image/"+request.params.tokenId+"/refresh":"http://localhost:1234/image/"+request.params.tokenId;
+                    //response.set('Content-Type','image/png');
+                    response.sendFile(file);
+                  //response.send("Your image has been added to the rendering queue, please come back later.");
+                }
               }
-
-                //let url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/image/'+request.params.tokenId:'https://api.artblocks.io/image/'+request.params.tokenId;
-                imgRequest.get(url).on("response", remoteRes => {
-    // You can add/remove/modify headers here
-              response.writeHead(200,{'Content-Type': 'image/png'});
-              }).pipe(response);
-
-             /*
-             serveScriptResult(request.params.tokenId, ratio).then(result=>{
-             console.log("Running Puppeteer");
-            response.set('Content-Type', 'image/png');
-            response.send(result);
-
-          });
-             */
-           } else {
-              //console.log(data);
-              const fileSize= s3.headObject(params).promise()
-              .then((res) => {
-                if (res.ContentLength<3000000){
-                  const data = s3.getObject({ Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb", Key: request.params.tokenId+".png"}).createReadStream();
-                  data.on('error', function(err) {
-                    console.error(err);
-                  });
-
-                  console.log("Returning single stream");
-
-                  response.writeHead(200,{'Content-Type': 'image/png'});
-                  data.pipe(response);
-                } else {
-                  //const remaining = res.ContentLength-3000000;
-                  const data1 = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: 'bytes=0-4000000' }).createReadStream();
-                  const data2 = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: 'bytes=4000001-'+res.ContentLength }).createReadStream();
-                  data1.on('error', function(err) {
-                    // NoSuchKey: The specified key does not exist
-                    console.log("error on stream part 1");
-                    console.error(err);
-                  });
-                  data2.on('error', function(err) {
-                    // NoSuchKey: The specified key does not exist
-                    console.log("error on stream part 2");
-                    console.error(err);
-                  });
-                  var combinedStream = CombinedStream.create();
-                  combinedStream.append(data1);
-                  combinedStream.append(data2);
-                  console.log("Returning combined stream");
-                  response.writeHead(200,{'Content-Type': 'image/png'});
-                  combinedStream.pipe(response);
-                }
-              });
-          }
-        })
-
-    } else {
-      response.send('token does not exist');
-    }
-//  }
- }
-});
-
-app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
-  const file = path.resolve(__dirname, "./src/rendering.png");
-
-  if (!Number.isInteger(Number(request.params.tokenId))){
-    console.log("not integer");
-    response.send('invalid request');
-  } else {
+                //console.log(queue.getLength());
+                //console.log(queue.peek());
+              } else {
+                const fileSize= s3.headObject(params).promise()
+                .then((res) => {
+                  if (res.ContentLength<3000000){
+                    const data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png"}).createReadStream();
+                    data.on('error', function(err) {
+                      console.error(err);
+                    });
+                    console.log("Returning single stream");
+                    data.pipe(response);
+                  } else {
+                    //const remaining = res.ContentLength-3000000;
+                    const data1 = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: 'bytes=0-3000000' }).createReadStream();
+                    const data2 = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: 'bytes=3000001-'+res.ContentLength }).createReadStream();
+                    data1.on('error', function(err) {
+                      // NoSuchKey: The specified key does not exist
+                      console.log("error on stream part 1");
+                      console.error(err);
+                    });
+                    data2.on('error', function(err) {
+                      // NoSuchKey: The specified key does not exist
+                      console.log("error on stream part 2");
+                      console.error(err);
+                    });
+                    var combinedStream = CombinedStream.create();
+                    combinedStream.append(data1);
+                    combinedStream.append(data2);
+                    console.log("Returning combined stream");
+                    combinedStream.pipe(response);
+                  }
+                });
+            }
+          })
+        } else {
+          response.send('token does not exist');
+        }
+      }
+    });
 
 
-        var params = { Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb", Key: request.params.tokenId+".png"};
-          s3.getObject(params, function(err, data) {
-
-              if (err || request.params.refresh) {
-                let url;
-                console.log("didn't find it");
-                if (!testing){
-                  url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/image/'+request.params.tokenId+'/refresh/':'https://api.artblocks.io/image/'+request.params.tokenId+'/refresh/';
-                } else {
-                  url = "http://localhost:1234/image/"+request.params.tokenId+"/refresh";
-                }
-
-                imgRequest.get(url);
-                //let
-                response.sendFile(file);
-           } else {
-                  const data = s3.getObject({ Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb", Key: request.params.tokenId+".png"}).createReadStream();
-                  data.on('error', function(err) {
-                    console.error(err);
-                  });
-                  console.log("Returning thumb: "+request.params.tokenId);
-                  response.writeHead(200,{'Content-Type': 'image/png'});
-                  data.pipe(response);
-          }
-        })
- }
-});
-
-
+setInterval(()=>{
+  console.log(Object.keys(queueRef));
+  for (let i in queueRef){
+    console.log(i);
+    delete queueRef[i];
+  }
+},30000);
 /*
+setInterval(()=>{
+  console.log("currently:" );
+  console.log(currentlyProcessing);
+  if (queue.getLength()>0){
+    let tokenToProcess = queue.peek();
+    tokenToProcess[0]===currentlyProcessing[0]?console.log("yes"):console.log("no");
+    console.log("new one: ");
+    console.log(tokenToProcess);
+    if (tokenToProcess[0] != currentlyProcessing[0]){
+      serveScriptResult(tokenToProcess[0], tokenToProcess[1]).then(result=>{
+        console.log("Running Puppeteer");
+        //response.set('Content-Type', 'image/png');
+        //response.send(result);
+      });
+    }
+  }
+},10000);
+*/
+
 async function serveScriptResult(tokenId, ratio){
+  let url;
+  //currentlyProcessing = [tokenId,ratio];
   const width = Math.floor(ratio<=1?1200*ratio:1200);
   const height = Math.floor(ratio<=1?1200:1200/ratio);
-  const path = './images/'+tokenId+'.png';
+  //const path = './images/'+tokenId+'.png';
   try {
 
     const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
@@ -424,39 +403,182 @@ async function serveScriptResult(tokenId, ratio){
       height: height,
       deviceScaleFactor: 2,
     });
-    //await page.goto('http://localhost:8080/generator/'+tokenId);
-    let url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
+    //await page.goto('http://localhost:1234/generator/'+tokenId);
+    if (testing){
+      await page.goto('http://localhost:1234/generator/'+tokenId);
+    } else {
+      url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
+      await page.goto(url);
+    }
+    //let url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
     //let url = "https://artblocks-server-temp-12964.nodechef.com/generator/"+tokenId;
-    console.log(url);
+    //console.log(url);
     //await page.goto('https://api.artblocks.io/generator/'+tokenId);
-    await page.goto(url);
+
     await timeout(500);
     const image = await page.screenshot();
     await browser.close();
-    fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {});
-    const params = {
-        Bucket: "mainnet",
+
+    const imageResizer = Buffer.from(image);
+    const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+    //console.log(resizedImage);
+    //fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {});
+    const params1 = {
+        Bucket: currentNetwork,
         Key: tokenId+".png", // File name you want to save as in S3
         Body: image
     };
 
+    const params2 = {
+        Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+        Key: tokenId+".png",
+        Body: resizedImage
+    }
+
     // Uploading files to the bucket
-    s3.upload(params, function(err, data) {
+    s3.upload(params1, function(err, data) {
         if (err) {
             throw err;
         }
-        console.log(`File uploaded successfully. ${data.Location}`);
+        console.log(`Full sized file uploaded successfully. ${data.Location}`);
+
+    });
+    s3.upload(params2, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`Thumnail uploaded successfully. ${data.Location}`);
+
     });
 
+    console.log("deleting token:"+tokenId);
+    delete queueRef[tokenId];
+    //queue.dequeue();
     return image;
   } catch (error) {
     console.log(tokenId+ '| this is the error: '+error);
 
   }
 }
-*/
 
+async function renderThumbnail(tokenId, ratio){
+  const width = Math.floor(ratio<=1?1200*ratio:1200);
+  const height = Math.floor(ratio<=1?1200:1200/ratio);
+  var params = { Bucket: currentNetwork, Key: tokenId+".png"};
+  const fileSize= s3.headObject(params).promise()
+  .then((res) => {
+    if (res.ContentLength<3000000){
 
+      const data = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png"}).promise()
+      .then(result=>{
+        //console.log(result);
+        const imageResizer = Buffer.from(result.Body);
+        const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+        const params2 = {
+            Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+            Key: tokenId+".png",
+            Body: resizedImage
+        }
+
+        s3.upload(params2, function(err, data) {
+            if (err) {
+                throw err;
+            }
+            console.log(`Thumbnail uploaded successfully. ${data.Location}`);
+
+        });
+        return true;
+      })
+      //data.on('error', function(err) {
+        //console.error(err);
+      //});
+
+      //console.log("Returning single stream");
+      //console.log(data);
+      //data.pipe(response);
+      //const imageResizer = Buffer.from(data.Body);
+      //const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+/*
+      const params2 = {
+          Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+          Key: tokenId+".png",
+          Body: data
+      }
+
+      s3.upload(params2, function(err, data) {
+          if (err) {
+              throw err;
+          }
+          console.log(`Thumnail uploaded successfully. ${data.Location}`);
+
+      });
+      */
+
+      //resizedImage.pipe(response);
+    } else {
+      //const remaining = res.ContentLength-3000000;
+      const data1 = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png", Range: 'bytes=0-3000000' }).createReadStream();
+      const data2 = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png", Range: 'bytes=3000001-'+res.ContentLength }).createReadStream();
+      data1.on('error', function(err) {
+        // NoSuchKey: The specified key does not exist
+        console.log("error on stream part 1");
+        console.error(err);
+      });
+      data2.on('error', function(err) {
+        // NoSuchKey: The specified key does not exist
+        console.log("error on stream part 2");
+        console.error(err);
+      });
+      var combinedStream = CombinedStream.create();
+      combinedStream.append(data1);
+      combinedStream.append(data2);
+      console.log("Returning combined stream");
+      //combinedStream.pipe(response);
+    }
+  });
+/*
+    const imageResizer = Buffer.from(image);
+    const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+    //console.log(resizedImage);
+    //fs.writeFile("./images/"+ tokenId+ ".png", image, function(err) {});
+    const params1 = {
+        Bucket: currentNetwork,
+        Key: tokenId+".png", // File name you want to save as in S3
+        Body: image
+    };
+
+    const params2 = {
+        Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+        Key: tokenId+".png",
+        Body: resizedImage
+    }
+
+    // Uploading files to the bucket
+    s3.upload(params1, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`Full sized file uploaded successfully. ${data.Location}`);
+
+    });
+    s3.upload(params2, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`Thumnail uploaded successfully. ${data.Location}`);
+
+    });
+
+    console.log("deleting token:"+tokenId);
+    delete queueRef[tokenId];
+    //queue.dequeue();
+    return image;
+  } catch (error) {
+    console.log(tokenId+ '| this is the error: '+error);
+
+  }
+  */
+}
 
 
 function timeout(ms) {
@@ -610,14 +732,6 @@ function buildData(hashes, tokenId, type){
         return data;
       }
 
-  function isEven(value){
-    if (value%2 == 0)
-        return true;
-    else
-        return false;
-}
-
-
   /*
   app.get("/uploadImages/:projectId",async (request, response)=>{
     //request.setTimeout(0)
@@ -650,22 +764,43 @@ function buildData(hashes, tokenId, type){
     const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     console.log(tokensOfProject);
     for (let i=0;i<tokensOfProject.length;i++){
-      //const file = path.resolve(__dirname, "./images/"+tokensOfProject[i]+".png");
-      //if (fs.existsSync(file)) {
-        //console.log('serving local');
-        //response.send('serving');
-      //} else {
 
-      let url = "http://localhost:1234/image/"+request.params.tokenId;
-      //let url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/image/'+request.params.tokenId:'https://api.artblocks.io/image/'+request.params.tokenId;
-      imgRequest.get(url).pipe(response);
+
+        await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+        console.log("Running Puppeteer");
         //response.set('Content-Type', 'image/png');
         //response.send(result);
       //await serveScriptResult(tokensOfProject[i],ratio);
       //setTimeout(x=>{},1000)
-    }
+    })
 
-  });
+  }});
 */
+/*
+  app.get("/renderthumbs/:projectId",async (request, response)=>{
+    request.setTimeout(0)
+    const projectId=request.params.projectId;
+    //console.log(projectId);
+    const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    //console.log(tokensOfProject);
+    for (let i=0;i<tokensOfProject.length;i++){
+
+
+        await renderThumbnail(tokensOfProject[i], ratio).then(result=>{
+        console.log("Thumbnail Rendered: "+tokensOfProject[i]);
+
+        //response.set('Content-Type', 'image/png');
+        //response.send(result);
+      //await serveScriptResult(tokensOfProject[i],ratio);
+      //setTimeout(x=>{},1000)
+    })
+
+  }});
+*/
+  function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.isEmpty=function(){return 0==a.length};this.enqueue=function(b){a.push(b)};this.dequeue=function(){if(0!=a.length){var c=a[b];2*++b>=a.length&&(a=a.slice(b),b=0);return c}};this.peek=function(){return 0<a.length?a[b]:void 0}};
+
 
 app.listen(PORT, () => console.log(`Art Blocks listening at http://localhost:${PORT}`))
