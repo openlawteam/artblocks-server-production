@@ -37,7 +37,7 @@ var AWS = require('aws-sdk');
 
 
 
-const PORT = process.env.PORT || 1234;
+const PORT = process.env.PORT || 2345;
 const API_KEY = process.env.INFURA_KEY;
 
 
@@ -49,10 +49,11 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "rinkeby";
-const testing = false;
+const currentNetwork = "mainnet";
+const testing = true;
 
 let queue = new Queue();
+
 let queueRef={};
 let lastSentToRender=[];
 let intervalCount=0;
@@ -77,122 +78,6 @@ app.use(cors());
 app.use(favicon(__dirname+'/favicon.ico'));
 let pathToHtml = path.join(__dirname, 'index.html');
 
-app.get("/project/:projectId", async (request, response) =>{
-  if (!Number.isInteger(Number(request.params.projectId))){
-    console.log("not integer");
-    response.send('invalid request');
-  } else {
-  const nextProjectId = await contract2.methods.nextProjectId().call();
-  const exists = request.params.projectId<nextProjectId;
-  if (exists){
-    const projectDetails = await getDetails(request.params.projectId);
-	  let script = await getScript(request.params.projectId,projectDetails.projectScriptInfo.scriptCount);
-    let beautifulScript = beautify(script, { indent_size: 5, space_in_empty_paren: true });
-    response.render('projectInfo', {
-		     name:projectDetails.projectDescription.projectName,
-		     artist: projectDetails.projectDescription.artistName,
-         description: projectDetails.projectDescription.description,
-         website: projectDetails.projectDescription.artistWebsite,
-         license: projectDetails.projectDescription.license,
-	       scriptJSON: JSON.stringify(projectDetails.projectScriptInfo.scriptJSON),
-         scriptType: projectDetails.projectScriptInfo.scriptJSON.type,
-         scriptVersion: projectDetails.projectScriptInfo.scriptJSON.version,
-         scriptRatio: projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
-         instructions: projectDetails.projectScriptInfo.scriptJSON.instructions,
-		     script: beautifulScript,
-		     hashesGen: projectDetails.projectScriptInfo.hashesPerToken,
-		     isDynamic: projectDetails.projectDescription.dynamic,
-         artistAddress: projectDetails.projectTokenInfo.artistAddress,
-         additionalPayee: projectDetails.projectTokenInfo.additionalPayee,
-         additionalPayeePercentage: projectDetails.projectTokenInfo.additionalPayeePercentage,
-         price: web3.utils.fromWei(projectDetails.projectTokenInfo.pricePerTokenInWei, 'ether'),
-         currency: projectDetails.projectTokenInfo.currency?projectDetails.projectTokenInfo.currency:"ETH",
-         currencyAddress: projectDetails.projectTokenInfo.currencyAddress && projectDetails.projectTokenInfo.currencyAddress!=="0x0000000000000000000000000000000000000000"?projectDetails.projectTokenInfo.currencyAddress:"N/A",
-	       invocations: projectDetails.projectTokenInfo.invocations,
-         tokensOfProject: projectDetails.projectTokenInfo.tokens,
-		     maxInvocations: projectDetails.projectTokenInfo.maxInvocations,
-         active: projectDetails.projectTokenInfo.active,
-         paused: projectDetails.projectScriptInfo.paused
-	  })
-  } else {
-    response.send('project does not exist');
-  }
- }
-});
-
-app.get("/", async (request, response) =>{
-  response.render('home');
-})
-
-app.get("/platform", async (request, response) =>{
-  const platformInfo = await getPlatformInfo();
-  let projects=[];
-  for (let i=0;i<platformInfo.nextProjectId;i++){
-    projects.push(i);
-  }
-
-  response.render('platformInfo', {
-		name:platformInfo.name,
-		symbol:platformInfo.symbol,
-    address:[address, address2],
-		totalSupply: platformInfo.totalSupply,
-		projects: projects,
-		nextProjectId:platformInfo.nextProjectId
-	})
-})
-
-app.get('/token/:tokenId', async(request,response)=>{
-  if (!Number.isInteger(Number(request.params.tokenId))){
-    console.log("not integer");
-    response.send('invalid request');
-  } else {
-    const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-    //console.log(tokensOfProject);
-    const exists = tokensOfProject.includes(request.params.tokenId);
-    console.log("exists? "+exists);
-    console.log('token request '+request.params.tokenId);
-
-    if (exists){
-      let tokenDetails = await getToken(request.params.tokenId);
-	     let projectDetails = await getDetails(tokenDetails.projectId);
-       let tokenHashes = await getTokenHashes(request.params.tokenId);
-       let royalties = await getTokenRoyaltyInfo(request.params.tokenId);
-
-
-       response.json(
-         {
-           "platform":"Art Blocks",
-           "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
-           "description":projectDetails.projectDescription.description,
-           "external_url": projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"generator/"+request.params.tokenId,
-           "artist":projectDetails.projectDescription.artistName,
-           "royaltyInfo":{
-             "artistAddress":royalties.artistAddress,
-             "additionalPayee":royalties.additionalPayee,
-             "additionalPayeePercentage":royalties.additionalPayeePercentage,
-             "royaltyFeeByID":royalties.royaltyFeeByID
-           },
-           "traits":[
-             {"trait_type":"Project",
-             "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
-           ],
-
-           "website":projectDetails.projectDescription.artistWebsite,
-           "is dynamic":projectDetails.projectDescription.dynamic,
-           "script type":projectDetails.projectScriptInfo.scriptJSON.type,
-           "aspect ratio (w/h)":projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
-           "uses hash":(projectDetails.projectScriptInfo.hashesPerToken==true || projectDetails.projectScriptInfo.hashesPerToken==1)? true: false,
-           "tokenID":request.params.tokenId,
-           "token hash":tokenHashes,
-           "license":projectDetails.projectDescription.license,
-           "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId
-         });
-    } else {
-      response.send('token does not exist');
-    }
-  }
-});
 
 app.get('/generator/:tokenId', async (request, response) => {
   if (!Number.isInteger(Number(request.params.tokenId))){
@@ -202,6 +87,7 @@ app.get('/generator/:tokenId', async (request, response) => {
     const projectId = await getProjectId(request.params.tokenId);
     const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     const exists = tokensOfProject.includes(request.params.tokenId);
+
 
     if (exists){
 	    let tokenDetails = await getToken(request.params.tokenId);
@@ -234,204 +120,6 @@ app.get('/generator/:tokenId', async (request, response) => {
   }
 });
 
-app.get("/vox/:tokenId", async (request, response)=>{
-  if (!Number.isInteger(Number(request.params.tokenId))){
-    console.log("not integer");
-    response.send('invalid request');
-  } else {
-    const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
-    console.log("exists? "+exists);
-    console.log('vox request for token: '+request.params.tokenId);
-
-    if (exists){
-      let tokenDetails = await getToken(request.params.tokenId);
-	    let projectDetails = await getDetails(tokenDetails.projectId);
-      if (projectDetails.projectScriptInfo.scriptJSON.type==='vox' || projectDetails.projectScriptInfo.scriptJSON.type==='megavox'){
-	       let script = await getScript(tokenDetails.projectId,projectDetails.projectScriptInfo.scriptCount);
-         let data = buildData(tokenDetails.hashes, request.params.tokenId);
-         let scriptAndData = `${data}${script}`;
-         var evalScript = eval(scriptAndData);
-         let array = voxx.export();
-         response.send(toBuffer(array));
-       } else {
-         response.send('token not a vox file');
-       }
-     } else {
-        response.send('token does not exist');
-    }
-  }
-})
-
-app.get("/image/:tokenId/:refresh?", async (request, response) => {
-  const file = path.resolve(__dirname, "./src/rendering.png");
-  if (!Number.isInteger(Number(request.params.tokenId))){
-    console.log("not integer");
-    response.send('invalid request');
-  } else {
-      const projectId = await getProjectId(request.params.tokenId);
-      const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-      const exists = tokensOfProject.includes(request.params.tokenId);
-      const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
-      const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
-      const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
-      //const delay = eval(scriptJSON.delay);
-      console.log("exists? "+exists);
-      console.log('image request '+request.params.tokenId);
-
-
-      if (exists){
-        if (request.params.refresh){
-          serveScriptResultRefresh(request.params.tokenId, ratio).then(result=>{
-          console.log("serving: "+request.params.tokenId);
-          response.set('Content-Type', 'image/png');
-          response.send(result);
-          });
-        } else {
-        var params = { Bucket: currentNetwork, Key: request.params.tokenId+".png" };
-          s3.getObject(params, function(err, data) {
-              if (err) {
-                  let count = 0;
-                  if (!queueRef[request.params.tokenId]){
-                    console.log("adding to queue");
-                    queueRef[request.params.tokenId]=true;
-                    queue.enqueue([request.params.tokenId,ratio]);
-                  }
-                  let checkForImage = setInterval(()=>{
-                    s3.getObject(params, function(err, data) {
-                    if (!err){
-                      clearInterval(checkForImage);
-                      //Files larger then 5mb must be retreived in chunks
-                       const fileSize= s3.headObject(params).promise()
-                       .then((res) => {
-                         console.log("stream size:"+res.ContentLength);
-                         if (res.ContentLength<5000000){
-                           const data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png"}).createReadStream();
-                           data.on('error', function(err) {
-                             console.error(err);
-                           });
-
-                           console.log("Returning single stream");
-
-                           response.writeHead(200,{'Content-Type': 'image/png'});
-                           data.pipe(response);
-                         } else {
-                           let numStreams = Math.ceil(res.ContentLength/5000000);
-                           let dataArray = [];
-                           let range;
-                           for (let s = 0; s<numStreams;s++){
-                             if (s===0){
-                               range = "bytes=0-5000000";
-                             } else if (s===numStreams-1){
-                               range = `bytes=${(s*5000000)+1}-${res.ContentLength}`;
-                             } else {
-                               range = `bytes=${(s*5000000)+1}-${(s*5000000)+5000000}`
-                             }
-                             let data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: range }).createReadStream();
-                             console.log(`Pushing stream ${s} to stream array.`);
-                             dataArray.push(data);
-                           }
-                           var combinedStream = CombinedStream.create();
-                           for (let t = 0; t<numStreams;t++){
-                             combinedStream.append(dataArray[t]);
-                           }
-                           console.log("Returning combined streams");
-                           response.writeHead(200,{'Content-Type': 'image/png'});
-                           combinedStream.pipe(response);
-                         }
-                       });
-                    }
-                  });
-                    console.log("interval: "+ queue.getLength());
-                    count++;
-                    console.log(count);
-                    if (count>20){
-
-                      response.sendFile(file);
-                      clearInterval(checkForImage);
-                    }
-                  },5000);
-
-              } else {
-                const fileSize= s3.headObject(params).promise()
-                .then((res) => {
-                  //Files larger then 5mb must be retreived in chunks
-                   const fileSize= s3.headObject(params).promise()
-                   .then((res) => {
-                     console.log("stream size:"+res.ContentLength);
-                     if (res.ContentLength<5000000){
-                       const data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png"}).createReadStream();
-                       data.on('error', function(err) {
-                         console.error(err);
-                       });
-
-                       console.log("Returning single stream");
-
-                       response.writeHead(200,{'Content-Type': 'image/png'});
-                       data.pipe(response);
-                     } else {
-                       let numStreams = Math.ceil(res.ContentLength/5000000);
-                       let dataArray = [];
-                       let range;
-                       for (let s = 0; s<numStreams;s++){
-                         if (s===0){
-                           range = "bytes=0-5000000";
-                         } else if (s===numStreams-1){
-                           range = `bytes=${(s*5000000)+1}-${res.ContentLength}`;
-                         } else {
-                           range = `bytes=${(s*5000000)+1}-${(s*5000000)+5000000}`
-                         }
-                         let data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: range }).createReadStream();
-                         console.log(`Pushing stream ${s} to stream array.`);
-                         dataArray.push(data);
-                       }
-                       var combinedStream = CombinedStream.create();
-                       for (let t = 0; t<numStreams;t++){
-                         combinedStream.append(dataArray[t]);
-                       }
-                       console.log("Returning combined streams");
-                       response.writeHead(200,{'Content-Type': 'image/png'});
-                       combinedStream.pipe(response);
-                     }
-                   });
-                 });
-               }
-             })
-           }
-         } else {
-          response.send('token does not exist');
-        }
-      }
-
-
-
-    });
-
-
-setInterval(()=>{
-  console.log("Running Render Interval");
-  console.log("queue length:"+queue.getLength());
-  console.log("queue obj:"+JSON.stringify(queueRef));
-  console.log("lastSent: "+lastSentToRender);
-  if (queue.getLength()>0){
-    let nextToken = queue.peek();
-    if (nextToken[0]!=lastSentToRender[0] || intervalCount>10){
-      console.log("render triggered for token: "+nextToken[0]);
-      console.log("reset intervalCount");
-      lastSentToRender=nextToken;
-      intervalCount=0;
-      serveScriptResult(nextToken[0],nextToken[1]);
-    } else {
-      intervalCount++;
-    }
-  } else {
-    queueRef={};
-    lastSentToRender=[];
-  }
-
-},5000);
-
 
 async function serveScriptResult(tokenId, ratio){
   console.log("Running Puppeteer: "+tokenId);
@@ -446,7 +134,6 @@ async function serveScriptResult(tokenId, ratio){
           const width = Math.floor(ratio<=1?1200*ratio:1200);
           const height = Math.floor(ratio<=1?1200:1200/ratio);
           try {
-
             const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
             const page = await browser.newPage();
             await page.setViewport({
@@ -455,20 +142,18 @@ async function serveScriptResult(tokenId, ratio){
               deviceScaleFactor: 2,
             });
             if (testing){
-              await page.goto('http://localhost:1234/generator/'+tokenId);
+              await page.goto('http://localhost:2345/generator/'+tokenId);
             } else {
               url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
               await page.goto(url);
             }
-
             await timeout(500);
             const image = await page.screenshot();
             await browser.close();
 
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
-
-            const params1 = {
+          const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
                 Body: image
@@ -478,15 +163,11 @@ async function serveScriptResult(tokenId, ratio){
                 Key: tokenId+".png",
                 Body: resizedImage
             }
-
-            // Uploading files to the bucket
             s3.upload(params1, function(err, data) {
                 if (err) {
                     throw err;
                 }
                 console.log(`Full sized file uploaded successfully. ${data.Location}`);
-
-
             });
             s3.upload(params2, function(err, data) {
                 if (err) {
@@ -498,6 +179,7 @@ async function serveScriptResult(tokenId, ratio){
             return image;
           } catch (error) {
             console.log(tokenId+ '| this is the error: '+error);
+
           }
         }
       });
@@ -520,18 +202,18 @@ async function serveScriptResultRefresh(tokenId, ratio){
               deviceScaleFactor: 2,
             });
             if (testing){
-              await page.goto('http://localhost:1234/generator/'+tokenId);
+              await page.goto('http://localhost:2345/generator/'+tokenId);
             } else {
               url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
               await page.goto(url);
             }
-
             await timeout(500);
             const image = await page.screenshot();
             await browser.close();
 
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+
             const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
@@ -550,8 +232,6 @@ async function serveScriptResultRefresh(tokenId, ratio){
                     throw err;
                 }
                 console.log(`Full sized refreshed file uploaded successfully. ${data.Location}`);
-
-
             });
             s3.upload(params2, function(err, data) {
                 if (err) {
@@ -565,7 +245,94 @@ async function serveScriptResultRefresh(tokenId, ratio){
           }
 }
 
+/*
+async function renderThumbnail(tokenId, ratio){
+  const width = Math.floor(ratio<=1?1200*ratio:1200);
+  const height = Math.floor(ratio<=1?1200:1200/ratio);
+  var params = { Bucket: currentNetwork, Key: tokenId+".png"};
+  const fileSize= s3.headObject(params).promise()
+  .then((res) => {
+    if (res.ContentLength<5000000){
+      const data = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png"}).promise()
+      .then(result=>{
+        const imageResizer = Buffer.from(result.Body);
+        const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+        const params2 = {
+            Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+            Key: tokenId+".png",
+            Body: resizedImage
+        }
 
+        s3.upload(params2, function(err, data) {
+            if (err) {
+                throw err;
+            }
+            console.log(`Thumbnail uploaded successfully. ${data.Location}`);
+
+        });
+        return true;
+      })
+
+    } else {
+      const fileSize= s3.headObject(params).promise()
+      .then((res) => {
+        console.log("stream size:"+res.ContentLength);
+        if (res.ContentLength<5000000){
+          const data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png"}).createReadStream();
+          data.on('error', function(err) {
+            console.error(err);
+          });
+
+          console.log("Returning single stream");
+
+          response.writeHead(200,{'Content-Type': 'image/png'});
+          data.pipe(response);
+        } else {
+          let numStreams = Math.ceil(res.ContentLength/5000000);
+          let dataArray = [];
+          let range;
+          for (let s = 0; s<numStreams;s++){
+            if (s===0){
+              range = "bytes=0-5000000";
+            } else if (s===numStreams-1){
+              range = `bytes=${(s*5000000)+1}-${res.ContentLength}`;
+            } else {
+              range = `bytes=${(s*5000000)+1}-${(s*5000000)+5000000}`
+            }
+            let data = s3.getObject({ Bucket: currentNetwork, Key: request.params.tokenId+".png", Range: range }).createReadStream();
+            console.log(`Pushing stream ${s} to stream array.`);
+            dataArray.push(data);
+          }
+          var combinedStream = CombinedStream.create();
+          for (let t = 0; t<numStreams;t++){
+            combinedStream.append(dataArray[t]);
+          }
+          console.log("Returning combined streams");
+          response.writeHead(200,{'Content-Type': 'image/png'});
+          combinedStream.pipe(response);
+
+      const data1 = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png", Range: 'bytes=0-4000000' }).createReadStream();
+      const data2 = s3.getObject({ Bucket: currentNetwork, Key: tokenId+".png", Range: 'bytes=4000001-'+res.ContentLength }).createReadStream();
+      data1.on('error', function(err) {
+        // NoSuchKey: The specified key does not exist
+        console.log("error on stream part 1");
+        console.error(err);
+      });
+      data2.on('error', function(err) {
+        // NoSuchKey: The specified key does not exist
+        console.log("error on stream part 2");
+        console.error(err);
+      });
+      var combinedStream = CombinedStream.create();
+      combinedStream.append(data1);
+      combinedStream.append(data2);
+      console.log("Returning combined stream");
+      //combinedStream.pipe(response);
+    }
+  });
+
+}
+*/
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -717,6 +484,39 @@ function buildData(hashes, tokenId, type){
         ).promise();
         return data;
       }
+
+
+
+
+  app.get("/renderimages/:projectId/:refresh?",async (request, response)=>{
+    request.setTimeout(0)
+    const projectId=request.params.projectId;
+    console.log(projectId);
+    const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    console.log(tokensOfProject);
+    for (let i=0;i<tokensOfProject.length;i++){
+      if (request.params.refresh){
+        await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+
+    })
+
+      } else {
+        await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+    })
+
+      }
+
+
+
+
+  }
+response.send("Rendering script for Project: "+request.params.projectId);
+});
 
 
   function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.isEmpty=function(){return 0==a.length};this.enqueue=function(b){a.push(b)};this.dequeue=function(){if(0!=a.length){var c=a[b];2*++b>=a.length&&(a=a.slice(b),b=0);return c}};this.peek=function(){return 0<a.length?a[b]:void 0}};
