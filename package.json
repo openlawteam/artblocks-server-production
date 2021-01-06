@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/snowfro/artblocks-server-production#readme",
   "dependencies": {
+    "babel-eslint": "^10.1.0",
     "aws-sdk": "^2.809.0",
     "combined-stream": "^1.0.8",
     "cors": "^2.8.5",
@@ -33,5 +34,13 @@
   },
   "engines": {
     "node": "10.20.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.17.0",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-config-airbnb-base": "14.2.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "prettier": "^2.2.1"
   }
 }
