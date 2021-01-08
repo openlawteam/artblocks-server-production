@@ -467,15 +467,18 @@ async function serveScriptResult(tokenId, ratio){
 
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+            const optimizedImage = sharp(imageResizer).png({ adaptiveFiltering: true, quality: 80 });
 
             const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
-                Body: image
+                ContentType: "image/png",
+                Body: optimizedImage
             };
             const params2 = {
                 Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: resizedImage
             }
 
@@ -532,15 +535,19 @@ async function serveScriptResultRefresh(tokenId, ratio){
 
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+            const optimizedImage = sharp(imageResizer).png({ adaptiveFiltering: true, quality: 80 });
+            
             const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
-                Body: image
+                ContentType: "image/png",
+                Body: optimizedImage
             };
 
             const params2 = {
                 Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: resizedImage
             }
 
