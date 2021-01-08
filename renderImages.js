@@ -50,7 +50,7 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-const testing = true;
+const testing = false;
 
 let queue = new Queue();
 
@@ -142,7 +142,7 @@ async function serveScriptResult(tokenId, ratio){
               deviceScaleFactor: 2,
             });
             if (testing){
-              await page.goto('http://localhost:2345/generator/'+tokenId);
+              await page.goto('http://localhost:8080/generator/'+tokenId);
             } else {
               url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
               await page.goto(url);
@@ -202,7 +202,7 @@ async function serveScriptResultRefresh(tokenId, ratio){
               deviceScaleFactor: 2,
             });
             if (testing){
-              await page.goto('http://localhost:2345/generator/'+tokenId);
+              await page.goto('http://localhost:8080/generator/'+tokenId);
             } else {
               url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
               await page.goto(url);
@@ -244,6 +244,30 @@ async function serveScriptResultRefresh(tokenId, ratio){
             console.log(tokenId+ '| this is the error: '+error);
           }
 }
+
+app.get("/deletethumb/:tokenId", async (request,response)=>{
+
+  s3.deleteObject({
+    Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+    Key: request.params.tokenId+".png"
+  },function (err,data){
+    console.log(err);
+    response.end("Image deleted");
+  })
+
+})
+
+app.get("/deleteimage/:tokenId", async (request,response)=>{
+
+  s3.deleteObject({
+    Bucket: currentNetwork,
+    Key: request.params.tokenId+".png"
+  },function (err,data){
+    console.log(err);
+    response.end("Image deleted");
+  })
+
+})
 
 /*
 async function renderThumbnail(tokenId, ratio){
@@ -496,7 +520,7 @@ function buildData(hashes, tokenId, type){
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
     const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
     const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-    console.log(tokensOfProject);
+    //console.log(tokensOfProject);
     for (let i=0;i<tokensOfProject.length;i++){
       if (request.params.refresh){
         await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
@@ -510,11 +534,36 @@ function buildData(hashes, tokenId, type){
     })
 
       }
-
-
-
-
   }
+response.send("Rendering script for Project: "+request.params.projectId);
+});
+
+app.get("/renderimagerange/:projectId/:startId/:endId?",async (request, response)=>{
+  request.setTimeout(0)
+  const projectId=request.params.projectId;
+  console.log(projectId);
+  const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+  const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+  //console.log(tokensOfProject);
+  if (request.params.endId){
+    for (let i=request.params.startId;i<request.params.endId;i++){
+
+        await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+    })
+  }
+} else {
+  for (let i=request.params.startId;i<tokensOfProject.length;i++){
+
+      await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+      console.log("Puppeteer has run.");
+  })
+}
+}
+
+
 response.send("Rendering script for Project: "+request.params.projectId);
 });
 
