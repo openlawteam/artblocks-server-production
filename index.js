@@ -302,9 +302,14 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                 url = request.params.refresh?"http://localhost:1234/image/"+request.params.tokenId+"/refresh":"http://localhost:1234/image/"+request.params.tokenId;
               }
 
-                imgRequest.get(url).on("response", remoteRes => {
-              response.writeHead(200,{'Content-Type': 'image/png'});
-              }).pipe(response);
+              imgRequest.get(url)
+              .on("response", remoteRes => {
+                response.writeHead(200,{'Content-Type': 'image/png'});
+              })
+              .on("error", err => {
+                console.log("img req error", err);
+              })
+              .pipe(response);
 
            } else {
 
