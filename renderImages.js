@@ -49,7 +49,7 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "mainnet";
+const currentNetwork = "rinkeby";
 const testing = false;
 
 let queue = new Queue();
@@ -156,11 +156,13 @@ async function serveScriptResult(tokenId, ratio){
           const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: image
             };
             const params2 = {
                 Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: resizedImage
             }
             s3.upload(params1, function(err, data) {
@@ -190,8 +192,8 @@ async function serveScriptResultRefresh(tokenId, ratio){
           console.log("Running Puppeteer: "+tokenId);
 
           let url;
-          const width = Math.floor(ratio<=1?1200*ratio:1200);
-          const height = Math.floor(ratio<=1?1200:1200/ratio);
+          const width = Math.floor(ratio<=1?800*ratio:800);
+          const height = Math.floor(ratio<=1?800:800/ratio);
           try {
 
             const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
@@ -217,12 +219,14 @@ async function serveScriptResultRefresh(tokenId, ratio){
             const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: image
             };
 
             const params2 = {
                 Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
                 Key: tokenId+".png",
+                ContentType: "image/png",
                 Body: resizedImage
             }
 
@@ -510,7 +514,30 @@ function buildData(hashes, tokenId, type){
       }
 
 
+app.get("/uploadplaceholders/:projectId/:totalImages", async (request, response)=> {
+  const file = path.resolve(__dirname, "./src/rendering.png");
+  for (let i=0; i<request.params.totalImages; i++) {
+    let imgNumber = Number(request.params.projectId)*1000000+i ;
 
+    const params = {
+        Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+        Key: imgNumber +".png",
+        ContentType: "image/png",
+        Body: fs.readFileSync(file)
+    }
+    console.log(params);
+
+    // Uploading files to the bucket
+    s3.upload(params, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`Placeholder thumb uploaded. ${data.Location}`);
+    });
+  }
+
+
+});
 
   app.get("/renderimages/:projectId/:refresh?",async (request, response)=>{
     request.setTimeout(0)
@@ -558,6 +585,35 @@ app.get("/renderimagerange/:projectId/:startId/:endId?",async (request, response
   for (let i=request.params.startId;i<tokensOfProject.length;i++){
 
       await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
+      console.log("Puppeteer has run.");
+  })
+}
+}
+
+
+response.send("Rendering script for Project: "+request.params.projectId);
+});
+
+app.get("/renderimagerangerefresh/:projectId/:startId/:endId?",async (request, response)=>{
+  request.setTimeout(0)
+  const projectId=request.params.projectId;
+  console.log(projectId);
+  const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+  const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+  //console.log(tokensOfProject);
+  if (request.params.endId){
+    for (let i=request.params.startId;i<request.params.endId;i++){
+
+        await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+    })
+  }
+} else {
+  for (let i=request.params.startId;i<tokensOfProject.length;i++){
+
+      await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
       console.log("Puppeteer has run.");
   })
 }

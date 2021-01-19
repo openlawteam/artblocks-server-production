@@ -49,7 +49,7 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "rinkeby";
+const currentNetwork = "mainnet";
 const testing = false;
 
 let queue = new Queue();
@@ -536,7 +536,7 @@ async function serveScriptResultRefresh(tokenId, ratio){
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
             const optimizedImage = sharp(imageResizer).png({ adaptiveFiltering: true, quality: 80 });
-            
+
             const params1 = {
                 Bucket: currentNetwork,
                 Key: tokenId+".png",

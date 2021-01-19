@@ -161,7 +161,7 @@ app.get('/token/:tokenId', async(request,response)=>{
            "platform":"Art Blocks",
            "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
            "description":projectDetails.projectDescription.description,
-           "external_url": projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"generator/"+request.params.tokenId,
+           "external_url": projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"token/"+request.params.tokenId,
            "artist":projectDetails.projectDescription.artistName,
            "royaltyInfo":{
              "artistAddress":royalties.artistAddress,
@@ -290,11 +290,15 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                 console.log("didn't find it or hard refresh");
                 if (!testing){
                   if (currentNetwork === "mainnet"){
+                    url = request.params.refresh?"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId;
+                    /*
                     if (isEven(Number(request.params.tokenId))){
                       url = request.params.refresh?"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId;
-                    } else {
+                    }
+                    else {
                       url = request.params.refresh?"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId;
                     }
+                    */
                   } else {
                     url = request.params.refresh?"http://render-engine-rinkeby-1-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-rinkeby-1-11808.nodechef.com/image/"+request.params.tokenId;
                   }

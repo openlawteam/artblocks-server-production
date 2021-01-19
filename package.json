@@ -2,7 +2,7 @@
   "name": "Artblocks-Server",
   "version": "1.0.0",
   "description": "Serves script outputs for the Art Blocks smart contract.",
-  "main": "index.js",
+  "main": "renderer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
