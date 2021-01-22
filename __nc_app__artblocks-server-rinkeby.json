@@ -24,7 +24,7 @@
     "path": "/Users/erick/apps/artblocks-v2/server/README.md"
   },
   "__nc_app__artblocks-server.json": {
-    "mt": "Sat Jan 16 2021 01:24:12 GMT-0600 (Central Standard Time)",
+    "mt": "Tue Jan 19 2021 00:38:23 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-server.json"
@@ -90,7 +90,7 @@
     "path": "/Users/erick/apps/artblocks-v2/server/favicon.ico"
   },
   "index.js": {
-    "mt": "Mon Jan 18 2021 21:16:05 GMT-0600 (Central Standard Time)",
+    "mt": "Tue Jan 19 2021 00:42:14 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/index.js"
@@ -108,7 +108,7 @@
     "path": "/Users/erick/apps/artblocks-v2/server/package.json"
   },
   "plugins.js": {
-    "mt": "Mon Jan 18 2021 21:21:03 GMT-0600 (Central Standard Time)",
+    "mt": "Tue Jan 19 2021 00:37:05 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/plugins.js"

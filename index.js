@@ -28,6 +28,7 @@ var beautify = require('js-beautify').js;
 const imgRequest = require('request');
 const stream = require('stream');
 var CombinedStream = require('combined-stream');
+const plugins = require('./plugins.js');
 require('dotenv').config()
 
 
@@ -50,7 +51,7 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "rinkeby";
+const currentNetwork = "mainnet";
 const testing = false;
 
 var web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
@@ -156,12 +157,23 @@ app.get('/token/:tokenId', async(request,response)=>{
        let royalties = await getTokenRoyaltyInfo(request.params.tokenId);
 
 
+       let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes);
+
+       let featuresObj = features.map(x=>{
+         let obj = {};
+         obj["trait_type"]="feature";
+         obj["value"]=x;
+         return obj;
+       })
+
+       //console.log(JSON.stringify(featuresObj).join());
+
        response.json(
          {
            "platform":"Art Blocks",
            "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
-           "description":projectDetails.projectDescription.description,
-           "external_url": projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"token/"+request.params.tokenId,
+           "description":projectDetails.projectDescription.description+ " "+(features.length>0?"Additional project feature(s) => " + features.join(", "):""),
+           "external_url": (currentNetwork==="mainnet"?"https://www.artblocks.io/":"https://rinkeby.artblocks.io/")+"token/"+request.params.tokenId,
            "artist":projectDetails.projectDescription.artistName,
            "royaltyInfo":{
              "artistAddress":royalties.artistAddress,
@@ -173,7 +185,7 @@ app.get('/token/:tokenId', async(request,response)=>{
              {"trait_type":"Project",
              "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
            ],
-
+           "features":featuresObj,
            "website":projectDetails.projectDescription.artistWebsite,
            "is dynamic":projectDetails.projectDescription.dynamic,
            "script type":projectDetails.projectScriptInfo.scriptJSON.type,
