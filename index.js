@@ -202,7 +202,7 @@ app.get('/token/:tokenId', async(request,response)=>{
   }
 });
 
-app.get('/generator/:tokenId', async (request, response) => {
+app.get('/generator/:tokenId/:svg?', async (request, response) => {
   if (!Number.isInteger(Number(request.params.tokenId))){
     console.log("not integer");
     response.send('invalid request');
@@ -220,7 +220,7 @@ app.get('/generator/:tokenId', async (request, response) => {
 	    let data = buildData(tokenDetails.hashes, request.params.tokenId);
 
       if (projectDetails.projectScriptInfo.scriptJSON.type==='p5js'){
-        response.render('generator_p5js', { script: script, data: data})
+        response.render(request.params.svg==="svg"?'generator_p5js_svg':'generator_p5js', { script: script, data: data})
       } else if (projectDetails.projectScriptInfo.scriptJSON.type==='processing'){
         response.render('generator_processing', { script: script, data: data})
       } else if (projectDetails.projectScriptInfo.scriptJSON.type==='a-frame'){
