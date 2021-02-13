@@ -52,6 +52,8 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
+let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13]:[];
+//console.log(curatedProjects);
 const testing = false;
 
 var web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
@@ -158,13 +160,35 @@ app.get('/token/:tokenId', async(request,response)=>{
 
 
        let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes);
+       //console.log(features);
 
-       let featuresObj = features.map(x=>{
+       let featuresObj = features[0].map(x=>{
          let obj = {};
          obj["trait_type"]="feature";
          obj["value"]=x;
          return obj;
        })
+
+       let traitsArray = features[1].map(x=>{
+         let traitObj ={};
+         traitObj["trait_type"]=projectDetails.projectDescription.projectName;
+         traitObj["value"]=x;
+         return traitObj;
+       })
+       let firstObj = {};
+       firstObj["trait_type"]=projectDetails.projectDescription.projectName;
+       firstObj["value"]="All "+projectDetails.projectDescription.projectName+(projectDetails.projectDescription.projectName.slice(-1)==="s"?"":"s");
+       //console.log(firstObj);
+
+       if (traitsArray.length>0) {
+         traitsArray.splice(0,0,firstObj);
+       } else {
+         traitsArray = [firstObj];
+       }
+
+       //console.log(traitsArray);
+
+       //console.log(traitsArray);
 
        //console.log(JSON.stringify(featuresObj).join());
 
@@ -172,6 +196,7 @@ app.get('/token/:tokenId', async(request,response)=>{
          {
            "platform":"Art Blocks",
            "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
+           "curation_status": curatedProjects.includes(projectId)?"curated":"non-curated",
            "description":projectDetails.projectDescription.description+ " "+(features.length>0?"Additional project feature(s) => " + features.join(", "):""),
            "external_url": (currentNetwork==="mainnet"?"https://www.artblocks.io/":"https://rinkeby.artblocks.io/")+"token/"+request.params.tokenId,
            "artist":projectDetails.projectDescription.artistName,
@@ -181,10 +206,15 @@ app.get('/token/:tokenId', async(request,response)=>{
              "additionalPayeePercentage":royalties.additionalPayeePercentage,
              "royaltyFeeByID":royalties.royaltyFeeByID
            },
+           /*
            "traits":[
              {"trait_type":"Project",
              "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
            ],
+           */
+           "traits":traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
+           "value":"all"}],
+           "payout_address":"0x8E9398907d036e904ffF116132ff2Be459592277",
            "features":featuresObj,
            "website":projectDetails.projectDescription.artistWebsite,
            "is dynamic":projectDetails.projectDescription.dynamic,

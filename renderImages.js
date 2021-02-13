@@ -575,14 +575,14 @@ app.get("/renderimagerange/:projectId/:startId/:endId?",async (request, response
   const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
   //console.log(tokensOfProject);
   if (request.params.endId){
-    for (let i=request.params.startId;i<request.params.endId;i++){
+    for (let i=Number(request.params.startId);i<Number(request.params.endId);i++){
 
         await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
         console.log("Puppeteer has run.");
     })
   }
 } else {
-  for (let i=request.params.startId;i<tokensOfProject.length;i++){
+  for (let i=Number(request.params.startId);i<tokensOfProject.length;i++){
 
       await serveScriptResult(tokensOfProject[i], ratio).then(result=>{
       console.log("Puppeteer has run.");
@@ -604,14 +604,14 @@ app.get("/renderimagerangerefresh/:projectId/:startId/:endId?",async (request, r
   const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
   //console.log(tokensOfProject);
   if (request.params.endId){
-    for (let i=request.params.startId;i<request.params.endId;i++){
+    for (let i=Number(request.params.startId);i<Number(request.params.endId);i++){
 
         await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
         console.log("Puppeteer has run.");
     })
   }
 } else {
-  for (let i=request.params.startId;i<tokensOfProject.length;i++){
+  for (let i=Number(request.params.startId);i<tokensOfProject.length;i++){
 
       await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
       console.log("Puppeteer has run.");

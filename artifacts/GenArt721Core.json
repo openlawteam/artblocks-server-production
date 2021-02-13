@@ -1,7 +1,8 @@
 {
   "contractName": "GenArt721Core",
   "contractAddressMainnet":"0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
-  "contractAddressRinkeby":"0x0d86198A785D9Cabf3ce9A2032D6cf4a1Ec1235b",
+  "contractAddressRinkebyOld":"0x0d86198A785D9Cabf3ce9A2032D6cf4a1Ec1235b",
+  "contractAddressRinkeby":"0x152eeE3DCc5526efd646E9b45c9a9672BfFcc097",
   "abi": [
     {
       "inputs": [
