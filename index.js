@@ -52,7 +52,7 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13]:[];
+let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17]:[];
 //console.log(curatedProjects);
 const testing = false;
 
@@ -212,10 +212,11 @@ app.get('/token/:tokenId', async(request,response)=>{
              "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
            ],
            */
+           "collection-name":projectDetails.projectDescription.projectName,
            "traits":traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
            "value":"all"}],
            "payout_address":"0x8E9398907d036e904ffF116132ff2Be459592277",
-           "features":featuresObj,
+           "features":features[0], /*featuresObj,*/
            "website":projectDetails.projectDescription.artistWebsite,
            "is dynamic":projectDetails.projectDescription.dynamic,
            "script type":projectDetails.projectScriptInfo.scriptJSON.type,
