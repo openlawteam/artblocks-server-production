@@ -50,7 +50,7 @@ const cli = require('meow')(`
 })
 
 
-const apiBaseUrl = "https://opensea.io/assets/0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270/"
+const apiBaseUrl = "https://api.opensea.io/asset/0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270/"
 
 const isEven = (value) => {
 	if (value % 2 === 0) {
@@ -76,7 +76,7 @@ const run = async (flags) => {
   }
 
   for (let index = startTokenId; index <= endTokenId; index++) {
-    let url = new URL(path.join(`${index}?force_update=true`), apiBaseUrl).href
+    let url = new URL(path.join(`${index}/?force_update=true`), apiBaseUrl).href
     console.log(`Running force update for : ${url}`)
 
     const res = await axios.get(url)
