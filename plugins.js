@@ -230,9 +230,7 @@ exports.features = (projectId, tokenData) => {
             "Stroke: " + stk_color]
 
   featuresReduced = ["Palette: " + palette,
-            "Count: " + String(pie_count-1),
-            "Slices: " + (pie_number === 2 ? "Multi" : "Single"),
-            "Stroke: " + stk_color]
+            "Count: " + String(pie_count-1)]
 
   function rnd_outcome(input, values, outcome, fallback) {
     var zip = (a,b) => a.map((x,i) => [x,b[i]]);
@@ -359,6 +357,28 @@ exports.features = (projectId, tokenData) => {
       return [massstr, forcestr, symstr, turbstr, chaosstr, satstr, gradstr, prostr];
     }
 
+    function generate_artblocks_metadata2(formdata)
+    {
+      let meta_mass = evaluate(formdata.mass, true);
+      let meta_force = evaluate(formdata.force, true);
+      let meta_symmetry = evaluate(formdata.symmetry, true);
+      let meta_turbulence = evaluate(formdata.turbulence, true);
+      let meta_chaos = evaluate(formdata.chaos, true);
+
+      let prob = meta_mass.prob * meta_force.prob * meta_symmetry.prob * meta_turbulence.prob * meta_chaos.prob;
+
+      let massstr = "Mass: " + (formdata.mass * 100).toFixed(1) + "% ("+ meta_mass.desciption.toUpperCase() + ")";
+      let forcestr = "Force: " + (formdata.force * 100).toFixed(1) + "% ("+ meta_force.desciption.toUpperCase() + ")";
+      let symstr = "Symmetry: " + (formdata.symmetry * 100).toFixed(1) + "% ("+ meta_symmetry.desciption.toUpperCase() + ")";
+      let turbstr = "Turbulence: " + (formdata.turbulence * 100).toFixed(1) + "% ("+ meta_turbulence.desciption.toUpperCase() + ")";
+      let chaosstr = "Chaos: " + (formdata.chaos * 100).toFixed(1) + "% ("+ meta_chaos.desciption.toUpperCase() + ")";
+      let prostr = "Chance: 1 in " + Math.trunc((1.0/(prob)));
+      let satstr = "Saturation: " + (final_sat * 100).toFixed(1) + "%";
+      let gradstr = "Colour Set: " + gradlev;
+
+      return [gradstr];
+    }
+
     function lerp (start, end, amt)
     {
       return (1-amt)*start+amt*end;
@@ -467,6 +487,19 @@ exports.features = (projectId, tokenData) => {
 
       return ab_metadata;
     }
+
+    function init2(txn)
+    {
+      let hashdata    = process_hash(txn);
+      let formdata    = process_formdata(hashdata);
+      let renderdata  = generate_renderdata(formdata);
+
+      render(renderdata);
+
+      let ab_metadata = generate_artblocks_metadata2(formdata);
+
+      return ab_metadata;
+    }
     let sat;
 
     function render(rd)
@@ -497,6 +530,7 @@ exports.features = (projectId, tokenData) => {
     }
 
     features = init(tokenData);
+    featuresReduced = init2(tokenData);
   } else if (projectId===9){
 
     const ignitionFeatures = (hash) => {
@@ -1866,13 +1900,6 @@ console.log( features.join('\n') );
 
 featuresReduced = [
   "Palette:" + PALS_N[PAL_C],
-  "Components:" +
-    cat(
-      Ships.length,
-      [700, 500, 250, 100],
-      ["700+", "500-699", "250-499", "100-249"],
-      "0-99"
-    ),
   "State:" + cat(travelers.length, [1], ["Dynamic"], "Static"),
   "Ships:" +
     cat(
@@ -1977,95 +2004,88 @@ featuresReduced = [
             else if (projectId===16){
 
 
-                let hashPairs = [];
-                for (let i = 0; i < 32; i++) {
-                	let hex = tokenData.slice((2 * i) + 2, (2 * i) + 4);
-                	hashPairs[i] = parseInt(hex, 16);
-                }
-                let albers, rndcolor, blackcorner, tinted, hline, vline, circles = false;
-                let divs = [3, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 10, 10, 10, 12, 12, 12, 15, 15, 15, 20, 20, 20, 24, 24, 24, 30, 30, 30, 40, 40, 60, 60, 120];
-                let hdiv, vdiv;
-                hdiv = divs[Math.floor(hashPairs[0].map(0, 255, 0, divs.length - .0000000001))];
-                vdiv = divs[Math.floor(hashPairs[1].map(0, 255, 0, divs.length - .0000000001))];
+              let hashPairs = [];
+              for (let i = 0; i < 32; i++) {
+                let hex = tokenData.slice((2 * i) + 2, (2 * i) + 4);
+                hashPairs[i] = parseInt(hex, 16);
+              }
+              let albers, rndcolor, blackcorner, tinted, hline, vline, circles = false;
+              let divs = [3, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 10, 10, 10, 12, 12, 12, 15, 15, 15, 20, 20, 20, 24, 24, 24, 30, 30, 30, 40, 40, 60, 60, 120];
+              let hdiv, vdiv;
+              hdiv = divs[Math.floor(hashPairs[0].map(0, 255, 0, divs.length - .0000000001))];
+              vdiv = divs[Math.floor(hashPairs[1].map(0, 255, 0, divs.length - .0000000001))];
+              if (hdiv === 3 || hdiv === 4) {
+              vdiv = divs[Math.floor((hashPairs[1].map(0, 255, 8, divs.length - .0000000001)))];
+              }
+              if (vdiv === 3 || vdiv === 4) {
+              hdiv = divs[Math.floor((hashPairs[0].map(0, 255, 8, divs.length - .0000000001)))];
+              }
 
-
-                for (let i = 0; i < 61; i++) {
-                	let hexquad = tokenData.slice(i + 2, i + 6);
-                	if (hexquad === 'a1be' || hexquad === 'a1b3') {
-                		albers = true;
-                	}
+              for (let i = 0; i < 61; i++) {
+                let hexquad = tokenData.slice(i + 2, i + 6);
+                if (hexquad === 'a1be' || hexquad === 'a1b3') {
+                  albers = true;
                 }
-                if (albers) {
-                	//append(features, 'Albers')
-                  features.push('Albers');
-                  featuresReduced.push('Albers');
+              }
+              if (albers) {
+              features.push('Albers');
+              featuresReduced.push('Albers');
+              }
+              if (!albers) {
+              features.push([hdiv, vdiv].join(' x '));
+              }
+              if (hashPairs[14] > 250 && !albers) {
+                rndcolor = true;
+              features.push('Random');
+              featuresReduced.push('Random');
+              }
+              if (hashPairs[14] > 244 && !rndcolor && !albers) {
+              features.push('Complementary');
+              featuresReduced.push('Complementary');
+              }
+              if (hashPairs[15] > 248 && !rndcolor && !albers) {
+                blackcorner = true;
+              features.push('Black Corner');
+              featuresReduced.push('Black Corner');
+              }
+              if (hashPairs[15] > 225 && !blackcorner && !rndcolor && !albers) {
+                tinted = true;
+              features.push('Tinted');
+              featuresReduced.push('Tinted');
+              }
+              if (hashPairs[15] > 202 && !tinted && !blackcorner && !rndcolor && !albers) {
+              features.push('Saturated');
+              featuresReduced.push('Saturated');
+              }
+              if (hdiv === vdiv && !albers) {
+                if (hashPairs[29] > 127) {
+                  circles = true;
+                features.push('Circles');
+                featuresReduced.push('Circles');
                 }
-                if (hashPairs[14] > 250 && !albers) {
-                	rndcolor = true;
-                	//append(features, 'Random')
-                  features.push('Random');
-                  featuresReduced.push('Random');
-                }
-                if (hashPairs[14] > 244 && !rndcolor && !albers) {
-                	//complementary = true;
-                	//append(features, 'Complementary')
-                  features.push('Complementary');
-                  featuresReduced.push('Complementary');
-                }
-                if (hashPairs[15] > 248 && !rndcolor && !albers) {
-                	blackcorner = true;
-                	//append(features, 'Black Corner')
-                  features.push('Black Corner');
-                  featuresReduced.push('Black Corner');
-                }
-                if (hashPairs[15] > 225 && !blackcorner && !rndcolor && !albers) {
-                	tinted = true;
-                	//append(features, 'Tinted')
-                  features.push('Tinted');
-                  featuresReduced.push('Tinted');
-                }
-                if (hashPairs[15] > 202 && !tinted && !blackcorner && !rndcolor && !albers) {
-                	//saturated = true;
-                	//append(features, 'Saturated')
-                  features.push('Saturated');
-                  featuresReduced.push('Saturated');
-                }
-                if (hdiv === vdiv && !albers) {
-                	if (hashPairs[29] > 127) {
-                		circles = true;
-                		//append(features, 'Circles')
-                    features.push('Circles');
-                    featuresReduced.push('Circles');
-                	}
-                }
-                //let hline,vline;
-                if (hashPairs[30] > 191 && !circles) {
-                	hline = true;
-                }
-                if (hashPairs[31] > 191 && !circles) {
-                	vline = true;
-                }
-                if (!hline && !vline) {
-                	//append(features, 'Adjacent')
-                  features.push('Adjacent');
-                  featuresReduced.push('Adjacent');
-                }
-                if (hline && !vline) {
-                	//append(features, 'Horizontal Lines')
-                  features.push('Horizontal Lines');
-                  featuresReduced.push('Horizontal Lines');
-                }
-                if (vline && !hline) {
-                	//append(features, 'Vertical Lines')
-                  features.push('Vertical Lines');
-                  featuresReduced.push('Vertical Lines');
-                }
-                if (hline && vline) {
-                	//append(features, 'Grid Lines')
-                  features.push('Grid Lines');
-                  featuresReduced.push('Grid Lines');
-                }
-
+              }
+              if (hashPairs[30] > 191 && !circles) {
+                hline = true;
+              }
+              if (hashPairs[31] > 191 && !circles) {
+                vline = true;
+              }
+              if (!hline && !vline && !albers) {
+              features.push('Adjacent');
+              featuresReduced.push('Adjacent');
+              }
+              if (hline && !vline && !albers) {
+              features.push('Horizontal Lines');
+              featuresReduced.push('Horizontal Lines');
+              }
+              if (vline && !hline && !albers) {
+              features.push('Vertical Lines');
+              featuresReduced.push('Vertical Lines');
+              }
+              if (hline && vline && !albers) {
+              features.push('Grid Lines');
+              featuresReduced.push('Grid Lines');
+              }
               }
 
               ////////
@@ -2265,14 +2285,20 @@ if (rainbow && !sprite && !monochrome) {
   }
 }
 
-if (!rainbow && !monochrome && !sprite && (unhex(hashstring[45]) >= 8)) {
-  if (unhex(hashstring[7]) > 8) {
-    features.push("Color Accent: Light");
-    featuresReduced.push("Color Accent: Light");
-  } else {
-    features.push("Color Accent: Dark");
-    featuresReduced.push("Color Accent: Dark");
-  }
+if (!rainbow && !monochrome && !sprite){
+if (unhex(hashstring[45]) >= 12) {
+
+if (unhex(hashstring[7]) > 8 || unhex(hashstring[45])<12) {
+  features.push("Color Accent: Light");
+  featuresReduced.push("Color Accent: Light");
+} else {
+  features.push("Color Accent: Dark");
+  featuresReduced.push("Color Accent: Dark");
+}
+} else {
+  features.push("Color Accent: Dark");
+  featuresReduced.push("Color Accent: Dark");
+}
 }
 
 log_features = false
@@ -2328,6 +2354,856 @@ if (unhex(hashstring[30]) == 15) {
   }
 }
             }
+
+
+            ///////
+    else if (projectId===19){
+
+            const r3sonanceFeatures = (hash) => {
+            	const traits = {
+            		exec() {
+            			for (let traitName in this.setup) {
+            				const trait = this.setup[traitName];
+            				const p = (trait.prob || 100) / 100;
+            				if (random() <= p) {
+            					if ("case" in trait) {
+            						let totalWeight = 0;
+            						for (let straitName in trait.case)
+            							totalWeight += trait.case[straitName].weight;
+            						let w = 0;
+            						const r = random() * totalWeight;
+            						for (let straitName in trait.case) {
+            							const strait = trait.case[straitName];
+            							w += strait.weight;
+            							if (r <= w) {
+            								const result =
+            									typeof strait.value === "function"
+            										? strait.value()
+            										: strait.value === undefined
+            										? straitName
+            										: strait.value;
+            								if (result !== null) {
+            									this[traitName] = {
+            										value: result,
+            										prob: p * (strait.weight / totalWeight) * 100,
+            										desc: straitName
+            									};
+            									this[traitName][straitName] = true;
+            								}
+            								break;
+            							}
+            						}
+            					} else {
+            						const result =
+            							typeof trait.value === "function" ? trait.value() : trait.value;
+            						this[traitName] = {
+            							value: result,
+            							prob: trait.prob,
+            							desc: trait.desc || ""
+            						};
+            					}
+            				}
+            			}
+            		},
+            		log() {
+            			const f = [];
+            			for (let t in this) {
+            				if (t === "setup" || typeof this[t] === "function") continue;
+            				let d = this[t].desc || "";
+            				let v = this[t].value || this[t];
+            				if (typeof v === "object" || d !== "") v = "";
+            				let line = `${t}: ${d} ${v}`.replace("  ", " ");
+            				f.push(line);
+            			}
+            			return f;
+            		}
+            	};
+            	const RandomGenerator = function (s) {
+            		let seedA = s;
+            		return function () {
+            			seedA ^= seedA << 13;
+            			seedA ^= seedA >> 17;
+            			seedA ^= seedA << 5;
+            			return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+            		};
+            	};
+            	const random = RandomGenerator(
+            		parseInt(hash.slice(2, 18), 16)
+            	);
+            	random();
+            	const randint = (s, e = 0) => {
+            		if (e === 0) {
+            			e = s;
+            			s = 0;
+            		}
+            		return Math.floor(s + random() * (e - s + 1));
+            	};
+            	const randpos = (a) => {
+            		return a[Math.floor(random() * a.length)];
+            	};
+            	traits.setup = {
+            		color: {
+            			case: {
+            				monochromatic: { weight: 1, value: 0 },
+            				red: { weight: 1, value: 0 },
+            				orangeRed: { weight: 1, value: 15 },
+            				orange: { weight: 1, value: 30 },
+            				amber: { weight: 1, value: 45 },
+            				freeSpeechGreen: { weight: 1, value: 135 },
+            				aqua: { weight: 1, value: 180 },
+            				deepSkyBlue: { weight: 1, value: 195 },
+            				dodgerBlue: { weight: 1, value: 210 },
+            				blue: { weight: 1, value: 225 },
+            				hanPurple: { weight: 1, value: 255 },
+            				torchRed: { weight: 1, value: 345 }
+            			}
+            		},
+            		colorShift: {
+            			case: {
+            				complementary: { weight: 2, value() {
+            					if(traits.color.monochromatic) return null;
+            					return 180;
+            				}},
+            				monochromatic: { weight: 1, value() {
+            					if(traits.color.monochromatic) return null;
+            					return 0;
+            				}}
+            			}
+            		},
+            		type: {
+            			case: {
+            				alpha: {
+            					weight: 60,
+            					value:true
+            				},
+            				beta: {
+            					weight: 10,
+            					value:true
+            				},
+            				gamma: {
+            					weight: 10,
+            					value:true
+            				},
+            				delta: {
+            					weight: 10,
+            					value:true
+            				},
+            				omega: {
+            					weight: 10,
+            					value:true
+            				}
+            			}
+            		},
+            		degen: {
+            			prob: 1,
+            			value: true
+            		},
+            		panels: {
+            			case: {
+            				unfolded: { weight: 95, value: 0 },
+            				expanded: { weight: 5, value: 1 }
+            			}
+            		},
+            		operation: {
+            			case: {
+            				nominal: { weight: 99, value: true },
+            				disaggregated: { weight: 1, value: true }
+            			}
+            		},
+            		background: {
+            			case: {
+            				day: { weight: 30, value: 1 },
+            				night: { weight: 70, value: 1 }
+            			}
+            		}
+            	};
+            	traits.exec();
+            	return traits.log();
+            };
+
+
+            /////////////////////////////////////////////////////////////////////
+
+
+            features = r3sonanceFeatures(tokenData);
+            featuresReduced = r3sonanceFeatures(tokenData);
+            console.log(features)
+          }
+
+
+
+            ///////
+
+            else if (projectId===20){
+              let seed = parseInt(tokenData.slice(0, 16), 16);
+
+              rnd_bet(0.1, 0.9);
+              Math.floor(rnd_bet(1, 9999999999));
+
+              var BGL = "#EEEEEE";
+              var BGD = "#08090A";
+              PALS = [
+               ["#1B064C", "#F72585", "#B5179E", "#7209B7", "#4361EE", "#4361EE", "#4895EF", "#4CC9F0"],
+               [BGL, "#FF0000", "#00A08A", "#F2AD00", "#F98400", "#5BBCD6"],
+               [BGL, "#85D4E3", "#F4B5BD", "#CDC08C", "#FAD77B"],
+               [BGL, "#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4"],
+               [BGL, "#E92EFB", "#FF2079", "#440BD4", "#04005E"],
+               [BGL, "#B0305C", "#EB564B", "#73275C"],
+               [BGL, "#FF2E63", "#FF9D9D", "#FFC2C2"],
+               [BGL, "#363636", "#E8175D"],
+               [BGL, "#132743", "#EDC988"],
+               [BGD, "#08F7FE", "#09FBD3", "#FE53BB", "#F5D300"],
+               [BGD, "#FF184C", "#FF184C", "#0A9CF5"],
+               [BGD, "#FFFFEB", "#C2C2D1"],
+               [BGD, "#283149", "#A7FF83"],
+               [BGD, "#544F63", "#F2D2EC"]
+              ];
+
+              var PN = rnd_cho([0,1,2,3,4,5,6,7,8,9,10,11,12,13]);
+              var P = PALS[PN];
+              PAL = P.slice(1);
+              rnd_cho(PAL);
+              var CURSOR = rnd_cho(["Cross", "Flat", "Bar"]);
+
+              function rnd_dec() {
+                seed ^= seed << 13;
+                seed ^= seed >> 17;
+                seed ^= seed << 5;
+                return (((seed < 0) ? ~seed + 1 : seed) % 1000) / 1000;
+              }
+              function rnd_bet(a, b) {
+                return a+(b-a)*rnd_dec();
+              }
+              function rnd_cho(z) {
+                return z[Math.floor(rnd_bet(0, z.length*0.99))];
+              }
+
+              let PLS = ["Royalty",
+              "Moonrise",
+              "Fairy",
+              "Budapest",
+              "Punk",
+              "Rushmore",
+              "Peach",
+              "Invaders",
+              "Knight",
+              "Neon",
+              "Bleed",
+              "Frost",
+              "Dearth",
+              "Aspen"]
+
+              let BGS = ["Royal",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Silver",
+              "Night",
+              "Night",
+              "Night",
+              "Night",
+              "Night"]
+
+              features = ["Palette:"+PLS[PN],
+              "Colors:"+(PALS[PN].length-1),
+              "Background:"+BGS[PN],
+              "Cursor:"+CURSOR]
+              featuresReduced = ["Palette:"+PLS[PN]]
+
+              console.log(features)
+
+            }
+
+
+            ///////
+
+            else if (projectId===22){
+              let rawParams = setupParametersFromTokenData(tokenData)
+            // we may need to rename?
+            generateSeedFromTokenData(tokenData)
+
+            //console.log(seed);
+
+            let pc = "Bright White"
+
+            let paperColors = [
+              "Pink","Canary","Orchid","Pastel Green","Pastel Blue","Ivory","Tan","Warm White",
+              pc, pc, pc, pc, pc, pc, pc, pc, pc, pc, pc, pc, pc, pc
+            ]
+
+            let bg = pickX(rawParams[0], paperColors)
+
+            let rings = Math.floor(mapParam(rawParams[1], 5, 12)) - 1
+
+            let smallRings = (rings <= 5)
+
+            let palette = pickX(rawParams[7],['Shimmering', 'Riso', 'Chill', 'Flamingo', 'Golden', 'Flourescent', 'Rainbow'])
+
+            let b = "Bottom",t = "Top",r = "Right",l ="Left"
+            let n = "Normal", s = "Slow", c = "Crawl", q = "Quick", f="Fast"
+
+            features.push("Background: "+bg)
+            features.push("View: " + (rawParams[10] >= 32 ? "Normal" : "Close-up"))
+            features.push("Rings: " + (rings-1) )
+            features.push("Position: "+pickX(rawParams[2], [b+" "+l, l, t+" "+l, b, t, b+" "+r, r, t+" "+r]))
+            features.push("Speed: " + pickX(rawParams[4], [s, n, n, n, c, n, n, q, f]))
+            features.push("Wall: "+ (smallRings ? (rawParams[5] < 127 ? "Chunky" : "Slim"): "Slim"))
+            features.push("Vibe: "+ (rawParams[6] >= 64 ? "Smooth": "Rigid"))
+            features.push("Palette: "+palette)
+            features.push("Amplitude: " + pickX(rawParams[8], ["Less", "Normal", "Extra"]))
+            features.push("Shape: "+ (rawParams[9] < 20 ? "Hexagon" : "Ring"))
+
+            featuresReduced.push("Background: "+bg)
+            featuresReduced.push("View: " + (rawParams[10] >= 32 ? "Normal" : "Close-up"))
+            featuresReduced.push("Rings: " + (rings-1) )
+            featuresReduced.push("Position: "+pickX(rawParams[2], [b+" "+l, l, t+" "+l, b, t, b+" "+r, r, t+" "+r]))
+            featuresReduced.push("Speed: " + pickX(rawParams[4], [s, n, n, n, c, n, n, q, f]))
+            featuresReduced.push("Wall: "+ (smallRings ? (rawParams[5] < 127 ? "Chunky" : "Slim"): "Slim"))
+            featuresReduced.push("Vibe: "+ (rawParams[6] >= 64 ? "Smooth": "Rigid"))
+            featuresReduced.push("Palette: "+palette)
+            featuresReduced.push("Amplitude: " + pickX(rawParams[8], ["Less", "Normal", "Extra"]))
+            featuresReduced.push("Shape: "+ (rawParams[9] < 20 ? "Hexagon" : "Ring"))
+
+            function setupParametersFromTokenData(tokenData) {
+              let hashPairs = []
+              //parse hash
+              for (let j = 0; j < 32; j++) {
+                hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)))
+              }
+              // map to 0-255
+              return hashPairs.map(x => {
+                return parseInt(x, 16)
+              })
+            }
+
+            function generateSeedFromTokenData(tokenData) {
+              return parseInt(tokenData.slice(0, 16), 16)
+            }
+
+            function pickX(n, ar) {
+              return ar[Math.max(0, Math.floor((n/255) * ar.length - 0.000001))]
+            }
+
+            function map(n, s1, st1, s2, st2) {
+              return ((n-s1)/(st1-s1))*(st2-s2)+s2
+            }
+
+            function mapParam(n, s, st) {
+              return map(n, 0, 255, s, st)
+            }
+            }
+
+
+
+            //////
+
+            else if (projectId===21){
+              setMetadata(tokenData)
+
+  function setMetadata(hash){
+
+      const seed = parseInt(hash.substr(-7),16)
+      const colorSeed = seed & 0xfff
+      const segmentSeed = (seed & 0x7f000) >> 12
+      const rSeed = ((seed >> 19) & 0xff) === 1 ? 5 : ((seed >> 19) & 0xf) === 1 ? 3 : 4
+      const res = rSeed === 5 ? 'LoRes 32x32' : rSeed === 3 ? 'HiRes 8x8' : 'VGA 16x16'
+
+      let glyph = 'Glitch'
+      switch(segmentSeed){
+          case 0x0:
+              glyph = 'Ghost'
+              break
+
+          case 0x3f: // A
+          case 0x7a: // b
+          case 0x53: // C
+          case 0x7c: // d
+          case 0x5b: // E
+          case 0x1b: // F
+          case 0x3a: // h
+          case 0x74: // J
+          case 0x52: // L
+          case 0x38: // n
+          case 0x1f: // P
+          case 0x76: // U
+          case 0x3e: // X
+          case 0x6e: // y
+              glyph = 'Alphabetic'
+              break
+
+          case 0x5d: // 2
+          case 0x6d: // 3
+          case 0x2e: // 4
+          case 0x7b: // 6
+          case 0x25: // 7
+          case 0x6f: // 9
+          case 0x36: // 11
+              glyph = 'Numeric'
+              break
+
+          case 0x12: // I, l, 1
+          case 0x24: // I, l, 1
+          case 0x77: // O,0
+          case 0x6b: // S,5
+              glyph = 'Alphanumeric'
+              break
+
+          case 0x7f:
+              glyph = 'Lucky 8'
+              break
+
+          case 0x46:
+              glyph = 'OTTO'
+              break
+
+      }
+
+      let pattern = 'Mix'
+      let p1 = colorSeed & 0x7
+      let p2 = (colorSeed & (0x7<<3)) >> 3
+      let p3 = (colorSeed & (0x7<<6)) >> 6
+      let p4 = (colorSeed & (0x7<<9)) >> 9
+
+      let black_white = 0
+
+      if(
+          p1 === 0 &&
+          p2 === 0 &&
+          p3 === 0 &&
+          p4 === 0
+      ){
+          if(segmentSeed === 0){
+              pattern = 'Blackout'
+          }else{
+              pattern = 'Binary'
+          }
+      }else if(
+          p1 === 7 &&
+          p2 === 7 &&
+          p3 === 7 &&
+          p4 === 7
+      ){
+          pattern = 'Whiteout'
+      }else if(
+          p1 === p2 &&
+          p2 === p3 &&
+          p3 === p4
+      ){
+          pattern = 'Solid'
+      }else
+      if(
+          (p1 === 0 || p1 === 7) &&
+          (p2 === 0 || p2 === 7) &&
+          (p3 === 0 || p3 === 7) &&
+          (p4 === 0 || p4 === 7)
+      ){
+          // Black & White
+          black_white = 1
+      }
+
+      if(
+          p1 === p3 &&
+          p2 === p4 &&
+          p1 !== p2
+      ){
+          pattern = 'Bars'
+      }
+
+      if(
+          p1 === p2 &&
+          p3 === p4 &&
+          p1 !== p3
+      ){
+          if(p1 === 0 || p3 === 0){
+              pattern = 'Scanlines'
+          }else{
+              pattern = 'Stripes'
+          }
+      }
+
+      if(
+          p1 === p4 &&
+          p2 === p3 &&
+          p1 !== p2
+      ){
+          pattern = 'Checkerboard'
+      }
+
+      if(
+          ( p1 === p2 && p1 === p3 && p1 !== p4 ) ||
+          ( p1 !== p2 && p1 === p3 && p1 === p4 ) ||
+          ( p1 === p2 && p1 !== p3 && p1 === p4 ) ||
+          ( p1 !== p2 && p2 === p3 && p2 === p4 )
+
+      ){
+          pattern = 'Pointillist'
+      }
+
+      switch(colorSeed){
+          case (7<<9)+(3<<6)+(6<<3)+2:
+          case (7<<9)+(6<<6)+(3<<3)+2:
+          case (3<<9)+(7<<6)+(2<<3)+6:
+          case (3<<9)+(2<<6)+(7<<3)+6:
+          case (6<<9)+(7<<6)+(2<<3)+3:
+          case (6<<9)+(2<<6)+(7<<3)+3:
+          case (2<<9)+(6<<6)+(3<<3)+7:
+          case (2<<9)+(3<<6)+(6<<3)+7:
+              pattern = 'Highlighter'
+          break
+      }
+
+      features.push(`Glyph: ${glyph}`)
+      featuresReduced.push(`Glyph: ${glyph}`)
+      features.push(`Resolution: ${res}`)
+      featuresReduced.push(`Resolution: ${res}`)
+      features.push(`Pattern: ${pattern}`)
+      featuresReduced.push(`Pattern: ${pattern}`)
+      features.push(`Black & White: ${black_white ? 'Yes' : 'No'}`)
+      featuresReduced.push(`Black & White: ${black_white ? 'Yes' : 'No'}`)
+  }
+            }
+            ///////
+
+            else if (projectId===23){
+
+              let seed = generateSeedFromTokenData(tokenData);
+
+const rng = rnd;
+
+const layout = 'Layout: ' + w_pick(['Chaos', 'Balance', 'Order'], [1, 4, 2]);
+
+const shade =
+  'Shading: ' +
+  w_pick(['Noon', 'Morning', 'Evening', 'Bright', 'Bright Morning', 'Bright Evening'], [5, 1, 1, 0.5, 1, 1]);
+
+const is_bright = shade.includes('Bright');
+const scene = 'Scene : ' + (is_bright && rng() < 0.25 ? (rng() < 0.25 ? 'Cube' : 'Corner') : 'Flat');
+const colorStrat = 'Coloring strategy: ' + w_pick(['Group', 'Main', 'Single', 'Random'], [4, 2, 1, 2]);
+const palette = 'Palette: ' + get_palette();
+
+const framed = 'Framed: ' + (rng() < 0.95 ? 'Yep' : 'Nope!');
+
+features.push(layout, shade, scene, colorStrat, palette, framed);
+featuresReduced.push(layout, shade, scene, colorStrat, palette, framed);
+
+// -----
+
+function rnd() {
+  seed ^= seed << 13;
+  seed ^= seed >> 17;
+  seed ^= seed << 5;
+
+  const n = ((seed < 0 ? ~seed + 1 : seed) % 100000) / 100000;
+  return n === 0 || n === 1 ? 0.5 : n;
+}
+
+function range(min, max) {
+  if (max === undefined) {
+    max = min;
+    min = 0;
+  }
+
+  return rng() * (max - min) + min;
+}
+
+function rangeFloor(min, max) {
+  return Math.floor(range(min, max));
+}
+
+function pick(array) {
+  if (array.length === 0) return undefined;
+  return array[rangeFloor(0, array.length)];
+}
+
+function w_pick(arr, warr) {
+  const agg = warr.reduce((a, c) => [...a, a[a.length - 1] + c], [0]);
+  const t = range(agg[agg.length - 1]);
+  const i = agg.findIndex((el) => el > t) - 1;
+  return arr[i];
+}
+
+function generateSeedFromTokenData(tokenData) {
+  return parseInt(tokenData.slice(0, 16), 16);
+}
+
+function get_palette() {
+  const palettes = [
+    ['Shelter', 0.5],
+    ['Verena', 2],
+    ['Punk', 1],
+    ['Sprague', 1],
+    ['Revolucion', 2],
+    ['Miradors', 0.2],
+    ['Hurdles', 0.5],
+    ['Romeo', 1],
+    ['Rosewood', 1],
+    ['Mysore', 2],
+    ['Bangalore', 1],
+    ['Ducci', 0.2],
+    ['Mural', 1],
+    ['Docks', 1],
+    ['Mono', 0.2],
+    ['Tropico', 1],
+    ['Jolly', 1],
+    ['Arcade', 1],
+    ['Cold Duo', 1],
+    ['Warm Duo', 1],
+    ['Golden Duo', 0.2],
+    ['Hotshot', 3],
+    ['Hotspot', 3],
+    ['Honeypot', 1],
+    ['Main Course', 1],
+    ['Mantis', 1],
+    ['Delphi', 1],
+    ['Nowak', 1],
+    ['Cherfi', 1],
+    ['Alpha Dog', 0.5],
+    ['Spider King', 0.1],
+    ['Atlas', 3],
+    ['Giftcard', 2],
+    ['Paddle', 1],
+    ['Nightlife', 1],
+    ['Slapdash', 1],
+    ['Truce', 1],
+    ['Yellow Spider', 2],
+    ['Blue Spider', 2],
+    ['Red Spider', 2],
+    ['Green Spider', 2],
+    ['Pink Spider', 2],
+  ];
+
+  return w_pick(
+    palettes.map((a) => a[0]),
+    palettes.map((a) => a[1])
+  );
+}
+
+            }
+
+
+            //////
+
+            else if (projectId===24){
+
+                let o = getMetadata(tokenData)
+                features.push(`Tint: ${o.tint}`)
+                featuresReduced.push(`Tint: ${o.tint}`)
+                features.push(`Infused: ${o.infused}`)
+                featuresReduced.push(`Infused: ${o.infused}`)
+
+                function getMetadata(hash){
+
+                    let rand_01 = parseInt(hash.substr(-1,1),16)
+                    let infused = rand_01 > 0 ? false : true
+                    let hueVariation = infused ? 360 : 60
+                    let rand_02 = parseInt(hash.substr(-3,2),16)/256
+                    let hue = 204 + parseInt(rand_02*hueVariation-hueVariation/2)
+
+                    let tint = hue < 36 ? 'Fire' : ''
+                    tint = hue >= 36 && hue <= 63 ? 'Goldenrod' : tint
+                    tint = hue >= 64 && hue <= 133 ? 'Electric' : tint
+                    tint = hue === 73 ? 'Emerald Dragon' : tint
+                    tint = hue >= 134 && hue <= 171 ? 'Froggy' : tint
+                    tint = hue >= 172 && hue <= 181 ? 'Turquoise' : tint
+                    tint = hue >= 182 && hue <= 191 ? 'Sky' : tint
+                    tint = hue >= 192 && hue <= 211 ? 'Cobalt' : tint
+                    tint = hue >= 212 && hue <= 255 ? 'Royal' : tint
+                    tint = hue >= 256 && hue <= 281 ? 'Regal' : tint
+                    tint = hue >= 282 && hue <= 323 ? 'Neon' : tint
+                    tint = hue >= 324 && hue <= 333 ? 'Sexbomb' : tint
+                    tint = hue > 333 ? 'Lipstick' : tint
+
+                    let o = {
+                        tint: tint,
+                        infused: infused ? 'Yes' : 'No',
+                    }
+                    return o
+                }
+            }
+
+/////////
+
+else if (projectId===26){
+  let hashPairs = [];
+
+      for (let j = 0; j < 32; j++) {
+         hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+      }
+
+      let decPairs = hashPairs.map(x => {
+           return parseInt(x, 16);
+      });
+
+      let motionStates = ["Zen",
+      "Flow",
+      "Turbulent"
+      ];
+
+      let ranSpeed = Math.round(decPairs[1].map( 0, 255, 1, 3));
+      let speed = 0;
+      if(ranSpeed == 1){
+        speed = 0;
+      }
+      if(ranSpeed == 2){
+        speed = 1;
+      }
+      if(ranSpeed == 3){
+        speed = 2;
+      }
+
+      var speedVar = motionStates[speed];
+
+      let delayMode = ["TheNow",
+      "Slacker",
+      "TimeBlurb"
+      ];
+
+        let ranDelay = Math.round(decPairs[0].map(0, 255, 1, 3));
+        let delay = 0;
+        if(ranDelay == 1){
+          delay =0;
+        }
+        if(ranDelay == 2){
+          delay =1;
+        }
+        if(ranDelay == 3){
+          delay =2;
+        }
+
+        var delayM = delayMode[delay];
+
+
+      let dimensionalBalance = ["Balanced",
+      "Unstable"
+      ];
+
+      let ranDim = Math.round(decPairs[3].map( 0, 255, 0, 1));
+      let dimB = 0;
+     if(ranDim == 0){
+        dimB = 0;
+     }
+     if(ranDim == 1){
+        dimB = 1;
+     }
+
+      var dimBalance = dimensionalBalance[dimB];
+
+       let colorBase = decPairs[2];
+
+      features = ["MotionState: " + speedVar,
+              "DelayMode: " + delayM,
+              "DimensionalBalance: " + dimBalance,
+              "ColorBase(0-255): " + String(colorBase)
+            ]
+            featuresReduced = ["MotionState: " + speedVar,
+                    "DelayMode: " + delayM,
+                    "DimensionalBalance: " + dimBalance
+                  ]
+          }
+/////
+
+else if (projectId===25){
+
+  let hashPairs = [];
+
+for (let j = 0; j < 32; j++) {
+    hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+}
+
+let decPairs = hashPairs.map(x => {
+    return parseInt(x, 16);
+});
+
+let ranGrid = decPairs[0].map(0, 255, 0, 100);
+let gridSize
+if (ranGrid <= 33) {
+    gridSize = "small"
+} else if (ranGrid > 33 && ranGrid <= 69) {
+    gridSize = "medium"
+} else if (ranGrid < 69 && ranGrid <= 84) {
+    gridSize = "large"
+} else {
+    gridSize = "large"
+}
+
+
+let ranPalette = decPairs[1].map(0, 255, 1, 100)
+let palette
+if (ranPalette <= 8) {
+    palette = "Light Palette"
+} else if (ranPalette > 8 && ranPalette <= 16) {
+    palette = "Dark Palette"
+} else if (ranPalette > 16 && ranPalette <= 20) {
+    palette = "Emerald Palette"
+} else if (ranPalette > 20 && ranPalette <= 25) {
+    palette = "Cream Palette"
+} else if (ranPalette > 25 && ranPalette <= 30) {
+    palette = "Sky Palette"
+} else if (ranPalette > 30 && ranPalette <= 35) {
+    palette = "Rose Palette"
+} else if (ranPalette > 35 && ranPalette <= 40) {
+    palette = "Overcast Palette"
+} else if (ranPalette > 40 && ranPalette <= 45) {
+    palette = "Steel Palette"
+} else if (ranPalette > 45 && ranPalette <= 50) {
+    palette = "Jasmine Palette"
+} else if (ranPalette > 50 && ranPalette <= 52) {
+    palette = "Terminal Palette"
+} else if (ranPalette > 52 && ranPalette <= 57) {
+    palette = "Bubblegum Palette"
+} else if (ranPalette > 57 && ranPalette <= 62) {
+    palette = "Neon Palette"
+} else if (ranPalette > 62 && ranPalette <= 67) {
+    palette = "Ice Palette"
+} else if (ranPalette > 67 && ranPalette <= 72) {
+    palette = "Forest Palette"
+} else if (ranPalette > 72 && ranPalette <= 76) {
+    palette = "Adobe Palette"
+} else if (ranPalette > 76 && ranPalette <= 82) {
+    palette = "Muted Violet Palette"
+} else if (ranPalette > 82 && ranPalette <= 85) {
+    palette = "Terminal Blue Palette"
+} else if (ranPalette > 85 && ranPalette <= 90) {
+    palette = "Unicorn Palette"
+} else if (ranPalette > 90 && ranPalette <= 95) {
+    palette = "Dusted Orange Palette"
+} else {
+    palette = "Bumblebee Palette"
+}
+
+
+
+/* In Pathfinders.js I use my own mapRange function because these variables are declared outside of p5. Like so:
+function mapRange(value, a, b, c, d) {
+    value = (value - a) / (b - a);
+    return c + value * (d - c);
+}
+let featurePrimaryBrushStroke = Math.floor(mapRange(decPairs[15], 0, 255, 0, 9))
+let featureSecondaryBrushStroke = Math.floor(mapRange(decPairs[16], 0, 255, 0, 3))
+//Is your math going to be the same as mine?
+*/
+
+let primaryBrushVariant = Math.floor(decPairs[15].map(0, 255, 0, 9))
+let secondaryBrushVariant = Math.floor(decPairs[16].map(0, 255, 0, 3))
+
+features = ["Start Screen Grid Size: " + gridSize,
+    "Color Palette: " + palette,
+    "Primary Brush Variant: " + primaryBrushVariant,
+    "Secondary Brush Variant:  " + secondaryBrushVariant
+]
+featuresReduced = ["Start Screen Grid Size: " + gridSize,
+    "Color Palette: " + palette,
+    "Primary Brush Variant: " + primaryBrushVariant,
+    "Secondary Brush Variant:  " + secondaryBrushVariant
+]
+}
+
+
+
 
 
 

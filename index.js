@@ -52,7 +52,8 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17]:[];
+let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23]:[];
+let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26]:[];
 //console.log(curatedProjects);
 const testing = false;
 
@@ -194,9 +195,10 @@ app.get('/token/:tokenId', async(request,response)=>{
 
        response.json(
          {
-           "platform":"Art Blocks",
+           "platform":"Art Blocks"+(curatedProjects.includes(projectId)?" Curated":playgroundProjects.includes(projectId)?" Playground":" Factory"),
            "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
-           "curation_status": curatedProjects.includes(projectId)?"curated":"non-curated",
+           "curation_status": curatedProjects.includes(projectId)?"curated":playgroundProjects.includes(projectId)?"playground":"factory",
+           "series": curatedProjects.includes(projectId)?(projectId<8?"1":"2"):"N/A",
            "description":projectDetails.projectDescription.description+ " "+(features.length>0?"Additional project feature(s) => " + features.join(", "):""),
            "external_url": (currentNetwork==="mainnet"?"https://www.artblocks.io/":"https://rinkeby.artblocks.io/")+"token/"+request.params.tokenId,
            "artist":projectDetails.projectDescription.artistName,
@@ -212,7 +214,7 @@ app.get('/token/:tokenId', async(request,response)=>{
              "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
            ],
            */
-           "collection-name":projectDetails.projectDescription.projectName,
+           "collection_name":projectDetails.projectDescription.projectName + " by " + projectDetails.projectDescription.artistName,
            "traits":traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
            "value":"all"}],
            "payout_address":"0x8E9398907d036e904ffF116132ff2Be459592277",
@@ -238,7 +240,7 @@ app.get('/generator/:tokenId/:svg?', async (request, response) => {
     console.log("not integer");
     response.send('invalid request');
   } else {
-    const projectId = await getProjectId(request.params.tokenId);
+    const projectId = await getProjectId(Number(request.params.tokenId));
     const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log("exists? "+exists);

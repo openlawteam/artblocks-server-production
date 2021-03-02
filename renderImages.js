@@ -84,7 +84,7 @@ app.get('/generator/:tokenId', async (request, response) => {
     console.log("not integer");
     response.send('invalid request');
   } else {
-    const projectId = await getProjectId(request.params.tokenId);
+    const projectId = await getProjectId(Number(request.params.tokenId));
     const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
     const exists = tokensOfProject.includes(request.params.tokenId);
 
@@ -188,7 +188,135 @@ async function serveScriptResult(tokenId, ratio){
 
 }
 
+async function serveScriptResultSmall(tokenId, ratio){
+  console.log("Running Puppeteer: "+tokenId);
+  queue.dequeue();
+  var params = { Bucket: currentNetwork, Key: tokenId+".png" };
+    s3.getObject(params, async function(err, data) {
+        if (!err) {
+          console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+          return true;
+        } else {
+          let url;
+          const width = Math.floor(ratio<=1?600*ratio:600);
+          const height = Math.floor(ratio<=1?600:600/ratio);
+          try {
+            const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+            const page = await browser.newPage();
+            await page.setViewport({
+              width: width,
+              height: height,
+              deviceScaleFactor: 2,
+            });
+            if (testing){
+              await page.goto('http://localhost:8080/generator/'+tokenId);
+            } else {
+              url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
+              await page.goto(url);
+            }
+            await timeout(500);
+            const image = await page.screenshot();
+            await browser.close();
+
+            const imageResizer = Buffer.from(image);
+            const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+          const params1 = {
+                Bucket: currentNetwork,
+                Key: tokenId+".png",
+                ContentType: "image/png",
+                Body: image
+            };
+            const params2 = {
+                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Key: tokenId+".png",
+                ContentType: "image/png",
+                Body: resizedImage
+            }
+            s3.upload(params1, function(err, data) {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Full sized file uploaded successfully. ${data.Location}`);
+            });
+            s3.upload(params2, function(err, data) {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Thumnail uploaded successfully. ${data.Location}`);
+
+            });
+            return image;
+          } catch (error) {
+            console.log(tokenId+ '| this is the error: '+error);
+
+          }
+        }
+      });
+
+}
+
 async function serveScriptResultRefresh(tokenId, ratio){
+          console.log("Running Puppeteer: "+tokenId);
+
+          let url;
+          const width = Math.floor(ratio<=1?1200*ratio:1200);
+          const height = Math.floor(ratio<=1?1200:1200/ratio);
+          try {
+
+            const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+            const page = await browser.newPage();
+            await page.setViewport({
+              width: width,
+              height: height,
+              deviceScaleFactor: 2,
+            });
+            if (testing){
+              await page.goto('http://localhost:8080/generator/'+tokenId);
+            } else {
+              url = currentNetwork==="rinkeby"?'https://rinkebyapi.artblocks.io/generator/'+tokenId:'https://api.artblocks.io/generator/'+tokenId;
+              await page.goto(url);
+            }
+            await timeout(500);
+            const image = await page.screenshot();
+            await browser.close();
+
+            const imageResizer = Buffer.from(image);
+            const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
+
+            const params1 = {
+                Bucket: currentNetwork,
+                Key: tokenId+".png",
+                ContentType: "image/png",
+                Body: image
+            };
+
+            const params2 = {
+                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Key: tokenId+".png",
+                ContentType: "image/png",
+                Body: resizedImage
+            }
+
+            // Uploading files to the bucket
+            s3.upload(params1, function(err, data) {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Full sized refreshed file uploaded successfully. ${data.Location}`);
+            });
+            s3.upload(params2, function(err, data) {
+                if (err) {
+                    throw err;
+                }
+                console.log(`Refreshed thumnail uploaded successfully. ${data.Location}`);
+            });
+            return image;
+          } catch (error) {
+            console.log(tokenId+ '| this is the error: '+error);
+          }
+}
+
+async function serveScriptResultRefreshSmall(tokenId, ratio){
           console.log("Running Puppeteer: "+tokenId);
 
           let url;
@@ -594,6 +722,35 @@ app.get("/renderimagerange/:projectId/:startId/:endId?",async (request, response
 response.send("Rendering script for Project: "+request.params.projectId);
 });
 
+app.get("/renderimagerangesmall/:projectId/:startId/:endId?",async (request, response)=>{
+  request.setTimeout(0)
+  const projectId=request.params.projectId;
+  console.log(projectId);
+  const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+  const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+  //console.log(tokensOfProject);
+  if (request.params.endId){
+    for (let i=Number(request.params.startId);i<Number(request.params.endId);i++){
+
+        await serveScriptResultSmall(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+    })
+  }
+} else {
+  for (let i=Number(request.params.startId);i<tokensOfProject.length;i++){
+
+      await serveScriptResultSmall(tokensOfProject[i], ratio).then(result=>{
+      console.log("Puppeteer has run.");
+  })
+}
+}
+
+
+response.send("Rendering script for Project: "+request.params.projectId);
+});
+
 app.get("/renderimagerangerefresh/:projectId/:startId/:endId?",async (request, response)=>{
   request.setTimeout(0)
   const projectId=request.params.projectId;
@@ -614,6 +771,35 @@ app.get("/renderimagerangerefresh/:projectId/:startId/:endId?",async (request, r
   for (let i=Number(request.params.startId);i<tokensOfProject.length;i++){
 
       await serveScriptResultRefresh(tokensOfProject[i], ratio).then(result=>{
+      console.log("Puppeteer has run.");
+  })
+}
+}
+
+
+response.send("Rendering script for Project: "+request.params.projectId);
+});
+
+app.get("/renderimagerangerefreshsmall/:projectId/:startId/:endId?",async (request, response)=>{
+  request.setTimeout(0)
+  const projectId=request.params.projectId;
+  console.log(projectId);
+  const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
+  const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+  //console.log(tokensOfProject);
+  if (request.params.endId){
+    for (let i=Number(request.params.startId);i<Number(request.params.endId);i++){
+
+        await serveScriptResultRefreshSmall(tokensOfProject[i], ratio).then(result=>{
+        console.log("Puppeteer has run.");
+    })
+  }
+} else {
+  for (let i=Number(request.params.startId);i<tokensOfProject.length;i++){
+
+      await serveScriptResultRefreshSmall(tokensOfProject[i], ratio).then(result=>{
       console.log("Puppeteer has run.");
   })
 }

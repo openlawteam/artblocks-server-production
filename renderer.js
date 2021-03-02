@@ -49,7 +49,7 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "rinkeby";
+const currentNetwork = "mainnet";
 const testing = false;
 
 let queue = new Queue();
@@ -443,8 +443,8 @@ async function serveScriptResult(tokenId, ratio){
           return true;
         } else {
           let url;
-          const width = Math.floor(ratio<=1?1200*ratio:1200);
-          const height = Math.floor(ratio<=1?1200:1200/ratio);
+          const width = Math.floor(ratio<=1?800*ratio:800);
+          const height = Math.floor(ratio<=1?800:800/ratio);
           try {
 
             const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
@@ -506,6 +506,8 @@ async function serveScriptResult(tokenId, ratio){
       });
 
 }
+
+
 
 async function serveScriptResultRefresh(tokenId, ratio){
           console.log("Running Puppeteer: "+tokenId);
