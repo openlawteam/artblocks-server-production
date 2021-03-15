@@ -1,4 +1,4 @@
-exports.features = (projectId, tokenData) => {
+exports.features = (projectId, tokenData, tokenId) => {
   Number.prototype.map = function (in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
   }
@@ -3202,10 +3202,615 @@ featuresReduced = ["Start Screen Grid Size: " + gridSize,
 ]
 }
 
+/////////////////////////
+
+if (projectId===27){
+  const noise = {
+      init(seed) {
+          this.r = this.alea(seed);
+          this.p = this.bp(this.r);
+      },
+      bp(random) {
+          var i;
+          var p = new Uint8Array(256);
+          for (i = 0; i < 256; i++) {
+              p[i] = i;
+          }
+          for (i = 0; i < 255; i++) {
+              var r = i + ~~(random() * (256 - i));
+              var aux = p[i];
+              p[i] = p[r];
+              p[r] = aux;
+          }
+          return p;
+      },
+
+      masher() {
+          var n = 0xefc8249d;
+          return function(data) {
+              data = data.toString();
+              for (var i = 0; i < data.length; i++) {
+                  n += data.charCodeAt(i);
+                  var h = 0.02519603282416938 * n;
+                  n = h >>> 0;
+                  h -= n;
+                  h *= n;
+                  n = h >>> 0;
+                  h -= n;
+                  n += h * 0x100000000; // 2^32
+              }
+              return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+          };
+      },
+      alea() {
+          var s0 = 0;
+          var s1 = 0;
+          var s2 = 0;
+          var c = 1;
+
+          var mash = this.masher();
+          s0 = mash(' ');
+          s1 = mash(' ');
+          s2 = mash(' ');
+
+          for (var i = 0; i < arguments.length; i++) {
+              s0 -= mash(arguments[i]);
+              if (s0 < 0) {
+                  s0 += 1;
+              }
+              s1 -= mash(arguments[i]);
+              if (s1 < 0) {
+                  s1 += 1;
+              }
+              s2 -= mash(arguments[i]);
+              if (s2 < 0) {
+                  s2 += 1;
+              }
+          }
+          mash = null;
+          return function() {
+              var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+              s0 = s1;
+              s1 = s2;
+              return s2 = t - (c = t | 0);
+          };
+      },
+
+  };
 
 
 
 
+  const F = (n) => new Float32Array(n);
+  const PI = Math.PI;
+  const TAU = PI*2;
+  const cos = Math.cos;
+  const sin = Math.sin;
+  const sq = Math.sqrt;
+  const fl = Math.floor;
+  const ceil = Math.ceil;
+  const abs = Math.abs;
+
+
+  noise.init(42);
+  let timeArray = [];
+  for (let i = 0; i < 720; ++i) {
+      timeArray.push(i);
+  }
+  let currentIndex = timeArray.length;
+  while (0 !== currentIndex) {
+      let randomIndex = fl(noise.r() * currentIndex);
+      currentIndex -= 1;
+      let temp = timeArray[currentIndex];
+      timeArray[currentIndex] = timeArray[randomIndex];
+      timeArray[randomIndex] = temp;
+  }
+  //reset the noise!
+  noise.init(tokenData);
+  //no more random!
+  const rd = noise.r;//Math.random;
+
+  //color palette choice
+  let palette_index = fl(rd()*27); //uniform
+  //repeat of palette?
+  let repeat = 1;
+  if (rd()>0.95) repeat = 2; //5% of repeats
+
+  //additive blending
+  let additive = rd()>0.3;//70% additive;
+  //blur in or out
+  let blurfac = 0.99; //2
+  if (rd()>0.6) blurfac = 1.01; // 60% outwards
+
+  //how huge we move
+  let scale_noise = 2.0 + rd() * 2.5; //does not matter
+
+  //shape of the outer ring
+  let n_sides = 100; //circle 30%
+  let ns = rd();
+  //shape less version
+  if (ns > 0.9) n_sides = -1; //10% full screen
+  else if (ns > 0.3) n_sides = fl(rd()*4) + 3; // 3 to 6
+  //60% shaped
+
+
+  //shape of the inner ring
+  let n_sides2 = 100; //circle
+  if (rd()>0.5 || n_sides == 100) n_sides2 = fl(rd()*4) + 3; //50% shape inside
+
+  //number of rings
+  let n_rings = 20;
+  if (rd()>0.95) n_rings = 400; //5% ringless
+  //the ringless version //2
+  else if (rd() > 0.9) n_rings = -1; //the spiral version 10% the spiral
+
+  //sparkle effect
+  let sparkle = rd()>0.7; //30% sparkle
+
+  //huge particles, huge size
+  let huge = !(rd()>0.2 || n_sides == -1); //20% huge
+
+  //type of noise movement
+  let typeMove = 0; //50% type0
+  let tmr = rd();
+  if (tmr > 0.8) typeMove = 1; //20% type1
+  else if (tmr > 0.6) typeMove = 2;//20% type2
+  else if (tmr > 0.5) typeMove = 3; //10% type3
+
+  //color distribution
+  let radialPattern = 0; //for the colors
+  tmr = rd();
+  if (tmr > 0.9) radialPattern = 2; //10%
+  else if (tmr > 0.8) radialPattern = 1; // 10%
+
+  //special effect
+  let crazyRot = rd()>0.95 && n_sides >= 0; //5% onls
+
+
+  //donut or centerless
+  let centerLess = 0; //70% full
+  if (rd() > 0.7) {
+      if (rd()>0.333) centerLess = 2; //20% //center
+      else centerLess = 1; //10% //donut
+  }
+
+  //radial lines
+  let radialLines = rd()>0.6 && n_rings < 30; //60% flat
+  //radial lines can also spiral
+  let spiral = rd()>0.5; //50% for colors
+
+  //interpolate with inner
+  let hybrid = rd()>0.3; //70% hybrid
+
+  //only update half
+  let lazy = rd()>0.9;
+
+  //compute the special time
+  let lastDigits = parseInt((tokenId + "").substr(-4));
+  let specialTime = timeArray[lastDigits % 720];
+  let specialMinute = specialTime % 60;
+  let specialHour = (specialTime - specialMinute) / 60;
+
+  //let features = [];
+  if(repeat==1) {
+      features.push('See Double Colors: No'); //0
+      featuresReduced.push('See Double Colors: No'); //0
+  } else {
+      features.push('See Double Colors: Yes');
+      featuresReduced.push('See Double Colors: Yes');
+  }
+  if(blurfac>=1) {
+      features.push('Personality: Introvert'); //1
+      featuresReduced.push('Personality: Introvert'); //1
+  } else {
+      features.push('Personality: Extrovert');
+      featuresReduced.push('Personality: Extrovert');
+  }
+  if(crazyRot){
+      features[1]='Personality: Warp';
+      featuresReduced[1]='Personality: Warp';
+  }
+  if(additive) {
+      features.push('Brightness: Shiny');//2
+      featuresReduced.push('Brightness: Shiny');//2
+  } else {
+      features.push('Brightness: Flat');
+      featuresReduced.push('Brightness: Flat');
+  }
+  switch(n_sides) {
+      case 3:
+          features.push('Shape: Triangle'); //3
+          featuresReduced.push('Shape: Triangle'); //3
+          break;
+      case 4:
+          features.push('Shape: Square');
+          featuresReduced.push('Shape: Square');
+          break;
+      case 5:
+          features.push('Shape: Pentagon');
+          featuresReduced.push('Shape: Pentagon');
+          break;
+      case 6:
+          features.push('Shape: Hexagon');
+          featuresReduced.push('Shape: Hexagon');
+          break;
+      case -1:
+          features.push('Shape: Shapeless');
+          featuresReduced.push('Shape: Shapeless');
+          break;
+      default:
+          features.push('Shape: Circle');
+          featuresReduced.push('Shape: Circle');
+          break;
+  }
+  switch(n_sides2) {
+      case 3:
+          features.push('Inner Shape: Triangle'); //4
+          featuresReduced.push('Inner Shape: Triangle'); //4
+          break;
+      case 4:
+          features.push('Inner Shape: Square');
+          featuresReduced.push('Inner Shape: Square');
+          break;
+      case 5:
+          features.push('Inner Shape: Pentagon');
+          featuresReduced.push('Inner Shape: Pentagon');
+          break;
+      case 6:
+          features.push('Inner Shape: Hexagon');
+          featuresReduced.push('Inner Shape: Hexagon');
+          break;
+      case -1:
+          features.push('Inner Shape: Shapeless');
+          featuresReduced.push('Inner Shape: Shapeless');
+          break;
+      default:
+          features.push('Inner Shape: Circle');
+          featuresReduced.push('Inner Shape: Circle');
+          break;
+  }
+  if(hybrid) {
+      if(n_sides2==n_sides) {
+          features.push('Type: Simple');
+          featuresReduced.push('Type: Simple');
+          //features.innerShape="N/A";
+          features[4]="Inner Shape: N/A";
+          featuresReduced[4]="Inner Shape: N/A";
+      } else {
+          features.push('Type: Hybrid'); //5
+          featuresReduced.push('Type: Hybrid'); //5
+      }
+  } else {
+      features.push('Type: Simple');
+      featuresReduced.push('Type: Simple');
+      features[4]="Inner Shape: N/A";
+      featuresReduced[4]="Inner Shape: N/A";
+      //features.innerShape="N/A";
+  }
+
+  if(huge){
+      features.push('Size: Huge'); //6
+      featuresReduced.push('Size: Huge'); //6
+  } else {
+      features.push('Size: Regular');
+      featuresReduced.push('Size: Regular');
+  }
+  if(sparkle){
+      features.push('Sparkles: Yes'); //7
+      featuresReduced.push('Sparkles: Yes'); //7
+  } else {
+      features.push('Sparkles: No');
+      featuresReduced.push('Sparkles: No');
+  }
+  switch(typeMove) {
+      case 0:
+          features.push('Movement: Flow'); //8
+          featuresReduced.push('Movement: Flow'); //8
+          break;
+      case 1:
+          features.push('Movement: Loops');
+          featuresReduced.push('Movement: Loops');
+          break;
+      case 2:
+          features.push('Movement: Broken Loops');
+          featuresReduced.push('Movement: Broken Loops');
+          break;
+      case 3:
+          features.push('Movement: Ripples');
+          featuresReduced.push('Movement: Ripples');
+          break;
+      default:
+          break;
+  }
+  if(scale_noise>4.0){
+      features.push('Speed: Excited'); //9
+      featuresReduced.push('Speed: Excited'); //9
+      //features.speed="Excited";
+  } else if(scale_noise>3.0){
+      features.push('Speed: Normal');
+      featuresReduced.push('Speed: Normal');
+      //features.speed="Normal";
+  } else {
+      features.push('Speed: Smooth');
+      featuresReduced.push('Speed: Smooth');
+      //features.speed="Smooth";
+  }
+
+
+
+  switch(n_rings) {
+      case 400:
+          //features.fill="Solid";
+          features.push('Fill: Solid'); //10
+          featuresReduced.push('Fill: Solid'); //10
+          break;
+      case 20:
+          //features.fill="Rings";
+          features.push('Fill: Rings');
+          featuresReduced.push('Fill: Rings');
+          break;
+      case -1:
+          //features.fill="Spiral";
+          features.push('Fill: Spiral');
+          featuresReduced.push('Fill: Spiral');
+          break;
+      default:
+          break;
+  }
+  if(radialLines){
+      features[10]="Fill: Radial Lines";
+      featuresReduced[10]="Fill: Radial Lines";
+  }
+
+
+  switch(radialPattern){
+      case 0:
+          features.push('Colors: Concentric'); //11
+          featuresReduced.push('Colors: Concentric'); //11
+          //features.colors="Concentric"
+          break;
+      case 1:
+          features.push('Colors: Radial Lines'); //11
+          featuresReduced.push('Colors: Radial Lines'); //11
+          //features.colors="Radial lines"
+          break;
+      case 2:
+          //features.colors="Spiral"
+          features.push('Colors: Spiral'); //11
+          featuresReduced.push('Colors: Spiral'); //11
+          break;
+  }
+  if(n_sides==-1){
+      if(spiral){
+          features[11]="Colors: Spiral"
+          featuresReduced[11]="Colors: Spiral"
+      }
+  }
+
+
+
+
+  switch(centerLess) {
+      case 0:
+          //features.wholeness="100%"
+          features.push('Wholeness: 100%'); //12
+          featuresReduced.push('Wholeness: 100%'); //12
+          break;
+      case 1:
+          features.push('Wholeness: Donut'); //12
+          featuresReduced.push('Wholeness: Donut'); //12
+          //features.wholeness="Donut"
+          break;
+      case 2:
+          features.push('Wholeness: Hole'); //12
+          featuresReduced.push('Wholeness: Hole'); //12
+          //features.wholeness="Hole"
+          break;
+  }
+
+  if(spiral){
+      //features.spin='True';
+      features.push('Spin: Yes'); //13
+      featuresReduced.push('Spin: Yes'); //13
+  } else {
+      //features.spin='False';
+      features.push('Spin: No'); //13
+      featuresReduced.push('Spin: No'); //13
+  }
+
+
+  if(lazy){
+      features.push('Energy: Lazy'); //14
+      featuresReduced.push('Energy: Lazy'); //14
+      //features.energy='Lazy';
+  } else {
+      features.push('Energy: Normal'); //14
+      featuresReduced.push('Energy: Normal'); //14
+      //features.energy='Normal';
+  }
+      features.push('Time: '+specialHour+':'+specialMinute); //15
+  //features.time=specialHour+":"+specialMinute;
+
+  let palettes = [
+      'Monochrome',
+      'Sunset',
+      'Purple Touch',
+      'Rocky Earth',
+      'Feeling Lucky?',
+      'Golden Blues',
+      'Autumn Leaves',
+      'Down to Earth',
+      'Red vs Blue',
+      'Boy and Girl',
+      'Landscape',
+      'Red won',
+      'Icy Blues',
+      'Green Earth',
+      'Blue Earth',
+      'Not for the weak',
+      'Dark and Stormy',
+      'Light and Dreamy',
+      'Purple Moss',
+      'Burning',
+      'Purple Maze',
+      'Sunny Beach',
+      'Precious Rock',
+      'LEDs',
+      'Muted',
+      'Calm Sea',
+      'Dark Rainbow',
+  ];
+  features.push('Palette: '+palettes[palette_index]);
+  featuresReduced.push('Palette: '+palettes[palette_index]);
+  //features.palette= palettes[palette_index];
+
+  //console.log(features);
+
+
+
+  //console.log(features);
+
+}
+//console.log(features);
+
+else if (projectId===1){
+  //console.log('hit');
+  let hp = [];
+let hashstring = "";
+  hashstring = tokenData.substring(2)
+for (let i = 0; i < hashstring.length / 2; i++) {
+  hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
+}
+
+//begin features collection
+if (hp[2] > 150) {
+  features.push("Grid: Diagonal")
+  featuresReduced.push("Grid: Diagonal")
+  //diagonal grid
+} else if (hp[2] > 85) {
+  features.push("Grid: Standard")
+  featuresReduced.push("Grid: Standard")
+} else {
+  features.push("Grid: None")
+  featuresReduced.push("Grid: None")
+}
+if (hp[8] > 0 && hp[8] < 85) {
+  features.push("rect1: 5-count")
+  featuresReduced.push("rect1: 5-count")
+} else if (hp[8] > 84 && hp[8] < 170) {
+  features.push("rect1: 3-count")
+  featuresReduced.push("rect1: 3-count")
+} else {
+  features.push("rect1: 1-count")
+  featuresReduced.push("rect1: 1-count")
+}
+if (R(hp[14]) == 10) {
+  features.push("line: constellations")
+  featuresReduced.push("line: constellations")
+} else if (R(hp[14]) == 11) {
+  features.push("dots: white sprinkles")
+  featuresReduced.push("dots: white sprinkles")
+} else if (R(hp[14]) == 12) {
+  features.push("line: white scribbles")
+  featuresReduced.push("line: white scribbles")
+} else if (R(hp[14]) == 13) {
+  features.push("line: few white")
+  featuresReduced.push("line: few white")
+} else if (R(hp[14]) == 14) {
+  features.push("line: black scribbles")
+  featuresReduced.push("line: black scribbles")
+} else if (R(hp[14]) == 15) {
+  features.push("line: pickup-sticks")
+  featuresReduced.push("line: pickup-sticks")
+} else if (R(hp[14]) == 16) {
+  features.push("dots: soft points")
+  featuresReduced.push("dots: soft points")
+} else if (R(hp[14]) == 17) {
+  if (R(hp[16]) > 1) {
+    features.push("dots: white sprinkles ")
+    featuresReduced.push("dots: white sprinkles ")
+  }
+} else if (R(hp[14]) == 18) {
+  features.push("line: colored sprinkles")
+  featuresReduced.push("line: colored sprinkles")
+} else if (R(hp[14]) == 19) {
+  features.push("curve: glowing bezier")
+  featuresReduced.push("curve: glowing bezier")
+} else if (R(hp[14]) == 20) {
+  features.push("special: everything")
+  featuresReduced.push("special: everything")
+} else if (R(hp[14]) == 21) {
+  features.push("line: constellations")
+  featuresReduced.push("line: constellations")
+} else if (R(hp[14]) > 21 && R(hp[14]) < 28) {
+  if (hp[1] > 10) {
+    features.push("line: pickup-sticks")
+    featuresReduced.push("line: pickup-sticks")
+  }
+}
+if (hp[20] > 0 && hp[20] < 85) {
+  features.push("rect2: 5-count");
+  featuresReduced.push("rect2: 5-count");
+} else if (hp[20] > 84 && hp[20] < 170) {
+  features.push("rect2: 3-count");
+  featuresReduced.push("rect2: 3-count");
+} else {
+  features.push("rect2: 1-count");
+  featuresReduced.push("rect2: 1-count");
+}
+if (hp[26] > 210) {
+  features.push("trapezoid: black");
+  featuresReduced.push("trapezoid: black");
+} else if (hp[26] > 168) {
+  features.push("trapezoid: colored");
+  featuresReduced.push("trapezoid: colored");
+} else if (hp[26] > 126) {
+  features.push("triangle2: filled");
+  featuresReduced.push("triangle2: filled");
+} else if (hp[26] > 84) {
+  features.push("trapezoid: colored");
+  featuresReduced.push("trapezoid: colored");
+} else if (hp[26] > 42) {
+  features.push("curve: bezier");
+  featuresReduced.push("curve: bezier");
+} else {
+  features.push("trapezoid: white");
+  featuresReduced.push("trapezoid: white");
+}
+features.push("triangle1: all");
+featuresReduced.push("triangle1: all");
+
+
+
+//print features to console
+for (let i = 0; i < features.length; i++) {
+  console.log(features[i]);
+}
+
+
+// maps the hp to a value between 0 and 32
+function R(_num) {
+  return Math.floor(mapperz(_num, 0, 255, 0, 32));
+}
+
+//vanilla js replacement for the p5.js map function
+function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
+  const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+  if (!withinBounds) {
+    return newval;
+  }
+  if (start2 < stop2) {
+    return this.constrain(newval, start2, stop2);
+  } else {
+    return this.constrain(newval, stop2, start2);
+  }
+}
+
+function unhex(n) {
+  return parseInt(`0x${n}`, 16);
+}
+
+}
 
 
 

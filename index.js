@@ -52,7 +52,7 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23]:[];
+let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23,27,28]:[];
 let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26]:[];
 //console.log(curatedProjects);
 const testing = false;
@@ -160,7 +160,7 @@ app.get('/token/:tokenId', async(request,response)=>{
        let royalties = await getTokenRoyaltyInfo(request.params.tokenId);
 
 
-       let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes);
+       let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes, Number(request.params.tokenId));
        //console.log(features);
 
        let featuresObj = features[0].map(x=>{
@@ -199,7 +199,7 @@ app.get('/token/:tokenId', async(request,response)=>{
            "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
            "curation_status": curatedProjects.includes(projectId)?"curated":playgroundProjects.includes(projectId)?"playground":"factory",
            "series": curatedProjects.includes(projectId)?(projectId<8?"1":"2"):"N/A",
-           "description":projectDetails.projectDescription.description+ " "+(features.length>0?"Additional project feature(s) => " + features.join(", "):""),
+           "description":projectDetails.projectDescription.description+ " "+(features.length>0?"Additional project feature(s) => " + features[0].join(", "):""),
            "external_url": (currentNetwork==="mainnet"?"https://www.artblocks.io/":"https://rinkeby.artblocks.io/")+"token/"+request.params.tokenId,
            "artist":projectDetails.projectDescription.artistName,
            "royaltyInfo":{
@@ -269,6 +269,8 @@ app.get('/generator/:tokenId/:svg?', async (request, response) => {
       } else if (projectDetails.projectScriptInfo.scriptJSON.type==='custom'){
         response.send(`<script>${data}</script>${script}`);
         //response.render('generator_js', { script: script, data: data})
+      } else if (projectDetails.projectScriptInfo.scriptJSON.type==='regl'){
+        response.render('generator_regl', { script: script, data: data})
       } else {
        response.render('generator_threejs', { script: script, data: data})
      }
