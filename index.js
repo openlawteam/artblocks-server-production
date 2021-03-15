@@ -230,8 +230,7 @@ app.get('/token/:tokenId', async(request,response)=>{
            "tokenID":request.params.tokenId,
            "token hash":tokenHashes,
            "license":projectDetails.projectDescription.license,
-           "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId,
-           "animation_url":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"video/"+request.params.tokenId
+           "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId
          });
     } else {
       response.send('token does not exist');
