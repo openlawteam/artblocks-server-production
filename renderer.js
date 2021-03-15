@@ -289,6 +289,8 @@ app.get("/generator/:tokenId", async (request, response) => {
         projectDetails.projectScriptInfo.scriptJSON.type === "custom"
       ) {
         response.render("generator_js", { script, data });
+      } else if (projectDetails.projectScriptInfo.scriptJSON.type==='regl'){
+        response.render('generator_regl', { script: script, data: data})
       } else {
         response.render("generator_threejs", { script, data });
       }
