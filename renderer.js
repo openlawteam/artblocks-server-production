@@ -26,6 +26,11 @@ const beautify = require("js-beautify").js;
 const CombinedStream = require("combined-stream");
 const sharp = require("sharp");
 const AWS = require("aws-sdk");
+const fs = require("fs");
+const util = require("util");
+// Convert fs.readFile into Promise version of same
+const readFile = util.promisify(fs.readFile);
+
 const { abi } = require("./artifacts/GenArt721.json");
 const abi2 = require("./artifacts/GenArt721Core.json").abi;
 
@@ -46,6 +51,10 @@ const s3 = new AWS.S3({
 
 const currentNetwork = "rinkeby";
 const testing = true;
+const mediaUrl =
+  currentNetwork === "mainnet"
+    ? "mainnet.oss.nodechef.com"
+    : "rinkeby.oss.nodechef.com";
 
 const queue = new Queue();
 let queueRef = {};
@@ -191,6 +200,10 @@ app.get("/token/:tokenId", async (request, response) => {
         0,
         -6
       )}image/${request.params.tokenId}`;
+      const videoURI = `${projectDetails.projectURIInfo.projectBaseURI.slice(
+        0,
+        -6
+      )}video/${request.params.tokenId}`;
 
       response.json({
         platform: "Art Blocks",
@@ -223,6 +236,7 @@ app.get("/token/:tokenId", async (request, response) => {
         "token hash": tokenHashes,
         license: projectDetails.projectDescription.license,
         image: imageURI,
+        animation_url: videoURI,
       });
     } else {
       response.send("token does not exist");
@@ -515,6 +529,79 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
   }
 });
 
+app.get("/video/:tokenId/:refresh?", async (request, response) => {
+  // const file = path.resolve(__dirname, "./src/rendering.png");
+  if (!Number.isInteger(Number(request.params.tokenId))) {
+    console.log("not integer");
+    response.send("invalid request");
+  } else {
+    const projectId = await getProjectId(request.params.tokenId);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectShowAllTokens(projectId).call()
+        : await contract2.methods.projectShowAllTokens(projectId).call();
+    const exists = tokensOfProject.includes(request.params.tokenId);
+    const scriptInfo =
+      projectId < 3
+        ? await contract.methods.projectScriptInfo(projectId).call()
+        : await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    // eslint-disable-next-line
+    const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+
+    // const delay = eval(scriptJSON.delay);
+    console.log(`exists? ${exists}`);
+    console.log(`token request ${request.params.tokenId}`);
+    const videoTokenKey = `${request.params.tokenId}.mp4`;
+    if (request.params.refresh) {
+      // serveScriptResultRefresh(request.params.tokenId, ratio).then((result) => {
+      //   console.log(`serving: ${request.params.tokenId}`);
+      //   response.set("Content-Type", "image/png");
+      //   response.send(result);
+      // });
+    } else {
+      const checkVideoExistsParams = {
+        Bucket: currentNetwork,
+        Key: videoTokenKey,
+      };
+      try {
+        await s3.getObject(checkVideoExistsParams).promise();
+
+        response.redirect(`https://${mediaUrl}/${request.params.tokenId}.mp4`);
+      } catch (err) {
+        if (!queueRef[request.params.tokenId]) {
+          console.log("Video does not yet exist, adding to queue");
+          queueRef[request.params.tokenId] = true;
+          queue.enqueue([`${request.params.tokenId}-video`, ratio]);
+        }
+
+        // max timeout 2 min
+        const maxTimeout = 120000;
+        const checkForVideoLoopStarted = Date.now();
+        const checkForVideo = setInterval(async () => {
+          try {
+            await s3.getObject(checkVideoExistsParams).promise();
+            clearInterval(checkForVideo);
+
+            response.redirect(
+              `https://${mediaUrl}/${request.params.tokenId}.mp4`
+            );
+          } catch (errCheckLoop) {
+            console.log(
+              `awaiting video render , interval: ${queue.getLength()}`
+            );
+
+            if (Date.now - checkForVideoLoopStarted >= maxTimeout) {
+              response.sendDate();
+              clearInterval(checkForVideo);
+            }
+          }
+        }, 5000);
+      }
+    }
+  }
+});
+
 setInterval(() => {
   console.log("Running Render Interval");
   console.log(`queue length: ${queue.getLength()}`);
@@ -527,7 +614,12 @@ setInterval(() => {
       console.log("reset intervalCount");
       lastSentToRender = nextToken;
       intervalCount = 0;
-      serveScriptResult(nextToken[0], nextToken[1]);
+      if (nextToken[0].indexOf("-video") > -1) {
+        const tokenIdNextToken = nextToken[0].split("-video")[0];
+        serveScriptVideo(tokenIdNextToken, nextToken[1]);
+      } else {
+        serveScriptResult(nextToken[0], nextToken[1]);
+      }
     } else {
       intervalCount += 1;
     }
@@ -536,6 +628,63 @@ setInterval(() => {
     lastSentToRender = [];
   }
 }, 5000);
+
+async function serveScriptVideo(tokenId, ratio) {
+  console.log(`Running Puppeteer: ${tokenId}`);
+  queue.dequeue();
+  const tokenKey = `${tokenId}.mp4`;
+  const checkVideoExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  try {
+    await s3.getObject(checkVideoExistsParams).promise();
+    console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+    return true;
+  } catch (err) {
+    let url;
+    const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
+    const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
+    try {
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      const page = await browser.newPage();
+      await page.setViewport({
+        width: width / 2,
+        height: height / 2,
+        deviceScaleFactor: 2,
+      });
+      if (testing) {
+        await page.goto(`http://localhost:1234/generator/${tokenId}`);
+      } else {
+        url =
+          currentNetwork === "rinkeby"
+            ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
+            : `https://api.artblocks.io/generator/${tokenId}`;
+        await page.goto(url);
+      }
+
+      const video = await renderVideo(page, 10);
+      const videoFileContent = await readFile(video);
+      const uploadVideoParams = {
+        Bucket: currentNetwork,
+        Key: tokenKey,
+        Body: videoFileContent,
+        ContentType: "video/mp4",
+      };
+
+      try {
+        const uploadRes = await s3.upload(uploadVideoParams).promise();
+        console.log(`Video file uploaded successfully: ${uploadRes.Location}`);
+        return true;
+      } catch (uploadErr) {
+        console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
+        return uploadErr;
+      }
+    } catch (puppeteerErr) {
+      console.log(`${tokenId}| this is the puppeteer error: ${puppeteerErr}`);
+      return puppeteerErr;
+    }
+  }
+}
 
 // TODO: lets use async/await with our s3 calls
 // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/using-async-await.html
