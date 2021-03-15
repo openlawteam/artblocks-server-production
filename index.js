@@ -51,7 +51,7 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "mainnet";
+const currentNetwork = "rinkeby";
 let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23,27,28]:[];
 let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26]:[];
 //console.log(curatedProjects);
@@ -159,10 +159,10 @@ app.get('/token/:tokenId', async(request,response)=>{
        let tokenHashes = await getTokenHashes(request.params.tokenId);
        let royalties = await getTokenRoyaltyInfo(request.params.tokenId);
 
-
+       let traitsArray;
        let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes, Number(request.params.tokenId));
        //console.log(features);
-
+      if (currentNetwork==="mainnet"){
        let featuresObj = features[0].map(x=>{
          let obj = {};
          obj["trait_type"]="feature";
@@ -176,6 +176,7 @@ app.get('/token/:tokenId', async(request,response)=>{
          traitObj["value"]=x;
          return traitObj;
        })
+
        let firstObj = {};
        firstObj["trait_type"]=projectDetails.projectDescription.projectName;
        firstObj["value"]="All "+projectDetails.projectDescription.projectName+(projectDetails.projectDescription.projectName.slice(-1)==="s"?"":"s");
@@ -186,6 +187,8 @@ app.get('/token/:tokenId', async(request,response)=>{
        } else {
          traitsArray = [firstObj];
        }
+
+     }
 
        //console.log(traitsArray);
 
@@ -215,7 +218,7 @@ app.get('/token/:tokenId', async(request,response)=>{
            ],
            */
            "collection_name":projectDetails.projectDescription.projectName + " by " + projectDetails.projectDescription.artistName,
-           "traits":traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
+           "traits":traitsArray && traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
            "value":"all"}],
            "payout_address":"0x8E9398907d036e904ffF116132ff2Be459592277",
            "features":features[0], /*featuresObj,*/
