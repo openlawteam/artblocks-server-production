@@ -1124,45 +1124,42 @@ function buildData(hashes, tokenId) {
 function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.isEmpty=function(){return 0==a.length};this.enqueue=function(b){a.push(b)};this.dequeue=function(){if(0!=a.length){var c=a[b];2*++b>=a.length&&(a=a.slice(b),b=0);return c}};this.peek=function(){return 0<a.length?a[b]:void 0}}
 /* eslint-enable */
 
-app.get(
-  "/renderimagerange/:projectId/:startId/:endId?",
-  async (request, response) => {
-    request.setTimeout(0);
-    const projectId = request.params.projectId;
-    console.log(projectId);
-    const scriptInfo =
-      projectId < 3
-        ? await contract.methods.projectScriptInfo(projectId).call()
-        : await contract2.methods.projectScriptInfo(projectId).call();
-    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
-    const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
-    if (request.params.endId) {
-      for (
-        let i = Number(request.params.startId);
-        i < Number(request.params.endId);
-        i++
-      ) {
-        await serveScriptResult(tokensOfProject[i], ratio);
-        console.log("Puppeteer has run.");
-      }
-    } else {
-      for (
-        let i = Number(request.params.startId);
-        i < tokensOfProject.length;
-        i++
-      ) {
-        const res = await serveScriptResult(tokensOfProject[i], ratio);
-        console.log("Puppeteer has run.", res);
-      }
+app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
+  request.setTimeout(0);
+  const projectId = request.params.projectId;
+  console.log(projectId);
+  const scriptInfo =
+    projectId < 3
+      ? await contract.methods.projectScriptInfo(projectId).call()
+      : await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+  const tokensOfProject =
+    projectId < 3
+      ? await contract.methods.projectShowAllTokens(projectId).call()
+      : await contract2.methods.projectShowAllTokens(projectId).call();
+  if (request.params.endId) {
+    for (
+      let i = Number(request.params.startId);
+      i < Number(request.params.endId);
+      i++
+    ) {
+      await serveScriptResult(tokensOfProject[i], ratio);
+      console.log("Puppeteer has run.");
     }
-
-    console.log("local range image render complete");
+  } else {
+    for (
+      let i = Number(request.params.startId);
+      i < tokensOfProject.length;
+      i++
+    ) {
+      const res = await serveScriptResult(tokensOfProject[i], ratio);
+      console.log("Puppeteer has run.", res);
+    }
   }
-);
+
+  console.log("local range image render complete");
+});
 
 app.listen(PORT, () =>
   console.log(`Art Blocks listening at http://localhost:${PORT}\n`)
