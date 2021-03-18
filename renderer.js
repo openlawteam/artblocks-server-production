@@ -49,8 +49,8 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-const currentNetwork = "rinkeby";
-const testing = true;
+const currentNetwork = "mainnet";
+const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
     ? "mainnet.oss.nodechef.com"
@@ -289,8 +289,8 @@ app.get("/generator/:tokenId", async (request, response) => {
         projectDetails.projectScriptInfo.scriptJSON.type === "custom"
       ) {
         response.render("generator_js", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type==='regl'){
-        response.render('generator_regl', { script: script, data: data})
+      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "regl") {
+        response.render("generator_regl", { script: script, data: data });
       } else {
         response.render("generator_threejs", { script, data });
       }
@@ -556,6 +556,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     console.log(`token request ${request.params.tokenId}`);
     const videoTokenKey = `${request.params.tokenId}.mp4`;
     if (request.params.refresh) {
+      // TODO: add refresh logic
       // serveScriptResultRefresh(request.params.tokenId, ratio).then((result) => {
       //   console.log(`serving: ${request.params.tokenId}`);
       //   response.set("Content-Type", "image/png");
@@ -650,8 +651,8 @@ async function serveScriptVideo(tokenId, ratio) {
       });
       const page = await browser.newPage();
       await page.setViewport({
-        width: width / 2,
-        height: height / 2,
+        width: 400,
+        height: 400,
         deviceScaleFactor: 2,
       });
       if (testing) {
@@ -694,13 +695,15 @@ async function serveScriptResult(tokenId, ratio) {
   console.log(`Running Puppeteer: ${tokenId}`);
   queue.dequeue();
   const tokenKey = `${tokenId}.png`;
-  const params = { Bucket: currentNetwork, Key: tokenKey };
-  s3.getObject(params, async (err) => {
-    if (!err) {
-      console.log(`I'm the renderer. Token ${tokenId} already exists.`);
-      return true;
-    }
+  const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  console.log("ayo");
+  try {
+    await s3.getObject(checkImageExistsParams).promise();
+    console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+    return true;
+  } catch (err) {
     let url;
+    console.log(`I'm the renderer. Token ${tokenId} does not exist`);
     const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
     const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
     try {
@@ -709,8 +712,8 @@ async function serveScriptResult(tokenId, ratio) {
       });
       const page = await browser.newPage();
       await page.setViewport({
-        width,
-        height,
+        width: 400,
+        height: 400,
         deviceScaleFactor: 2,
       });
       if (testing) {
@@ -726,7 +729,6 @@ async function serveScriptResult(tokenId, ratio) {
       await timeout(500);
       const image = await page.screenshot();
       await browser.close();
-
       const imageResizer = Buffer.from(image);
       const resizedImage = sharp(imageResizer)
         .resize(Math.round(width / 3), Math.round(height / 3))
@@ -743,25 +745,101 @@ async function serveScriptResult(tokenId, ratio) {
         Body: resizedImage,
       };
 
-      // Uploading files to the bucket
-      s3.upload(params1, (errUpload1, data) => {
-        if (errUpload1) {
-          throw errUpload1;
+      try {
+        const uploadRes = await s3.upload(params1).promise();
+        console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
+        try {
+          const uploadRes2 = await s3.upload(params2).promise();
+          console.log(
+            `Resized image file uploaded successfully: ${uploadRes2.Location}`
+          );
+          return true;
+        } catch (uploadErr) {
+          console.log(
+            `${tokenId}| this is the s3 upload (resized) error: ${uploadErr}`
+          );
+          throw uploadErr;
         }
-        console.log(`Full sized file uploaded successfully. ${data.Location}`);
-      });
-      s3.upload(params2, (errUpload2, data) => {
-        if (errUpload2) {
-          throw errUpload2;
-        }
-        console.log(`Thumnail uploaded successfully. ${data.Location}`);
-      });
-      return image;
-    } catch (error) {
-      console.log(`${tokenId}| this is the error: ${error}`);
-      return error;
+      } catch (uploadErr) {
+        console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
+        throw uploadErr;
+      }
+    } catch (puppeteerErr) {
+      return puppeteerErr;
     }
-  });
+  }
+  // console.log(`Running Puppeteer: ${tokenId}`);
+  // queue.dequeue();
+  // const tokenKey = `${tokenId}.png`;
+  // const params = { Bucket: currentNetwork, Key: tokenKey };
+  // console.log(params);
+  // s3.getObject(params, async (err) => {
+  //   if (!err) {
+  //     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+  //     return true;
+  //   }
+  //   let url;
+  //   const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
+  //   const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
+  //   try {
+  //     const browser = await puppeteer.launch({
+  //       args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  //     });
+  //     const page = await browser.newPage();
+  //     await page.setViewport({
+  //       width,
+  //       height,
+  //       deviceScaleFactor: 2,
+  //     });
+  //     if (testing) {
+  //       await page.goto(`http://localhost:1234/generator/${tokenId}`);
+  //     } else {
+  //       url =
+  //         currentNetwork === "rinkeby"
+  //           ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
+  //           : `https://api.artblocks.io/generator/${tokenId}`;
+  //       await page.goto(url);
+  //     }
+
+  //     await timeout(500);
+  //     const image = await page.screenshot();
+  //     await browser.close();
+
+  //     const imageResizer = Buffer.from(image);
+  //     const resizedImage = sharp(imageResizer)
+  //       .resize(Math.round(width / 3), Math.round(height / 3))
+  //       .png();
+
+  //     const params1 = {
+  //       Bucket: currentNetwork,
+  //       Key: tokenKey,
+  //       Body: image,
+  //     };
+  //     const params2 = {
+  //       Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+  //       Key: tokenKey,
+  //       Body: resizedImage,
+  //     };
+
+  //     // Uploading files to the bucket
+  //     s3.upload(params1, (errUpload1, data) => {
+  //       if (errUpload1) {
+  //         throw errUpload1;
+  //       }
+  //       console.log(`Full sized file uploaded successfully. ${data.Location}`);
+  //     });
+  //     s3.upload(params2, (errUpload2, data) => {
+  //       if (errUpload2) {
+  //         throw errUpload2;
+  //       }
+  //       console.log(`Thumnail uploaded successfully. ${data.Location}`);
+  //     });
+  //     return image;
+  //   } catch (error) {
+  //     console.log(`${tokenId}| this is the error: ${error}`);
+  //     return error;
+  //   }
+  // });
 }
 
 // TODO: this and the above function can be simplified into one,
@@ -1045,6 +1123,46 @@ function buildData(hashes, tokenId) {
 // prettier-ignore
 function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.isEmpty=function(){return 0==a.length};this.enqueue=function(b){a.push(b)};this.dequeue=function(){if(0!=a.length){var c=a[b];2*++b>=a.length&&(a=a.slice(b),b=0);return c}};this.peek=function(){return 0<a.length?a[b]:void 0}}
 /* eslint-enable */
+
+app.get(
+  "/renderimagerange/:projectId/:startId/:endId?",
+  async (request, response) => {
+    request.setTimeout(0);
+    const projectId = request.params.projectId;
+    console.log(projectId);
+    const scriptInfo =
+      projectId < 3
+        ? await contract.methods.projectScriptInfo(projectId).call()
+        : await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+    const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectShowAllTokens(projectId).call()
+        : await contract2.methods.projectShowAllTokens(projectId).call();
+    if (request.params.endId) {
+      for (
+        let i = Number(request.params.startId);
+        i < Number(request.params.endId);
+        i++
+      ) {
+        await serveScriptResult(tokensOfProject[i], ratio);
+        console.log("Puppeteer has run.");
+      }
+    } else {
+      for (
+        let i = Number(request.params.startId);
+        i < tokensOfProject.length;
+        i++
+      ) {
+        const res = await serveScriptResult(tokensOfProject[i], ratio);
+        console.log("Puppeteer has run.", res);
+      }
+    }
+
+    console.log("local range image render complete");
+  }
+);
 
 app.listen(PORT, () =>
   console.log(`Art Blocks listening at http://localhost:${PORT}\n`)
