@@ -3811,7 +3811,201 @@ function unhex(n) {
 }
 
 }
+///////
 
+else if (projectId===28){
+
+  rv = hti(tokenData)
+  function hti(e) {
+    let v = [];
+    for (let e = 0; e < 32; e++) v.push(tokenData.slice(2 + 2 * e, 4 + 2 * e));
+    return v.map((e) => parseInt(e, 16));
+}
+
+
+      let positioning = "Positioning: ";
+      if (map_v(0) < 0.15) {
+          positioning += "Horizontal";
+      } else if (map_v(0) < 0.3) {
+          positioning += "Vertical";
+      } else {
+          positioning += "Floating";
+      }
+
+      let colors =
+          "Colors: " +
+          (map_v(1) < 0.005
+              ? "Light"
+              : map_v(1) < 0.01
+              ? "Darkness"
+              : map_v(1) < 0.02
+              ? "Basil Gogos"
+              : map_v(1) < 0.1
+              ? "Riley"
+              : map_v(1) < 0.3
+              ? "The Oracle"
+              : map_v(1) < 0.48
+              ? "Three Fates"
+              : map_v(1) < 0.52
+              ? "Phoenix"
+              : map_v(1) < 0.57
+              ? "Sands"
+              : map_v(1) < 0.61
+              ? "Reds"
+              : map_v(1) < 0.62
+              ? "South Beach"
+              : map_v(1) < 0.64
+              ? "Energy"
+              : map_v(1) < 0.66
+              ? "Laguna"
+              : map_v(1) < 0.69
+              ? "Slayer"
+              : map_v(1) < 0.7
+              ? "North Bend"
+              : map_v(1) < 0.72
+              ? "Modern Royalty"
+              : map_v(1) < 0.75
+              ? "Salt of the Earth"
+              : map_v(1) < 0.77
+              ? "Thaddeus"
+              : map_v(1) < 0.79
+              ? "Uncertainty"
+              : map_v(1) < 0.8
+              ? "Silverado"
+              : map_v(1) < 0.81
+              ? "Certainty"
+              : map_v(1) < 0.82
+              ? "Young Again"
+              : map_v(1) < 0.86
+              ? "Caruthers"
+              : map_v(1) < 0.87
+              ? "Tinkham"
+              : map_v(1) < 0.88
+              ? "Morning"
+              : map_v(1) < 0.9
+              ? "Hope"
+              : map_v(1) < 0.92
+              ? "Squidgit"
+              : map_v(1) < 0.94
+              ? "BB"
+              : map_v(1) < 0.95
+              ? "Stargazer"
+              : "Zephyr");
+
+      let stretch = "Stretch: ";
+      if (map_v(2, 100, 300) <= 150) {
+          stretch += "Taffy";
+      } else if (map_v(2, 100, 300) >= 250) {
+          stretch += "Compressed";
+      } else {
+          stretch += "Smooth";
+      }
+
+      let spook = "Spook: ";
+      if (map_v(5, 0.005, 0.03) <= 0.01) {
+          spook += "Calm";
+      } else if (map_v(5, 0.005, 0.03) >= 0.025) {
+          spook += "Panic";
+      } else {
+          spook += "Don't Panic";
+      }
+
+      let reach = "Reach: ";
+      if (map_v(6, 0.1, 0.3) <= 0.15) {
+          reach += "Near";
+      } else if (map_v(6, 0.1, 0.3) >= 0.25) {
+          reach += "Far";
+      } else {
+          reach += "Arm's Length";
+      }
+
+      let altitude = "Altitude: ";
+      if (map_v(7, 0.1, 0.3) <= 0.15) {
+          altitude += "Sea Level";
+      } else if (map_v(7, 0.1, 0.3) >= 0.25) {
+          altitude += "Stratosphere";
+      } else {
+          altitude += "Troposhere";
+      }
+
+      let bands = "Bands: ";
+      if (map_v(10) < 0.3) {
+          bands += "Solid";
+      } else if (Math.round(map_v(8, 10, 200)) <= 50) {
+          bands += "Narrow";
+      } else if (Math.round(map_v(8, 10, 200)) >= 170) {
+          bands += "Broad";
+      } else {
+          bands += "FM";
+      }
+
+      let backdrop = "Backdrop: " + (map_v(9) < 0.5 ? "Square" : "Circle");
+      let brush_style = "Brush Style: " + (map_v(10) < 0.3 ? "Solid" : "Blended");
+      let backdrop_style = "Backdrop Style: " + (map_v(11) < 0.5 ? "Traced" : "Filled");
+      let background_c = "Background Color: " + (map_v(12) < 0.8 ? "Light" : "Dark");
+
+      let facing = "Facing: ";
+      if (map_v(14) < 0.1) {
+          facing += "You";
+      } else if (map_v(13) < 0.5) {
+          facing += "West";
+      } else {
+          facing += "East";
+      }
+
+      let haunting = "Haunting: ";
+      if (map_v(16) < 0.6) {
+          haunting += "Periodic";
+      } else if (map_v(16) < 0.7) {
+          haunting += "Persistent";
+      } else if (map_v(16) < 0.8) {
+          haunting += "Poltergeist";
+      } else if (map_v(16) <= 1) {
+          haunting += "Premonition";
+      }
+
+      let backdrop_sync = "Backdrop Sync: " + (map_v(18) < 0.15 ? "True" : "False");
+
+      features.push(
+          positioning,
+          colors,
+          stretch,
+          haunting,
+          facing,
+          spook,
+          bands,
+          brush_style,
+          reach,
+          altitude,
+          backdrop,
+          backdrop_style,
+          backdrop_sync,
+          background_c
+      );
+
+      featuresReduced.push(
+          positioning,
+          colors,
+          stretch,
+          haunting,
+          facing,
+          spook,
+          bands,
+          brush_style,
+          reach,
+          altitude,
+          backdrop,
+          backdrop_style,
+          backdrop_sync,
+          background_c
+      );
+      //console.log(featuresReduced);
+
+      function map_v(index, min = 0, max = 1) {
+          return rv[index].map(0, 255, min, max);
+      }
+
+}
 
 
   return [features, featuresReduced];

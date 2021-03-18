@@ -161,6 +161,7 @@ app.get('/token/:tokenId', async(request,response)=>{
 
        let traitsArray;
        let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes, Number(request.params.tokenId));
+
        //console.log(features);
       if (currentNetwork==="mainnet"){
        let featuresObj = features[0].map(x=>{
@@ -170,7 +171,7 @@ app.get('/token/:tokenId', async(request,response)=>{
          return obj;
        })
 
-       let traitsArray = features[1].map(x=>{
+       traitsArray = features[1].map(x=>{
          let traitObj ={};
          traitObj["trait_type"]=projectDetails.projectDescription.projectName;
          traitObj["value"]=x;

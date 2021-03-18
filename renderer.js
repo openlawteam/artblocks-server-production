@@ -50,7 +50,7 @@ const s3 = new AWS.S3({
 });
 
 const currentNetwork = "rinkeby";
-const testing = true;
+const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
     ? "mainnet.oss.nodechef.com"
@@ -642,8 +642,8 @@ async function serveScriptVideo(tokenId, ratio) {
     return true;
   } catch (err) {
     let url;
-    const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
-    const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
+    const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
+    const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
     try {
       const browser = await puppeteer.launch({
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -664,7 +664,7 @@ async function serveScriptVideo(tokenId, ratio) {
         await page.goto(url);
       }
 
-      const video = await renderVideo(page, 10);
+      const video = await renderVideo(page, 3);
       const videoFileContent = await readFile(video);
       const uploadVideoParams = {
         Bucket: currentNetwork,
