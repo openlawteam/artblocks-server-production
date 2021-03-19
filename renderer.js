@@ -290,7 +290,7 @@ app.get("/generator/:tokenId", async (request, response) => {
       ) {
         response.render("generator_js", { script, data });
       } else if (projectDetails.projectScriptInfo.scriptJSON.type === "regl") {
-        response.render("generator_regl", { script: script, data: data });
+        response.render("generator_regl", { script, data });
       } else {
         response.render("generator_threejs", { script, data });
       }
@@ -643,8 +643,8 @@ async function serveScriptVideo(tokenId, ratio) {
     return true;
   } catch (err) {
     let url;
-    const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
-    const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
+    const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
+    const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
     try {
       const browser = await puppeteer.launch({
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -665,7 +665,7 @@ async function serveScriptVideo(tokenId, ratio) {
         await page.goto(url);
       }
 
-      const video = await renderVideo(page, 10);
+      const video = await renderVideo(page, 3);
       const videoFileContent = await readFile(video);
       const uploadVideoParams = {
         Bucket: currentNetwork,
@@ -696,7 +696,6 @@ async function serveScriptResult(tokenId, ratio) {
   queue.dequeue();
   const tokenKey = `${tokenId}.png`;
   const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
-  console.log("ayo");
   try {
     await s3.getObject(checkImageExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
@@ -768,78 +767,6 @@ async function serveScriptResult(tokenId, ratio) {
       return puppeteerErr;
     }
   }
-  // console.log(`Running Puppeteer: ${tokenId}`);
-  // queue.dequeue();
-  // const tokenKey = `${tokenId}.png`;
-  // const params = { Bucket: currentNetwork, Key: tokenKey };
-  // console.log(params);
-  // s3.getObject(params, async (err) => {
-  //   if (!err) {
-  //     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
-  //     return true;
-  //   }
-  //   let url;
-  //   const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
-  //   const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
-  //   try {
-  //     const browser = await puppeteer.launch({
-  //       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  //     });
-  //     const page = await browser.newPage();
-  //     await page.setViewport({
-  //       width,
-  //       height,
-  //       deviceScaleFactor: 2,
-  //     });
-  //     if (testing) {
-  //       await page.goto(`http://localhost:1234/generator/${tokenId}`);
-  //     } else {
-  //       url =
-  //         currentNetwork === "rinkeby"
-  //           ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-  //           : `https://api.artblocks.io/generator/${tokenId}`;
-  //       await page.goto(url);
-  //     }
-
-  //     await timeout(500);
-  //     const image = await page.screenshot();
-  //     await browser.close();
-
-  //     const imageResizer = Buffer.from(image);
-  //     const resizedImage = sharp(imageResizer)
-  //       .resize(Math.round(width / 3), Math.round(height / 3))
-  //       .png();
-
-  //     const params1 = {
-  //       Bucket: currentNetwork,
-  //       Key: tokenKey,
-  //       Body: image,
-  //     };
-  //     const params2 = {
-  //       Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
-  //       Key: tokenKey,
-  //       Body: resizedImage,
-  //     };
-
-  //     // Uploading files to the bucket
-  //     s3.upload(params1, (errUpload1, data) => {
-  //       if (errUpload1) {
-  //         throw errUpload1;
-  //       }
-  //       console.log(`Full sized file uploaded successfully. ${data.Location}`);
-  //     });
-  //     s3.upload(params2, (errUpload2, data) => {
-  //       if (errUpload2) {
-  //         throw errUpload2;
-  //       }
-  //       console.log(`Thumnail uploaded successfully. ${data.Location}`);
-  //     });
-  //     return image;
-  //   } catch (error) {
-  //     console.log(`${tokenId}| this is the error: ${error}`);
-  //     return error;
-  //   }
-  // });
 }
 
 // TODO: this and the above function can be simplified into one,

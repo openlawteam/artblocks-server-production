@@ -50,7 +50,7 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-const testing = false;
+const testing = true;
 
 let queue = new Queue();
 
