@@ -50,7 +50,7 @@ const s3 = new AWS.S3({
 });
 
 const currentNetwork = "mainnet";
-const testing = false;
+const testing = true;
 const mediaUrl =
   currentNetwork === "mainnet"
     ? "mainnet.oss.nodechef.com"
@@ -689,83 +689,91 @@ async function serveScriptVideo(tokenId, ratio) {
   }
 }
 
+async function renderImage(tokenId, tokenKey, ratio) {
+  let url;
+  console.log(`I'm the renderer. Token ${tokenId} does not exist`);
+  const width = Math.floor(ratio <= 1 ? 512 * ratio : 512);
+  const height = Math.floor(ratio <= 1 ? 512 : 512 / ratio);
+  try {
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
+    await page.setViewport({
+      width,
+      height,
+      deviceScaleFactor: 2,
+    });
+    if (testing) {
+      await page.goto(`http://localhost:1234/generator/${tokenId}`);
+    } else {
+      url =
+        currentNetwork === "rinkeby"
+          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
+          : `https://api.artblocks.io/generator/${tokenId}`;
+      await page.goto(url);
+    }
+
+    await timeout(500);
+    const image = await page.screenshot();
+    await browser.close();
+    const imageResizer = Buffer.from(image);
+    const resizedImage = sharp(imageResizer)
+      .resize(Math.round(width / 3), Math.round(height / 3))
+      .png();
+
+    const params1 = {
+      Bucket: currentNetwork,
+      Key: tokenKey,
+      Body: image,
+    };
+    const params2 = {
+      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Key: tokenKey,
+      Body: resizedImage,
+    };
+
+    try {
+      const uploadRes = await s3.upload(params1).promise();
+      console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
+      try {
+        const uploadRes2 = await s3.upload(params2).promise();
+        console.log(
+          `Resized image file uploaded successfully: ${uploadRes2.Location}`
+        );
+        return true;
+      } catch (uploadErr) {
+        console.log(
+          `${tokenId}| this is the s3 upload (resized) error: ${uploadErr}`
+        );
+        throw uploadErr;
+      }
+    } catch (uploadErr) {
+      console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
+      throw uploadErr;
+    }
+  } catch (puppeteerErr) {
+    return puppeteerErr;
+  }
+}
+
 // TODO: lets use async/await with our s3 calls
 // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/using-async-await.html
-async function serveScriptResult(tokenId, ratio) {
-  console.log(`Running Puppeteer: ${tokenId}`);
-  queue.dequeue();
+async function serveScriptResult(tokenId, ratio, refresh) {
+  console.log(`Running Puppeteer: ${tokenId}, refresh: ${refresh}`);
   const tokenKey = `${tokenId}.png`;
   const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  if (refresh) {
+    await renderImage(tokenId, tokenKey, ratio);
+  }
+  queue.dequeue();
   try {
     await s3.getObject(checkImageExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
     return true;
   } catch (err) {
-    let url;
-    console.log(`I'm the renderer. Token ${tokenId} does not exist`);
-    const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
-    const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
-    try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-      const page = await browser.newPage();
-      await page.setViewport({
-        width: 400,
-        height: 400,
-        deviceScaleFactor: 2,
-      });
-      if (testing) {
-        await page.goto(`http://localhost:1234/generator/${tokenId}`);
-      } else {
-        url =
-          currentNetwork === "rinkeby"
-            ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-            : `https://api.artblocks.io/generator/${tokenId}`;
-        await page.goto(url);
-      }
-
-      await timeout(500);
-      const image = await page.screenshot();
-      await browser.close();
-      const imageResizer = Buffer.from(image);
-      const resizedImage = sharp(imageResizer)
-        .resize(Math.round(width / 3), Math.round(height / 3))
-        .png();
-
-      const params1 = {
-        Bucket: currentNetwork,
-        Key: tokenKey,
-        Body: image,
-      };
-      const params2 = {
-        Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
-        Key: tokenKey,
-        Body: resizedImage,
-      };
-
-      try {
-        const uploadRes = await s3.upload(params1).promise();
-        console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
-        try {
-          const uploadRes2 = await s3.upload(params2).promise();
-          console.log(
-            `Resized image file uploaded successfully: ${uploadRes2.Location}`
-          );
-          return true;
-        } catch (uploadErr) {
-          console.log(
-            `${tokenId}| this is the s3 upload (resized) error: ${uploadErr}`
-          );
-          throw uploadErr;
-        }
-      } catch (uploadErr) {
-        console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
-        throw uploadErr;
-      }
-    } catch (puppeteerErr) {
-      return puppeteerErr;
-    }
+    await renderImage(tokenId, tokenKey, ratio);
+    return true;
   }
 }
 
@@ -1052,6 +1060,7 @@ function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.
 /* eslint-enable */
 
 app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
+  const refresh = Boolean(request.query.refresh) || false;
   request.setTimeout(0);
   const projectId = request.params.projectId;
   console.log(projectId);
@@ -1071,7 +1080,7 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
       i < Number(request.params.endId);
       i++
     ) {
-      await serveScriptResult(tokensOfProject[i], ratio);
+      await serveScriptResult(tokensOfProject[i], ratio, refresh);
       console.log("Puppeteer has run.");
     }
   } else {
@@ -1080,7 +1089,7 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
       i < tokensOfProject.length;
       i++
     ) {
-      const res = await serveScriptResult(tokensOfProject[i], ratio);
+      const res = await serveScriptResult(tokensOfProject[i], ratio, refresh);
       console.log("Puppeteer has run.", res);
     }
   }
