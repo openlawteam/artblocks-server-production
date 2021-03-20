@@ -50,7 +50,7 @@ const s3 = new AWS.S3({
 });
 
 const currentNetwork = "mainnet";
-const testing = true;
+const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
     ? "mainnet.oss.nodechef.com"
@@ -692,8 +692,8 @@ async function serveScriptVideo(tokenId, ratio) {
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
   console.log(`I'm the renderer. Token ${tokenId} does not exist`);
-  const width = Math.floor(ratio <= 1 ? 512 * ratio : 512);
-  const height = Math.floor(ratio <= 1 ? 512 : 512 / ratio);
+  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
+  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -725,11 +725,13 @@ async function renderImage(tokenId, tokenKey, ratio) {
     const params1 = {
       Bucket: currentNetwork,
       Key: tokenKey,
+      ContentType: "image/png",
       Body: image,
     };
     const params2 = {
       Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
       Key: tokenKey,
+      ContentType: "image/png",
       Body: resizedImage,
     };
 
@@ -783,8 +785,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
   console.log(`Running Puppeteer: ${tokenId}`);
 
   let url;
-  const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
-  const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
+  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
+  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
   const tokenKey = `${tokenId}.png`;
 
   try {
@@ -829,12 +831,14 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     const params1 = {
       Bucket: currentNetwork,
       Key: tokenKey,
+      ContentType: "image/png",
       Body: image,
     };
 
     const params2 = {
       Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
       Key: tokenKey,
+      ContentType: "image/png",
       Body: resizedImage,
     };
 

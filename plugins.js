@@ -4006,7 +4006,699 @@ else if (projectId===28){
       }
 
 }
+/////
 
+else if (projectId === 29){
+  // --- INSPIRALS FEATURES ---
+
+  // --- DATA ---
+  let _shapeData = [
+      // animation values a:[paramNum,min,max,speed]
+      {t:1, n:1},
+      {t:6, a:[3, 0, 2, 2.5], n:1},
+      {t:1, a:[1, 0.26, 1, 0.4], n:1},
+      {t:1, a:[3, 0, 1.1], n:1},
+      {t:2, a:[1,0,1.6,2], n:1},
+      // 5
+      {t:2, a:[1, 0 ,2, 2], n:2},
+      {t:2, a:[1, 0, 1.5, 2]},
+      {t:25, a:[1, 0, 1.6, 2], n:2},
+      {t:26, a:[1, 0.116, 0.76], n:1},
+      {t:4, a:[1, 0, 0.752], n:1},
+      // 10
+      {t:4, a:[5, 0, 1.85, 2], n:1},
+      {t:6, a:[3, 0, 1.1, 1.6], n:1},
+      {t:6, a:[3, 0, 1.8, 2], n:2},
+      {t:6, a:[4, 0, 2, 2], n:2},
+      {t:6, a:[3,0,1.3,2]},
+      // 15
+      {t:8, a:[3, 0, 1, 0.8]},
+      {t:8, a:[1, 0, 0.7, 1.5]},
+      {t:9, a:[1,0.192,2,2], n:1},
+      {t:9, a:[1,0.488,1.6], n:1},
+      {t:9, a:[2, 0.02, 0.3]},
+      // 20
+      {t:13, a:[1,0,0.3,0.6]},
+      {t:13, a:[1, 0.08, 0.3, 0.4]},
+      {t:15, a:[1,0,0.58,2], n:2},
+      {t:22, a:[1, 0,0.9]},
+      {t:22, a:[1,0,1.12,2], n:2},
+      // 25
+      {t:25, a:[1,0,1.268,2], n:2},
+      {t:2, a:[1,0.612,1.628]},
+      {t:6, a:[1,0.128,0.268,0.6]},
+      {t:25, a:[1,0,1.72,2], n:2},
+      {t:2, a:[1,0,1.52,2], n:2},
+      // 30
+      {t:6, a:[3,0,0.72,2], n:2},
+      {t:6, a:[3,0.44,0.764], n:2},
+  ];
+
+  let _paramData = [
+      {s:4, p:[0,1.192,0.432,0.096]},
+      {s:5, p:[0.132,0.304,0.128,0]},
+      {s:6, p:[0.163,0.871,0.039,0.02]},
+      {s:6, p:[0.116,1.092,0.092,0.082]},
+      {s:7, p:[0.072,0.86,0.032]},
+
+      {s:7, p:[0.044,1.876,0.16]},
+      {s:11, p:[0.26,0.52,0.116,0.5,1.7]},
+      {s:11, p:[0.244,0.436,0,1.496,0.872], a:[4, 0, 0.884, 2]},
+      {s:11, p:[0.232,0,0.144,0.492,0.12], a:[3, 0, 2, 2]},
+      {s:28, p:[0.032,1.24,0.084], a:[1,0,1.72,2]},
+      // 10
+      {s:28, p:[0.004,1.772,0], a:[1,0,2,2]},
+      {s:24, p:[0.048,0.012,0.168], a:[1,0,1,2]},
+      {s:24, p:[0.048,0.7,0.092], a:[1,0,0.836,2]},
+      {s:25, p:[0.064,0.484,0.04], a:[1,0,1.268,2]},
+      {s:25, p:[0.008,1.072,0.176]},
+
+      {s:25, p:[0.064,0.46,0.04]},
+      {s:25, p:[0.068,0.812,0.004]},
+      {s:25, p:[0.04,0.496,0.096]},
+      {s:26, p:[0.116,1.204,0,0.268]},
+      {s:23, p:[0.02,0.116,0.22], a:[1,0,1.37,2]},
+      // 20
+      {s:23, p:[0,0.128,0.14]},
+      {s:23, p:[0.048,0.6,0.04], a:[1,0,0.78,2]},
+      {s:23, p:[0.068,0.016,0.032]},
+      {s:11, p:[0.012,0.388,0.212,1.628,0.9], a:[1,0.332,0.748]},
+      {s:23, p:[0.108,1.048,0.04], a:[1,0,1.45,2]},
+
+      {s:24, p:[0.06,1.004,0.264]},
+      {s:24, p:[0.036,0.188,0.076], a:[1,0,0.656,2]},
+      {s:14, p:[0.128,0.332,0,0.648,1.92]},
+      {s:21, p:[0.076,0.168,0.56], a:[2,0.36,0.652]},
+      {s:5, p:[0.072,0.048,0.248,0.084]},
+      // 30
+      {s:7, p:[0.084,0.42,0.012]},
+      {s:20, p:[0.148,0.068,0.596], a:[0,0.052,0.32,0.6]},
+      {s:19, p:[0.008,1.716,0.2], a:[1,0.884,2,1]},
+      {s:19, p:[0.187,1.665,0.031], a:[1,0.756,2,1.2]},
+      {s:19, p:[0.024,1.916,0.22],a:[1,0.904,2]},
+
+      {s:13, p:[0.104,0.528,0.228,0.772,1.968], a:[4, 0.788, 2, 2]},
+      {s:19, p:[0.176,1.948,0.056], a:[1, 0.928, 2, 2]},
+      {s:4, p:[0.052,0.052,0.324,0.088]},
+      {s:17, p:[0.1,1.368,0.164]},
+      {s:22, p:[0.056,0.14,0.056], a:[1,0.092,0.42]},
+      // 40
+      {s:7, p:[0.072,0.516,0.032]},
+      {s:7, p:[0.076,0.34,0.076]},
+      {s:7, p:[0.02,0.792,0.196]},
+      {s:3, p:[0.124,0.536,0.064,0.276]},// out
+      {s:28, p:[0.036,0.312,0.076]},
+
+      {s:11, p:[0.216,0.52,0.048,0.072,0.488], a:[3,0,1.4]},
+      {s:13, p:[0.104,0.528,0.228,0.564,1.604]},
+      {s:13, p:[0.132,0.104,0.164,0.024,0.9], a:[4, 0, 1, 1.4]},
+      {s:13, p:[1.1,1.808,0.252,0.352,1.34], a:[0, 0.172, 1.9, 2.6]},
+      {s:13, p:[0.12,0.488,0.22,0.52,1.068]},
+      // 50
+      {s:12, p:[0.32,0.572,0.032,0.136,1.948], a:[1, 0.34, 1.08]},
+      {s:13, p:[0.16,0.484,0.192,1.836,0.044], a:[4, 0, 1.7, 2]},
+      {s:12, p:[0.38,0.596,0.012,0.96,0.008]},
+      {s:9, p:[0.036,0.576,0.064,0.28,0.412,0.332]},
+      {s:12, p:[0.16,0.712,0.368,1.224,0.516], a:[1, 0.4, 2, 2]},
+
+      {s:11, p:[0.192,0.2,0.008,0.276,1.164], a:[1, 0, 0.272, 0.6]},
+      {s:4, p:[0,1.524,0.432,0.108]},
+      {s:0, p:[0.168,0.926,0.076,0.608], a:[1, 0.2, 1, 0.5]},
+      {s:0, p:[0.18,0.588,0.016,0.196]},
+      {s:25, p:[0.084,0.492,0.008]},
+
+      // 60
+      {s:12, p:[0,0.444,0.32,1.164,1.7],a:[1, 0.34, 1.092,1.2]},
+      {s:2, p:[0.024,0.936,0.136,0.768]},
+      {s:23, p:[0.048,0.152,0.128], a:[1,0,1.4,2]},
+      {s:3, p:[0.088,0.528,0.06,0.208], a:[1, 0.08, 0.564, 0.6]},
+      {s:23, p:[0,0.764,0.14]},
+
+      {s:5, p:[0.052,1.448,0,0.492]},// in
+      {s:5, p:[0.072,0.016,0.244,0.008]},// in
+      {s:5, p:[0.124,1.964,0.044,0.288], a:[3,0,0.8]},// in
+      {s:6, p:[0.196,0.084,0.036,0.076]},// in
+      {s:6, p:[0.156,0.488,0.05,0.02]},// in
+      // 70
+      {s:6, p:[0.08,0.632,0.136,0.036]},// in
+      {s:29, p:[0,0.524,0.208,0.232]},
+      {s:23, p:[0.052,1.084,0.16], a:[1,0,1.4,2]},// in
+      {s:8, p:[0.064,0.108]},// out
+      {s:9, p:[0.06,0.604,0.016,0.244,0.352,0.124], a:[3, 0, 0.832]},// in
+
+      {s:27, p:[0.072,0.176,0.164,0.548,1.9], a:[4, 0.976, 1.97, 2]},
+      {s:9, p:[0.032,0.424,0.248,0.156,0.064,0.516], a:[3, 0.052, 0.424]},// in
+      {s:14, p:[0.128,0.336,0.016,0.724,1.92]},
+      {s:12, p:[0.048,0.472,0.264,2,1.2],a:[2, 0.116, 0.416]}, // in
+      {s:10, p:[0.168,0.22,0.148,0.384,0.064,1.78]},// in
+      // 80
+      {s:10, p:[0.172,0.176,0.16,0.524,0.304,1.836]},// in
+      {s:11, p:[0.26,0.52,0.112,0.196,1.696]},// in
+      {s:11, p:[0.064,0.248,0.116,0.56,0.152], a:[1,0,0.264,0.4]},// in
+      {s:12, p:[0.36,0.656,0.004,0.896,0.008],a:[3, 0, 1.5, 2]},// in
+      {s:12, p:[0.36,0.656,0.004,0.96,0.472],a:[3, 0.332, 1.558, 2.5]},// in
+
+      {s:2, p:[0.328,0.788,0.092,0.508] },// out
+      {s:13, p:[0.024,0.472,0.272,0.376,1.712]},
+      {s:15, p:[0.052,0.532,0.152,0.108]},
+      {s:15, p:[0.164,0.428,0,0.084], a:[3, 0, 0.6, 0.4]},
+      {s:16, p:[0.156,0.56,0.116,0.192]},
+      // 90
+      {s:16, p:[0.308,0.836,0,0.66], a:[1,0.35,1.0]},
+      {s:5, p:[0.048,1.316,0,0.42], a:[3, 0.316,0.808, 1.5]},
+      {s:22, p:[0.084,0.06,0.08], a:[1,0.025,0.8]},
+      {s:18, p:[0.128,0.72,0.056], a:[2,0.012,0.4]},
+      {s:18, p:[0.132,1.008,0.124]},
+
+      {s:26, p:[0.208,0.94,0,0], a:[1,0.684,1.9,2.5]}, // new
+      {s:27, p:[0.08,0.152,0.164,0.548,1.9], a:[1,0,0.26,0.5]},
+      {s:21, p:[0.076,0.208,0.436]},
+      {s:22, p:[0.028,0.264,0.232]},
+      {s:11, p:[0.152,0.512,0.328,0.508,1.932], a:[3, 0, 2, 1.4]},
+      // 100
+      {s:27, p:[0.072,0.212,0.176,0.116,0.56]},
+      {s:25, p:[0.112,0,0.016], a:[1,0,1.268,2]},
+      {s:20, p:[0.164,0.08,0.4]},
+      {s:29, p:[0.096,0.856,0.152,0.012], a:[2,0.08,0.66,1.4]},
+      {s:30, p:[0.1,0.496,0.136,0.508,1.404]},
+
+      {s:30, p:[0.104,0.472,0.144,0.204,0.188], a:[0,0,0.364,0.6]}, //
+      {s:30, p:[0.104,0,0.428,0.372,1.696], a:[3,0,1.72,2.5]}, //
+      {s:30, p:[0.104,0,0.428,0.656,1.696], a:[3,0,1.72,2.5]}, //
+      {s:30, p:[0.104,0.048,0.236,0.536,1.74], a:[2,0.072,0.816,0.8]}, //
+      {s:19, p:[0.108,0.208,0.052]}, //
+      // 110
+      {s:20, p:[0.064,0.144,0.4], a:[1,0.08,0.4,0.6]},
+      {s:1, p:[0.072,0.624,0.396,1.812,1.92]},
+      {s:1, p:[0.244,0.7,0.452,2,1.664], a:[3, 0.192, 1.9, 2.5]},
+      {s:11, p:[0.24,0.048,0.084,0.133,1.528]},
+      {s:11, p:[0.18,0.136,0.148,0.076,1.564]},
+
+      {s:31, p:[0.124,0.524,0.056,0.576,0.908]},
+      {s:31, p:[0.12,0.516,0.056,0,1.1], a:[3,0,0.344]},
+      {s:31, p:[0.132,0.148,0.056,0.636,1.092], a:[3,0,1.092,2]},
+      {s:13, p:[0.068,0.42,0.176,1.8,1.784], a:[3, 0, 1.572, 2]},
+      {s:13, p:[0.052,0.372,0.148,0.17,1.184], a:[3, 0, 1.61, 2]},
+      // 120
+      {s:13, p:[0.036,0.36,0.116,0,1.012], a:[4, 0.8, 1.62]},
+      {s:15, p:[0.024,0.472,0.152,0.12], a:[3, 0.02, 0.76]},
+  ];
+
+  let _electric = [
+      ['#500920','#e40032','#fdbf34'],
+      ['#0a1415','#af3886','#bdf217'],
+      ['#5a2150','#e29800','#bfffd3'],
+      ['#1f352a','#e52fdb','#93ff00'],
+      ['#2b168c','#ff007d','#f2f500'],
+
+      ['#1f352a','#1a8afe','#9dff0a'],
+      ['#1f352a','#e52fdb','#14f9ff'],
+      ['#12000e','#f40701','#ffee6a'],
+      ['#3c1d46','#f37b6a','#d1ff00'],
+      ['#2c0c58','#ff258b','#ffee52']
+  ];
+
+  let _wildSet = [
+      ['#041517','#c300e6','#ffd3c5'], // "Grape Jam",
+      ['#044248','#CFF4FA','#F53CB5'],
+      ['#143336','#fe6452','#b7ffff'], //
+      ['#212c0f','#426eff','#ffd87c'], // "Cal Beach"
+      ['#0a2a45','#ff00b4','#ffefc0'], // ???
+  // 5
+      ['#1a3c45','#e87a1d','#d4faff'], // orange, pale blue
+      ['#402A48','#D00659','#FFEAF4'],
+      ['#3e185e','#8f9700','#ffefde'], // "Titan Arum", '#f0f3ff'
+      ['#363e21','#9bb565','#fbffc9'], // "Greengrass"
+      ['#641a03','#ea989e','#bdecfc'], // "Sugar Club"
+  // 10
+      ['#0c2d48','#66d2d6','#fbc740'], // "Antigua",
+      ['#51322a','#9eca94','#dbefde'], // "Mint Chocolate",
+      ['#051e64','#f22822','#fdfbf5'], // "Patriotique",
+      ['#06351b','#0091c1','#ffdcfc'], // "Miami",
+      ['#22343c','#f46a6c','#bfffeb'], // "Coral Reef",
+  // 15
+      ['#162325','#b545a7','#fdde70'], // "Purple Iris"
+      ['#0c1613','#396caf','#ffd6f3'], // "Blue Carbuncle",
+      ['#581c58','#ff87aa','#ffead9'], // "Plum Soda"
+      ['#171031','#cb368a','#ffdcb4'],
+      ['#193121','#3dadbb','#eeebfe'],
+  // 20
+      ['#012873','#EAB349','#F9EAE6'],
+      ['#421B52','#DA9650','#F9F0FF'],
+      ['#27421B','#E3AA60','#E8FFDC'], // "Copper Cloth",
+      ['#2D3954','#6C94F0','#C8F9FA'], // "Night Bloom",
+      ['#423116','#E6B363','#FFE5BA'], // "Wheat Field",
+
+      ['#332F1B','#62A8A4','#F5EECE'],
+  ];
+
+  let _electricNames = [
+      "Flame On",
+      "Hulk Mad",
+      "Copper Green",
+      "Hulk Smash",
+      "Candy Shop",
+      "Nikko Blue",
+      "Turquoise Dream",
+      "Red Robin",
+      "Tiger Lily",
+      "Sugar Club"
+  ];
+
+  let _wildNames = [
+      "Grape Jam",
+      "Fuschia Frost",
+      "Salmon Skin",
+      "Cal Beach",
+      "Cream Candy",
+
+      "Rusty Hull",
+      "Vampyre",
+      "Titan Arum",
+      "Greengrass",
+      "Marrakesh",
+
+      "Antigua",
+      "Mint Chocolate",
+      "Patriotique",
+      "Miami",
+      "Coral Reef",
+
+      "Purple Iris",
+      "Blue Carbuncle",
+      "Plum Soda",
+      "Berry Tart",
+      "Blue Ice",
+
+      "Banana Boat",
+      "Late Harvest",
+      "Copper Cloth",
+      "Night Bloom",
+      "Wheatfield",
+      "Sea Foam"
+  ];
+
+  const _schemes =
+  {
+      Wild: 11,
+      Electric: 14,
+      BW: 16,
+      Gray: 18,
+      Family: 19
+  }
+
+  const _schemeNames =
+  {
+      11: "Wild",
+      14: "Electric",
+      16: "Black and White",
+      18: "Grayscale",
+      19: "Family"
+  }
+
+  let pNames =
+  {
+      //_tileType: 0,
+      // colors
+      _sh: 1,
+      _ss: 2,
+      _sl: 3,
+      _ch: 4,
+      _cs: 5,
+      _cl: 6,
+
+      // tiling
+      _presetIndex: 7,
+      //_defaultShape: 8,
+      //_spiralA: 9,
+      //_spiralB: 10,
+
+      // shape adjustments
+      _adjust1: 11,
+      _adjust2: 12,
+      _adjust3: 13,
+      _adjust4: 14,
+      _adjust5: 15,
+      _adjust6: 16,
+
+      _colorScheme: 17,
+      _lineStyle: 18,
+      _sp: 19
+  }
+
+  const _lineModes = {
+      Dark: 0,
+      Midtone: 1,
+      Black: 2,
+      None: 3,
+      White: 4
+  }
+  var sn;
+  var special;
+  let spColors = [
+      [175, 60, 12, 25],
+      [200, 60, 12, 25],
+      [220, 60, 12, 25],
+      [250, 60, 15, 25],
+      [280, 60, 15, 25],
+      [320, 60, 15, 25]
+  ];
+  let spids = {
+      111:4,
+      420:80,
+      666:30,
+      999:62
+  };
+  // --- GLOBALS ---
+
+  let _raw;
+
+  // colors
+
+  let _colorScheme = _schemes.Family;
+  let _schemeIndex = 0;
+  let _cols = [];
+  let _paletteName;
+  let _baseColor;
+  let _baseColorName;
+  let _lineStyle = 0;
+
+  let _startHue;
+  let _changeHue;
+
+  // tiling
+  let _currentPreset = 0;
+  let _presetIdx = 0;
+  let _doubleSpiral = false;
+
+  // --- METADATA ---
+  function getFeatures(_tokenHash, _tokenId)
+  {
+      _raw = extractParameters(_tokenHash);
+      setParams(_tokenId);
+      chooseColorNames();
+      return reportFeatures();
+  }
+
+  // Produces 32 values between 0 and 255 inclusive
+  function extractParameters(hash)
+  {
+      let _values = [];
+      let _substr;
+      for (let j = 0; j < 32; j++)
+      {
+          _substr = hash.substr(2 + (j * 2), 2);
+          _values.push(parseInt(_substr, 16));
+      }
+      return _values;
+  }
+
+  function reportFeatures()
+  {
+      let _feats = [];
+
+      // color scheme
+      _feats.push("Color Scheme: " + _schemeNames[_colorScheme]);
+
+      // color palette
+      _feats.push("Palette: " + _paletteName);
+
+      // base color
+      if (_baseColorName == "")
+      {
+          _baseColorName = getColorName(_baseColor);
+      }
+      _feats.push("Base Color: " + _baseColorName);
+
+      // line
+      _feats.push("Outline: " + Object.keys(_lineModes)[_lineStyle]);
+
+      // symmetry
+      _feats.push("Symmetry Type: " + _currentPreset.sh.t);
+
+      // shape
+      _feats.push("Shape: " + (_currentPreset.s + 1));
+
+      // pattern
+      _feats.push("Pattern: " + (_presetIdx + 1));
+
+      // spirals
+      _feats.push("Spiral: " + (_doubleSpiral ? "Double" : "Single"));
+
+      // can't support this one without the full script
+      //_feats.push("Distortions: " + _tiling.numParameters());
+
+      return _feats;
+  }
+
+  function getColorName(hue)
+  {
+      hue = hue % 360;
+      let _colorName = "Unknown";
+      if (hue > 315)
+      {
+          _colorName =  "Red";
+      }
+      else if (hue > 300)
+      {
+          _colorName =  "Pink";
+      }
+      else if (hue > 255)
+      {
+          _colorName =  "Purple";
+      }
+      else if (hue > 202)
+      {
+          _colorName =  "Blue";
+      }
+      else if (hue > 185)
+      {
+          _colorName =  "Aqua";
+      }
+      else if (hue > 93)
+      {
+          _colorName =  "Green";
+      }
+      else if (hue > 63)
+      {
+          _colorName =  "Chartreuse";
+      }
+      else if (hue > 42)
+      {
+          _colorName =  "Yellow";
+      }
+      else if (hue > 11)
+      {
+          _colorName =  "Orange";
+      }
+      else
+      {
+          _colorName =  "Red";
+      }
+      return _colorName;
+  }
+
+  function setParams(_tokenId)
+  {
+      sn = parseInt(_tokenId) % 1000000;
+      special = ((sn % 111) === 0 || _raw[pNames._double] > 252);
+
+      if (special)
+      {
+          _presetIdx = spids[sn];
+          if (!_presetIdx) _presetIdx = _raw[pNames._presetIndex] % 20;
+          _doubleSpiral = true;
+      }
+      else
+      {
+          _presetIdx = _raw[pNames._presetIndex] % _paramData.length;
+          _doubleSpiral = false;
+      }
+
+      _currentPreset = _paramData[_presetIdx];
+      _currentPreset.sh = _shapeData[_currentPreset.s];
+  }
+
+  function chooseColorNames()
+  {
+      let startSat, startLig, blackAndWhite = false;
+      _schemeIndex = 0;
+      _baseColorName = "";
+
+      if (special)
+      {
+          if (sn == 666)
+          {
+              _colorScheme = _schemes.Electric;
+          }
+          else if (sn == 999)
+          {
+              _colorScheme = _schemes.BW;
+          }
+          else
+          {
+              _colorScheme = _schemes.Family;
+
+              let si = _raw[pNames._sp] % spColors.length;
+              let newColors = spColors[si];
+              _startHue = newColors[0];
+              startSat = newColors[1];
+              startLig = newColors[2];
+              _changeHue = newColors[3];
+          }
+      }
+      else
+      {
+          _colorScheme = (_raw[pNames._colorScheme] % 64);
+          if (_colorScheme >= _schemes.Family)
+          {
+              _colorScheme = _schemes.Family;
+              _paletteName = "Generated";
+          }
+          else if (_colorScheme <= _schemes.Wild)
+          {
+              _colorScheme = _schemes.Wild;
+          }
+          else if (_colorScheme <= _schemes.Electric)
+          {
+              _colorScheme = _schemes.Electric;
+          }
+          else if (_colorScheme <= _schemes.BW)
+          {
+              _colorScheme = _schemes.BW;
+          }
+          else if (_colorScheme <= _schemes.Gray)
+          {
+              _colorScheme = _schemes.Gray;
+          }
+
+          _changeHue = map2(_raw[pNames._ch], 0, 255, 5, 30);
+
+          _startHue = map2(_raw[pNames._sh], 0, 255, 0, 360);
+          // reduce chartreuse
+          if (_startHue > 48 && _startHue < 89)
+          {
+              _startHue += 279 - (_changeHue * 7);
+          }
+
+          startSat = map2(_raw[pNames._ss], 0, 255, 40, 100);
+          startLig = map2(_raw[pNames._sl], 0, 255, 0, 24);
+      }
+      blackAndWhite = (_colorScheme == _schemes.BW);
+
+      let _changeSat = map2(_raw[pNames._cs], 0, 255, 15, 35);
+      let _changeLig = map2(_raw[pNames._cl], 0, 255, 31, 43);
+
+      // determine line style
+      let _needLine = (_currentPreset.sh.n == undefined) ? 0 : _currentPreset.sh.n;
+
+      _lineStyle = _raw[pNames._lineStyle] % 16;
+      if (_lineStyle > 3 || _needLine == 2 || (_lineStyle == 3 && _needLine == 1))
+      {
+          _lineStyle = 0;
+      }
+      if (_lineStyle == _lineModes.Dark) _changeLig += 9;
+
+      // consider the middle color the base color
+      _baseColor = _startHue + _changeHue;
+
+      _cols = [];
+      if (blackAndWhite)
+      {
+          _paletteName = "Black and White";
+          _baseColorName = "Black";
+          _lineStyle = _lineModes.White;
+      }
+      else if (_colorScheme == _schemes.Wild)
+      {
+          _schemeIndex = (sn == 420) ? 8 : _raw[pNames._ch] % _wildSet.length;
+          _paletteName = _wildNames[_schemeIndex];
+          _baseColor = setHexColors(_wildSet[_schemeIndex]);
+      }
+      else if (_colorScheme == _schemes.Electric)
+      {
+          _schemeIndex = (sn == 666) ? 0 : _raw[pNames._ch] % _electric.length;
+          _paletteName = _electricNames[_schemeIndex];
+          _baseColor = setHexColors(_electric[_schemeIndex]);
+      }
+      else if (_colorScheme == _schemes.Gray)
+      {
+          _paletteName = "Grayscale";
+          _baseColorName = "Gray";
+      }
+      else
+      {
+          _paletteName = "Generated";
+          let lig, sat;
+          let minLig = (_baseColor > 60 && _baseColor < 189) ? 98 : 95;
+          let maxSat = (_baseColor > 60 && _baseColor < 189) ? 15 : 25;
+
+          for (let i = 0; i < 4; i++)
+          {
+              lig = startLig + (i * _changeLig);
+              sat = startSat + (i * _changeSat)
+              if (i >= 2)
+              {
+                  lig = Math.min(Math.max(lig, minLig), 100);
+                  sat = Math.max(sat, maxSat);
+              }
+              _cols.push(
+                  [_startHue + (i * _changeHue),
+                  sat,
+                  lig]
+              )
+          }
+          //console.log("generated: " + JSON.stringify(_cols));
+      }
+      //console.log("palette=" + _paletteName);
+      //console.log("base=" + _baseColor + ", baseColor=" + getColorName(_baseColor));
+  }
+
+  function setHexColors(colArray)
+  {
+      _cols = [];
+      colArray.map((arr) => {
+          _cols.push(hsluv.hexToHsluv(arr));
+      });
+      //console.log("setColors(): " + JSON.stringify(_cols));
+      return _cols[1][0];
+  }
+
+  // --- UTILITIES ---
+
+  function map2(val, fromLow, fromHigh, toLow, toHigh)
+  {
+      let fromRange = fromHigh - fromLow;
+      let toRange = toHigh - toLow;
+      let newVal = (((val - fromLow) / fromRange) * toRange) + toLow;
+      return newVal;
+  }
+
+  function colHexToHsluv(hexColor)
+  {
+      // First convert the HSLuv values to a RGB array
+      const hsl = hsluv.hexToHsluv(hexColor);
+      // Then use the RGB values in a scale of 0-255
+      return hsl;
+  }
+
+  // --- HSluv ---
+  let hsluv;
+  (function() {function f(a){var c=[],b=Math.pow(a+16,3)/1560896;b=b>g?b:a/k;for(var d=0;3>d;){var e=d++,h=l[e][0],w=l[e][1];e=l[e][2];for(var x=0;2>x;){var y=x++,z=(632260*e-126452*w)*b+126452*y;c.push({b:(284517*h-94839*e)*b/z,a:((838422*e+769860*w+731718*h)*a*b-769860*y*a)/z})}}return c}function m(a){a=f(a);for(var c=Infinity,b=0;b<a.length;){var d=a[b];++b;c=Math.min(c,Math.abs(d.a)/Math.sqrt(Math.pow(d.b,2)+1))}return c}
+  function n(a,c){c=c/360*Math.PI*2;a=f(a);for(var b=Infinity,d=0;d<a.length;){var e=a[d];++d;e=e.a/(Math.sin(c)-e.b*Math.cos(c));0<=e&&(b=Math.min(b,e))}return b}function p(a,c){for(var b=0,d=0,e=a.length;d<e;){var h=d++;b+=a[h]*c[h]}return b}function q(a){return.0031308>=a?12.92*a:1.055*Math.pow(a,.4166666666666667)-.055}function r(a){return.04045<a?Math.pow((a+.055)/1.055,2.4):a/12.92}function t(a){return[q(p(l[0],a)),q(p(l[1],a)),q(p(l[2],a))]}
+  function u(a){a=[r(a[0]),r(a[1]),r(a[2])];return[p(v[0],a),p(v[1],a),p(v[2],a)]}function A(a){var c=a[0],b=a[1];a=c+15*b+3*a[2];0!=a?(c=4*c/a,a=9*b/a):a=c=NaN;b=b<=g?b/B*k:116*Math.pow(b/B,.3333333333333333)-16;return 0==b?[0,0,0]:[b,13*b*(c-C),13*b*(a-D)]}function E(a){var c=a[0];if(0==c)return[0,0,0];var b=a[1]/(13*c)+C;a=a[2]/(13*c)+D;c=8>=c?B*c/k:B*Math.pow((c+16)/116,3);b=0-9*c*b/((b-4)*a-b*a);return[b,c,(9*c-15*a*c-a*b)/(3*a)]}
+  function F(a){var c=a[0],b=a[1],d=a[2];a=Math.sqrt(b*b+d*d);1E-8>a?b=0:(b=180*Math.atan2(d,b)/Math.PI,0>b&&(b=360+b));return[c,a,b]}function G(a){var c=a[1],b=a[2]/360*2*Math.PI;return[a[0],Math.cos(b)*c,Math.sin(b)*c]}function H(a){var c=a[0],b=a[1];a=a[2];if(99.9999999<a)return[100,0,c];if(1E-8>a)return[0,0,c];b=n(a,c)/100*b;return[a,b,c]}function I(a){var c=a[0],b=a[1];a=a[2];if(99.9999999<c)return[a,0,100];if(1E-8>c)return[a,0,0];var d=n(c,a);return[a,b/d*100,c]}
+  function J(a){var c=a[0],b=a[1];a=a[2];if(99.9999999<a)return[100,0,c];if(1E-8>a)return[0,0,c];b=m(a)/100*b;return[a,b,c]}function K(a){var c=a[0],b=a[1];a=a[2];if(99.9999999<c)return[a,0,100];if(1E-8>c)return[a,0,0];var d=m(c);return[a,b/d*100,c]}function L(a){for(var c="#",b=0;3>b;){var d=b++;d=Math.round(255*a[d]);var e=d%16;c+=M.charAt((d-e)/16|0)+M.charAt(e)}return c}
+  function N(a){a=a.toLowerCase();for(var c=[],b=0;3>b;){var d=b++;c.push((16*M.indexOf(a.charAt(2*d+1))+M.indexOf(a.charAt(2*d+2)))/255)}return c}function O(a){return t(E(G(a)))}function P(a){return F(A(u(a)))}function Q(a){return O(H(a))}function R(a){return I(P(a))}function S(a){return O(J(a))}function T(a){return K(P(a))}
+  var l=[[3.240969941904521,-1.537383177570093,-.498610760293],[-.96924363628087,1.87596750150772,.041555057407175],[.055630079696993,-.20397695888897,1.056971514242878]],v=[[.41239079926595,.35758433938387,.18048078840183],[.21263900587151,.71516867876775,.072192315360733],[.019330818715591,.11919477979462,.95053215224966]],B=1,C=.19783000664283,D=.46831999493879,k=903.2962962,g=.0088564516,M="0123456789abcdef";
+  hsluv={hsluvToRgb:Q,rgbToHsluv:R,hpluvToRgb:S,rgbToHpluv:T,hsluvToHex:function(a){return L(Q(a))},hexToHsluv:function(a){return R(N(a))},hpluvToHex:function(a){return L(S(a))},hexToHpluv:function(a){return T(N(a))},lchToHpluv:K,hpluvToLch:J,lchToHsluv:I,hsluvToLch:H,lchToLuv:G,luvToLch:F,xyzToLuv:A,luvToXyz:E,xyzToRgb:t,rgbToXyz:u,lchToRgb:O,rgbToLch:P};})();
+
+  // call it
+  features = getFeatures(tokenData, tokenId);
+  // features are simple enough, so no need to reduce
+  featuresReduced = features;
+  //console.log(features);
+}
 
   return [features, featuresReduced];
 }

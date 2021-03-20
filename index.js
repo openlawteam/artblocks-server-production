@@ -51,9 +51,9 @@ var s3  = new AWS.S3({
 
 
 
-const currentNetwork = "rinkeby";
-let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23,27,28]:[];
-let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26]:[];
+const currentNetwork = "mainnet";
+let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23,27,28,29]:[];
+let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26,30]:[];
 //console.log(curatedProjects);
 const testing = false;
 

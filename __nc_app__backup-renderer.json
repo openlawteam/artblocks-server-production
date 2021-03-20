@@ -1,12 +1,12 @@
 {
-  ".DS_Store": {
-    "mt": "Thu Dec 24 2020 22:22:05 GMT-0600 (Central Standard Time)",
+  ".eslintrc": {
+    "mt": "Mon Mar 15 2021 12:49:41 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
-    "path": "/Users/erick/apps/artblocks-v2/server/.DS_Store"
+    "path": "/Users/erick/apps/artblocks-v2/server/.eslintrc"
   },
   ".gitignore": {
-    "mt": "Sat Dec 12 2020 19:31:46 GMT-0600 (Central Standard Time)",
+    "mt": "Mon Mar 15 2021 13:05:33 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/.gitignore"
@@ -17,6 +17,18 @@
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/.nvmrc"
   },
+  ".prettierignore": {
+    "mt": "Mon Mar 15 2021 12:49:41 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/.prettierignore"
+  },
+  ".prettierrc": {
+    "mt": "Fri Mar 19 2021 22:16:43 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/.prettierrc"
+  },
   "README.md": {
     "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
     "exists": true,
@@ -24,13 +36,13 @@
     "path": "/Users/erick/apps/artblocks-v2/server/README.md"
   },
   "__nc_app__artblocks-server-rinkeby.json": {
-    "mt": "Thu Dec 31 2020 00:04:56 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 12:26:03 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-server-rinkeby.json"
   },
   "__nc_app__artblocks-server.json": {
-    "mt": "Fri Dec 25 2020 01:07:44 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 22:41:54 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-server.json"
@@ -42,19 +54,19 @@
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-temp-server.json"
   },
   "__nc_app__render-engine-mainnet-1.json": {
-    "mt": "Thu Dec 24 2020 02:23:57 GMT-0600 (Central Standard Time)",
+    "mt": "Tue Jan 26 2021 16:37:04 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__render-engine-mainnet-1.json"
   },
   "__nc_app__render-engine-mainnet-2.json": {
-    "mt": "Thu Dec 24 2020 02:25:13 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 23:35:08 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__render-engine-mainnet-2.json"
   },
   "__nc_app__render-engine-rinkeby-1.json": {
-    "mt": "Wed Dec 30 2020 22:49:49 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 12:26:03 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__render-engine-rinkeby-1.json"
@@ -78,7 +90,7 @@
     "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721.json"
   },
   "artifacts/GenArt721Core.json": {
-    "mt": "Sat Dec 12 2020 03:00:50 GMT-0600 (Central Standard Time)",
+    "mt": "Tue Feb 02 2021 21:54:42 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721Core.json"
@@ -90,31 +102,49 @@
     "path": "/Users/erick/apps/artblocks-v2/server/favicon.ico"
   },
   "index.js": {
-    "mt": "Thu Dec 31 2020 00:03:06 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 22:35:33 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/index.js"
   },
+  "lib/renderImage.js": {
+    "mt": "Mon Mar 15 2021 12:49:41 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/lib/renderImage.js"
+  },
+  "lib/renderVideo.js": {
+    "mt": "Fri Mar 19 2021 12:26:12 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/lib/renderVideo.js"
+  },
   "package-lock.json": {
-    "mt": "Sat Dec 19 2020 13:00:48 GMT-0600 (Central Standard Time)",
+    "mt": "Mon Mar 15 2021 12:49:41 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/package-lock.json"
   },
   "package.json": {
-    "mt": "Fri Jan 01 2021 10:38:33 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 22:53:14 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/package.json"
   },
+  "plugins.js": {
+    "mt": "Fri Mar 19 2021 22:29:15 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/plugins.js"
+  },
   "renderImages.js": {
-    "mt": "Fri Jan 01 2021 10:43:33 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 22:16:41 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/renderImages.js"
   },
   "renderer.js": {
-    "mt": "Wed Dec 30 2020 23:01:47 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 19 2021 23:25:26 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/renderer.js"
@@ -167,6 +197,12 @@
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/src/processing.js"
   },
+  "src/regl.min.js": {
+    "mt": "Sun Mar 14 2021 21:38:29 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/regl.min.js"
+  },
   "src/rendering.png": {
     "mt": "Sat Dec 19 2020 01:00:21 GMT-0600 (Central Standard Time)",
     "exists": true,
@@ -174,7 +210,7 @@
     "path": "/Users/erick/apps/artblocks-v2/server/src/rendering.png"
   },
   "src/three.js": {
-    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 12 2021 21:20:21 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/src/three.js"
@@ -184,6 +220,12 @@
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/src/three.module.js"
+  },
+  "src/three_bak.js": {
+    "mt": "Fri Mar 12 2021 21:20:02 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/three_bak.js"
   },
   "src/vox.js": {
     "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
@@ -216,13 +258,13 @@
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_megavox.pug"
   },
   "views/generator_p5js.pug": {
-    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "mt": "Thu Mar 18 2021 11:19:16 GMT-0500 (Central Daylight Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_p5js.pug"
   },
   "views/generator_p5js_svg.pug": {
-    "mt": "Fri Dec 25 2020 01:05:16 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Jan 22 2021 23:45:51 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_p5js_svg.pug"
@@ -233,14 +275,20 @@
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_processing.pug"
   },
+  "views/generator_regl.pug": {
+    "mt": "Sun Mar 14 2021 21:48:33 GMT-0500 (Central Daylight Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_regl.pug"
+  },
   "views/generator_svg.pug": {
-    "mt": "Tue Dec 22 2020 10:26:45 GMT-0600 (Central Standard Time)",
+    "mt": "Mon Jan 18 2021 20:51:01 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_svg.pug"
   },
   "views/generator_threejs.pug": {
-    "mt": "Sat Dec 26 2020 22:17:45 GMT-0600 (Central Standard Time)",
+    "mt": "Fri Mar 12 2021 21:22:49 GMT-0600 (Central Standard Time)",
     "exists": true,
     "state": 1,
     "path": "/Users/erick/apps/artblocks-v2/server/views/generator_threejs.pug"
