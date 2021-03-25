@@ -323,7 +323,7 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
 
       if (project.scriptJSON.type === "p5js") {
         response.render(
-          request.params.svg === "svg"
+          request.params.svg === "svg" && Number(project.id)===0
             ? "generator_p5js_svg"
             : "generator_p5js",
           { script, data }
@@ -337,7 +337,10 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       } else if (project.scriptJSON.type === "vox") {
         response.render("generator_vox", { script, data });
       } else if (project.scriptJSON.type === "js") {
-        response.render("generator_js", { script, data });
+        response.render(
+          request.params.svg==="obj" && Number(project.id)===9
+          ?"generator_js_obj"
+          :"generator_js", { script, data });
       } else if (project.scriptJSON.type === "svg") {
         response.render("generator_svg", { script, data });
       } else if (project.scriptJSON.type === "custom") {
@@ -574,7 +577,7 @@ function buildData(hashes, tokenId) {
   // to expose token hashes use let hashes = tokenData.hashes[0] (example if only one hash is minted)
   if (tokenId < 3000000) {
     const data = {};
-    data.hashes = hashes;
+    data.hashes = [hashes];
     data.tokenId = tokenId;
     return `let tokenData = ${JSON.stringify(data)}`;
   }

@@ -1,0 +1,528 @@
+html
+  head
+    script.
+      !{data}
+    style(type="text/css").
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      canvas {
+        padding: 0;
+        margin: auto;
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+  body
+    canvas
+    script.
+        "use strict";
+        {
+          const t = []
+            , e = []
+            , s = []
+            , n = {};
+          let o, r = 0, l = 0, h = "start", a = parseInt(tokenData.hash.slice(0, 16), 16), c = .01, i = 1e7, u = 1;
+          const f = {
+              x(t, e) {
+                  t[12] += t[0] * e,
+                  t[13] += t[1] * e,
+                  t[14] += t[2] * e
+              },
+              y(t, e) {
+                  t[12] += t[4] * e,
+                  t[13] += t[5] * e,
+                  t[14] += t[6] * e
+              },
+              z(t, e) {
+                  t[12] += t[8] * e,
+                  t[13] += t[9] * e,
+                  t[14] += t[10] * e
+              },
+              s(t, e) {
+                  const s = Array.isArray(e)
+                    , n = s ? e[0] : e
+                    , o = s ? e[1] : n
+                    , r = s ? e[2] : n;
+                  t[0] *= n,
+                  t[1] *= n,
+                  t[2] *= n,
+                  t[3] *= n,
+                  t[4] *= o,
+                  t[5] *= o,
+                  t[6] *= o,
+                  t[7] *= o,
+                  t[8] *= r,
+                  t[9] *= r,
+                  t[10] *= r,
+                  t[11] *= r
+              },
+              rx(t, e) {
+                  const s = Math.PI * (e / 180)
+                    , n = Math.sin(s)
+                    , o = Math.cos(s)
+                    , r = t[4]
+                    , l = t[5]
+                    , h = t[6]
+                    , a = t[7]
+                    , c = t[8]
+                    , i = t[9]
+                    , u = t[10]
+                    , f = t[11];
+                  t[4] = r * o + c * n,
+                  t[5] = l * o + i * n,
+                  t[6] = h * o + u * n,
+                  t[7] = a * o + f * n,
+                  t[8] = r * -n + c * o,
+                  t[9] = l * -n + i * o,
+                  t[10] = h * -n + u * o,
+                  t[11] = a * -n + f * o
+              },
+              ry(t, e) {
+                  const s = Math.PI * (e / 180)
+                    , n = Math.sin(s)
+                    , o = Math.cos(s)
+                    , r = t[0]
+                    , l = t[1]
+                    , h = t[2]
+                    , a = t[3]
+                    , c = t[8]
+                    , i = t[9]
+                    , u = t[10]
+                    , f = t[11];
+                  t[0] = r * o + c * -n,
+                  t[1] = l * o + i * -n,
+                  t[2] = h * o + u * -n,
+                  t[3] = a * o + f * -n,
+                  t[8] = r * n + c * o,
+                  t[9] = l * n + i * o,
+                  t[10] = h * n + u * o,
+                  t[11] = a * n + f * o
+              },
+              rz(t, e) {
+                  const s = Math.PI * (e / 180)
+                    , n = Math.sin(s)
+                    , o = Math.cos(s)
+                    , r = t[0]
+                    , l = t[1]
+                    , h = t[2]
+                    , a = t[3]
+                    , c = t[4]
+                    , i = t[5]
+                    , u = t[6]
+                    , f = t[7];
+                  t[0] = r * o + c * n,
+                  t[1] = l * o + i * n,
+                  t[2] = h * o + u * n,
+                  t[3] = a * o + f * n,
+                  t[4] = r * -n + c * o,
+                  t[5] = l * -n + i * o,
+                  t[6] = h * -n + u * o,
+                  t[7] = a * -n + f * o
+              },
+              hue(t, e) {
+                  t[16] += e,
+                  t[16] %= 360
+              },
+              sat(t, e) {
+                  this.col(t, e, 17)
+              },
+              vhue(t, e) {
+                  t[16] = e
+              },
+              vsat(t, e) {
+                  t[17] = e
+              },
+              b(t, e) {
+                  this.col(t, e, 18)
+              },
+              col(t, e, s) {
+                  t[s] += e > 0 ? e * (1 - t[s]) : e * t[s]
+              },
+              l(t, e) {
+                  t[18] = e
+              }
+          }
+            , d = (e,s,n,o)=>{
+              const r = g(e);
+              for (const t in s)
+                  f[t](r, s[t]);
+              r[22] = n,
+              t.push(r),
+              l += o
+          }
+            , y = (t,e)=>d(t, e, 2, 18)
+            , m = (t,e)=>d(t, e, 1, 36)
+            , x = t=>Math.min(t[0] * t[0] + t[1] * t[1] + t[2] * t[2], t[4] * t[4] + t[5] * t[5] + t[6] * t[6], t[8] * t[8] + t[9] * t[9] + t[10] * t[10])
+            , z = t=>(a = 16807 * a % 2147483647,
+          (a - 1) / 2147483646)
+            , A = (t,e=0)=>(0 === e && (e = t,
+          t = 0),
+          Math.floor(t + z() * (e - t + 1)))
+            , p = (t,e)=>{
+              const s = g(t);
+              s[19]++;
+              for (const t in e)
+                  f[t](s, e[t]);
+              return 0 === c || x(s) < c && (s[20] = -1),
+              s
+          }
+            , g = t=>[t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15], t[16], t[17], t[18], t[19], t[20], t[21], t[22]]
+            , M = (o,h)=>{
+              let a = 0
+                , c = u;
+              do {
+                  a = 0,
+                  s.length = 0,
+                  t.length = 0,
+                  l = 0,
+                  n[o]([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0], h);
+                  do {
+                      const t = s.shift();
+                      void 0 !== t && t[19] <= i && (e[t[21]](t),
+                      a++)
+                  } while (s.length)
+              } while (a < c-- || r < 2)
+          }
+            , b = t=>(e,n)=>{
+              -1 !== (e = p(e, n))[20] && (e[21] = t,
+              s.push(e))
+          }
+            , U = (t,e,n,o)=>(r,l)=>{
+              if (-1 === (r = p(r, l))[20])
+                  return;
+              let h = 0;
+              const a = z() * t;
+              for (let t = 0; t < o; t++)
+                  if (h += e[t],
+                  a <= h)
+                      return r[21] = n[t],
+                      void s.push(r)
+          }
+            , v = ()=>{
+              const e = (t,e,s)=>{
+                  let n = (n,o=(n + t / 60) % 6)=>s - s * e * Math.max(Math.min(o, 4 - o, 1), 0);
+                  return [n(5), n(3), n(1)]
+              }
+                , s = (t,e,s,n)=>[t * n[0] + e * n[4] + s * n[8] + n[12], t * n[1] + e * n[5] + s * n[9] + n[13], t * n[2] + e * n[6] + s * n[10] + n[14]]
+                , n = (t,e,s)=>{
+                  const n = e[0] - t[0]
+                    , r = e[1] - t[1]
+                    , l = e[2] - t[2]
+                    , h = s[0] - t[0]
+                    , a = s[1] - t[1]
+                    , c = s[2] - t[2]
+                    , i = r * c - l * a
+                    , u = -(n * c - l * h)
+                    , f = n * a - r * h
+                    , d = Math.sqrt(i * i + u * u + f * f);
+                  let y = i / d
+                    , m = u / d
+                    , x = f / d
+                    , z = 1e-5;
+                  return y > 0 && y < z && (y = 0),
+                  m > 0 && m < z && (m = 0),
+                  x > 0 && x < z && (x = 0),
+                  y < 0 && y > z && (y = 0),
+                  m < 0 && m > z && (m = 0),
+                  x < 0 && x > z && (x = 0),
+                  [o(y), o(m), o(x)]
+              }
+                , o = t=>parseFloat(t.toFixed(3));
+              let r = ""
+                , l = ""
+                , h = ""
+                , a = ""
+                , c = 0
+                , i = 0;
+              const u = [-.5, -.5, -.5, -.5, .5, -.5, .5, .5, -.5, .5, -.5, -.5, -.5, -.5, .5, .5, .5, .5, -.5, .5, .5, .5, -.5, .5]
+                , f = [1, 2, 3, 1, 3, 4, 5, 6, 7, 5, 8, 6, 6, 2, 7, 6, 3, 2, 8, 5, 1, 8, 1, 4, 1, 5, 7, 1, 7, 2, 8, 4, 6, 4, 3, 6]
+                , d = [1, 2, 3, 5, 6, 7, 6, 2, 7, 8, 5, 1, 1, 5, 7, 8, 4, 6]
+                , y = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6]
+                , m = [-.5, -.5, -.5, .5, -.5, -.5, .5, -.5, .5, -.5, -.5, .5, 0, .5, 0]
+                , x = [1, 2, 3, 1, 3, 4, 1, 5, 4, 4, 5, 3, 3, 5, 2, 2, 5, 1]
+                , z = [1, 2, 3, 1, 5, 4, 4, 5, 3, 3, 5, 2, 2, 5, 1]
+                , A = [1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5];
+              for (let p = 0; p < t.length; p++) {
+                  const g = t[p];
+                  l = "",
+                  h = "",
+                  a = "";
+                  const M = e(g[16], g[17], g[18]);
+                  if (1 === g[22]) {
+                      const t = [];
+                      for (let e = 0; e < u.length; e += 3) {
+                          const n = s(u[e + 0], u[e + 1], u[e + 2], g);
+                          t.push(n),
+                          l += "v " + o(10 * n[0]) + " " + o(10 * n[1]) + " " + o(10 * n[2]) + " " + o(M[0]) + " " + o(M[1]) + " " + o(M[2]) + "\n"
+                      }
+                      for (let e = 0; e < d.length; e += 3) {
+                          const s = n(t[d[e] - 1], t[d[e + 1] - 1], t[d[e + 2] - 1]);
+                          h += "vn " + s[0] + " " + s[1] + " " + s[2] + "\n"
+                      }
+                      for (let t = 0; t < f.length; t += 3)
+                          a += "f " + (c + f[t]) + "//" + (i + y[t]) + " " + +(c + f[t + 1]) + "//" + (i + y[t + 1]) + " " + +(c + f[t + 2]) + "//" + (i + y[t + 2]) + "\n";
+                      c += 8,
+                      i += 6,
+                      r += "o\n" + l + "\n" + h + "\n" + a + "\n"
+                  } else if (2 === g[22]) {
+                      const t = [];
+                      for (let e = 0; e < m.length; e += 3) {
+                          const n = s(m[e + 0], m[e + 1], m[e + 2], g);
+                          t.push(n),
+                          l += "v " + o(1e3 * n[0]) + " " + o(1e3 * n[1]) + " " + o(1e3 * n[2]) + " " + o(M[0]) + " " + o(M[1]) + " " + o(M[2]) + "\n"
+                      }
+                      for (let e = 0; e < z.length; e += 3) {
+                          const s = n(t[z[e] - 1], t[z[e + 1] - 1], t[z[e + 2] - 1]);
+                          h += "vn " + s[0] + " " + s[1] + " " + s[2] + "\n"
+                      }
+                      for (let t = 0; t < x.length; t += 3)
+                          a += "f " + (c + x[t]) + "//" + (i + A[t]) + " " + +(c + x[t + 1]) + "//" + (i + A[t + 1]) + " " + +(c + x[t + 2]) + "//" + (i + A[t + 2]) + "\n";
+                      c += 5,
+                      i += 5,
+                      r += "o\n" + l + "\n" + h + "\n" + a + "\n"
+                  }
+              }
+              Q("Ignition_"+tokenData.tokenId.slice(-3)+".obj", r)
+          }
+            , E = ()=>{
+              F(),
+              M(h, o || {}),
+              v(t, F)
+          }
+            , D = (t,s)=>{
+              e.length = 0;
+              for (const t in s) {
+                  const o = s[t];
+                  if (Array.isArray(o)) {
+                      let s = 0;
+                      const r = []
+                        , l = [];
+                      for (let t = 0; t < o.length; t += 2)
+                          s += o[t],
+                          e.push(o[t + 1]),
+                          r.push(o[t]),
+                          l.push(e.length - 1);
+                      n[t] = U(s, r, l, l.length)
+                  } else
+                      e.push(o),
+                      n[t] = b(e.length - 1)
+              }
+              E()
+          }
+            , Q = (t,e)=>{
+              var s = document.createElement("a");
+              s.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(e)),
+              s.setAttribute("download", t),
+              s.style.display = "none",
+              document.body.appendChild(s),
+              s.click(),
+              document.body.removeChild(s),
+              document.write(e.replaceAll("\n", "<br>"))
+          }
+          ;
+          z();
+          const C = z() > .05
+            , O = {
+              d1: {
+                  sat: C ? .9 : 0
+              },
+              d2: {
+                  sat: C ? .9 : 0
+              }
+          }
+            , I = z() > .05 ? 1 : 2
+            , L = !(z() > .02)
+            , R = z() > .05 ? .55 : .76 * I
+            , q = z() > .5 ? "d1" : "d2"
+            , w = z() > .05 ? 30 : 0
+            , F = function() {
+              h = "start",
+              o = {
+                  s: .55 === R ? 2.2 : 2
+              },
+              i = 100,
+              c = .001,
+              u = 500
+          };
+          D(F, {
+              start(t) {
+                  r = 0;
+                  const e = A(720);
+                  n.WHOLE(t, {
+                      hue: e,
+                      sat: O[q].sat,
+                      rx: A(40) - 20,
+                      ry: A(360)
+                  })
+              },
+              WHOLE(t) {
+                  n.QUAD(t, {
+                      x: -R,
+                      y: -R,
+                      z: -R
+                  }),
+                  n.QUAD(t, {
+                      x: R,
+                      y: -R,
+                      z: -R
+                  }),
+                  n.QUAD(t, {
+                      x: -R,
+                      y: R,
+                      z: -R
+                  }),
+                  n.QUAD(t, {
+                      x: R,
+                      y: R,
+                      z: -R
+                  }),
+                  n.QUAD(t, {
+                      x: -R,
+                      y: -R,
+                      z: R,
+                      rz: 90
+                  }),
+                  n.QUAD(t, {
+                      x: R,
+                      y: -R,
+                      z: R,
+                      rz: 90
+                  }),
+                  n.QUAD(t, {
+                      x: -R,
+                      y: R,
+                      z: R,
+                      rz: 90
+                  }),
+                  n.QUAD(t, {
+                      x: R,
+                      y: R,
+                      z: R,
+                      rz: 90
+                  })
+              },
+              QUAD: [.25, t=>{
+                  n.FRAME(t, {
+                      b: -.75,
+                      s: 1.1
+                  })
+              }
+              , .1, t=>{
+                  n.COOLER(t, {
+                      s: 1
+                  })
+              }
+              , .5, t=>{
+                  n.CUBE(t, {
+                      s: 1.1
+                  })
+              }
+              , .25, t=>{
+                  n.WHOLE(t, {
+                      s: .5,
+                      b: -.3,
+                      hue: w
+                  })
+              }
+              , .5, t=>{}
+              ],
+              COOLER(t) {
+                  if (x(t) > .055) {
+                      r++,
+                      m(t, {
+                          s: [1.3, .4, .4],
+                          sat: -1,
+                          b: -.8
+                      }),
+                      m(t, {
+                          s: [100, .25, .25],
+                          sat: -1,
+                          l: 999
+                      });
+                      let e = 0;
+                      for (let s = -.5; s <= .5; s += .1)
+                          m(t, {
+                              x: s,
+                              s: [.02, 1, 1],
+                              vsat: .35,
+                              vhue: 30,
+                              l: 1e3 + e++
+                          })
+                  } else
+                      n.CUBE(t)
+              },
+              CUBE(t) {
+                  let e, s;
+                  z() > .75 ? (e = -1,
+                  s = -.6 - .3 * z()) : (e = 0,
+                  s = 0),
+                  m(t, {
+                      sat: e,
+                      b: s,
+                      s: .98
+                  })
+              },
+              FRAME(t) {
+                  !1 === L ? m(t, {
+                      s: .35,
+                      b: 1,
+                      hue: 180
+                  }) : (y(t, {
+                      y: .23,
+                      s: .4,
+                      b: 2,
+                      hue: 180
+                  }),
+                  y(t, {
+                      rx: 180,
+                      y: .23,
+                      s: .4,
+                      b: 2,
+                      hue: 180
+                  })),
+                  n.frame(t, {
+                      sat: -1,
+                      b: -.8
+                  })
+              },
+              frame(t) {
+                  n.sq(t, {
+                      z: -1
+                  }),
+                  n.sq(t),
+                  n.mem(t, {
+                      z: -1,
+                      rx: 90,
+                      y: 1
+                  }),
+                  n.mem(t, {
+                      z: -1,
+                      rx: -90,
+                      y: -1
+                  })
+              },
+              sq(t) {
+                  n.mem(t),
+                  n.mem(t, {
+                      rz: 90
+                  })
+              },
+              mem(t) {
+                  m(t, {
+                      s: [.1, 1.1, .1],
+                      x: 5,
+                      z: 5
+                  }),
+                  m(t, {
+                      s: [.1, 1.1, .1],
+                      x: -5,
+                      z: 5
+                  })
+              }
+          })
+        }
