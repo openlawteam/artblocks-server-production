@@ -4009,9 +4009,6 @@ else if (projectId===28){
 /////
 
 else if (projectId === 29){
-  // --- INSPIRALS FEATURES ---
-
-  // --- DATA ---
   let _shapeData = [
       // animation values a:[paramNum,min,max,speed]
       {t:1, n:1},
@@ -4329,7 +4326,7 @@ else if (projectId === 29){
 
       // tiling
       _presetIndex: 7,
-      //_defaultShape: 8,
+      _double: 8,
       //_spiralA: 9,
       //_spiralB: 10,
 
@@ -4487,7 +4484,7 @@ else if (projectId === 29){
       {
           _colorName =  "Yellow";
       }
-      else if (hue > 11)
+      else if (hue > 15)
       {
           _colorName =  "Orange";
       }
@@ -4502,10 +4499,11 @@ else if (projectId === 29){
   {
       sn = parseInt(_tokenId) % 1000000;
       special = ((sn % 111) === 0 || _raw[pNames._double] > 252);
-
+      //console.log("_raw[pNames._double]=" + _raw[pNames._double]);
       if (special)
       {
           _presetIdx = spids[sn];
+          //console.log("SPECIAL");
           if (!_presetIdx) _presetIdx = _raw[pNames._presetIndex] % 20;
           _doubleSpiral = true;
       }
@@ -4697,8 +4695,587 @@ else if (projectId === 29){
   features = getFeatures(tokenData, tokenId);
   // features are simple enough, so no need to reduce
   featuresReduced = features;
-  //console.log(features);
 }
+
+/////////////////
+
+else if (projectId===30){
+
+  var hash = tokenData;
+
+var seed = parseInt(hash.slice(0, 16), 16);
+var PALS = [["#000020", "#EEEEEE", "#FFFFFF00"],
+["#E2EBFB", "#0F1318", "#000003"],
+["#E8175D", "#D8A499", "#000020"],
+["#D1ADEF", "#80D9FF", "#000030"],
+["#FFAF00", "#FBF0D2", "#614200"],
+["#F2D39F", "#2A1F30", "#000003"],
+["#E6DDCE", "#70C7DB", "#C0A95B"],
+["#C2AFCF", "#1E1028", "#000003"],
+["#95CB99", "#D8D9DE", "#000020"],
+["#FECB00", "#007CBC", "#000003"],
+["#F4F9F9", "#7289DA", "#000030"],
+["#949EBB", "#D7DDEA", "#000003"],
+["#D8FF14", "#FF1FDA", "#090036"],
+["#D9A881", "#1F0F08", "#000003"],
+["#B32744", "#ED7672", "#000003"],
+["#3AC9CE", "#413BCF", "#000000"],
+["#44CCFF", "#FFF1D0", "#343432"]];
+
+var C = rnd_arr(PALS);
+var DIM_CNV = Math.min(600, 600);
+var ROT = rnd_num() > 0.6;
+var DIM_M = ROT ? rnd_num(1.5, 3) : 1;
+var DIM = DIM_CNV*DIM_M;
+var COUNT = rnd_int(3, 20);
+var M = DIM/1000;
+var MC = M/(COUNT/5);
+var BRD = rnd_int(25, 100)*M;
+var SPC = rnd_num() > 0.5 ? rnd_int(40, 100)*MC : 0;
+var SIZ = (DIM-(BRD*2)-(SPC*(COUNT-1)))/COUNT;
+var SHADOW = rnd_num() > 0.25;
+var PARTY_1 = rnd_num() > 0.6;
+var PARTY_2 = rnd_num() > 0.6;
+var BLND = (rnd_num() > 0.8) & (COUNT < 10);
+var SHFT_X = rnd_num(2, 4);
+var SHFT_Y = rnd_num(2, 4);
+
+function rnd_dec() {
+  seed ^= seed << 13;
+  seed ^= seed >> 17;
+  seed ^= seed << 5;
+  return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000;
+}
+function rnd_num(a=0, b=1) {
+  return a+(b-a)*rnd_dec();
+}
+function rnd_int(a=0, b=1) {
+  return Math.floor(rnd_num(a, b+1));
+}
+function rnd_arr(x) {
+  return x[Math.floor(rnd_num(0, x.length*0.99))];
+}
+
+features = ["Primary: "+C[0],
+"Sizing: "+ (COUNT < 10 ? "Large" : "Small"),
+"Depth: "+ (SHADOW ? "On" : "Off"),
+"Shapes: "+(PARTY_1 ? "Multi" : "Single"),
+"Party Mode: "+(PARTY_2 ? "Activated" : "Deactivated"),
+"Color Mode: "+(BLND ? "Blended" : "Flat"),
+"Canvas: "+(ROT ? "Twisted" : "Classic")]
+
+featuresReduced=features;
+
+console.log(features)
+}
+
+
+/////////
+
+else if (projectId===31){
+  function scaleValue(value, from, to) {
+      let percent = value / (from[1] - from[0]);
+      return to[0] + percent * (to[1] - to[0]);
+  }
+
+  function getPalette(value) {
+      return value < 0.7 ? "Pleasant" : value < 0.8 ? "Cyndaquil" : value < 0.9 ? "Lotus" : "Kinai";
+  }
+
+  function landIsSymmetric(value) {
+      return value > 0.8;
+  }
+
+  function canhasNightTheme(value) {
+      return value > 0.85;
+  }
+
+  function skyHasHelicopter(value) {
+      return value > 0.9;
+  }
+
+  let hashPairs = [];
+  for (let j = 0; j < 32; j++) {
+      hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+  }
+
+  const inputsFromHash = {
+      SELECTED_PALETTE: [0, 0, 0, 1],
+      LAND_IS_SYMMETRIC: [6, 7, 0, 1],
+      NIGHT_THEME: [19, 20, 0, 1],
+      SKY_NB_CLOUDS: [27, 27, 0, 6],
+      SKY_HAS_HELICOPTER: [30, 31, 0, 1],
+  };
+
+  const parsedInputsValues = {};
+
+  for (const param in inputsFromHash) {
+      let chunck = "";
+      const config = inputsFromHash[param];
+      for (let i = config[0]; i <= config[1]; i++) {
+          chunck += hashPairs[i];
+      }
+
+      let maxValue = 2 ** (chunck.length * 4) - 1;
+      let chunckValue = parseInt(chunck, 16);
+      let value = scaleValue(chunckValue, [0, maxValue], [config[2], config[3]]);
+      // console.log(`${param} : ${value}`);
+      parsedInputsValues[param] = value;
+  }
+
+  let palette = "Palette : " + getPalette(parsedInputsValues.SELECTED_PALETTE);
+  let nightTheme = "Has a night theme : " + canhasNightTheme(parsedInputsValues.NIGHT_THEME);
+  let isSymmetric = "Is symmetric : " + landIsSymmetric(parsedInputsValues.LAND_IS_SYMMETRIC);
+  let nbClouds = "Clouds count : " + Math.ceil(parsedInputsValues.SKY_NB_CLOUDS);
+  let hasHelicopter = "Has an helicopter : " + skyHasHelicopter(parsedInputsValues.SKY_HAS_HELICOPTER);
+
+  features.push(
+      palette,
+      isSymmetric,
+      nightTheme,
+      nbClouds,
+      hasHelicopter,
+  );
+
+  featuresReduced.push(
+      palette,
+      isSymmetric,
+      nightTheme,
+      nbClouds,
+      hasHelicopter,
+  );
+}
+
+///////////
+
+else if (projectId===32){
+  function hashToValues(hash) {
+    let v = [];
+    for (let e = 0; e < 32; e++) v.push(hash.slice(2 + 2 * e, 4 + 2 * e));
+    return v.map((e) => parseInt(e, 16));
+  }
+
+  function randomValueForIndex(index) {
+    return mapRange(randomValues[index], 0, 255, 0, 1);
+  }
+
+  function mapRange(value, inputMin, inputMax, outputMin, outputMax, clamp) {
+    if (Math.abs(inputMin - inputMax) < Number.EPSILON) {
+      return outputMin;
+    } else {
+      var outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin);
+      if (clamp) {
+        if (outputMax < outputMin) {
+          if (outVal < outputMax) outVal = outputMax;
+          else if (outVal > outputMin) outVal = outputMin;
+        } else {
+          if (outVal > outputMax) outVal = outputMax;
+          else if (outVal < outputMin) outVal = outputMin;
+        }
+      }
+      return outVal;
+    }
+  }
+
+  let randomValues = hashToValues(tokenData);
+  let dual = randomValueForIndex(0) < 0.5;
+  let compact = !dual && randomValueForIndex(1) < 0.5;
+  let paletteNames = [
+    'Synergy',
+    'Ice',
+    'Radical Softness',
+    'Making Peace',
+    'Tranquility',
+    'Rainbow',
+    'Fiery',
+    'Chill Out',
+    'Blue Steel',
+  ];
+  let randomPalette = Math.floor(randomValueForIndex(2) * paletteNames.length);
+
+  let style = 'Style: ' + (dual ? 'Dual' : 'Single');
+  let density = 'Density: ' + (compact ? 'Compact' : 'Normal');
+  let palette = 'Palette: ' + paletteNames[randomPalette];
+
+  features.push(
+      style,
+      density,
+      palette
+  );
+
+  featuresReduced.push(
+      style,
+      density,
+      palette
+  );
+}
+
+
+////////
+
+else if (projectId===33){
+  const minLines = 20;
+  const maxLines = 200;
+  const minPoints = 10;
+  const maxPoints = 500;
+
+  const hashPairs = [];
+  for (let j = 0; j < 32; j++) {
+    hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
+  }
+
+  const decPairs = hashPairs.map((x) => parseInt(x, 16));
+
+  let lineCount = `Line count: ${Math.floor(map_v(0, minLines, maxLines))}`;
+  let pointCount = `Point count: ${Math.floor(map_v(1, minPoints, maxPoints))}`;
+
+  let lineStyle = 'Line style: ';
+  const styleNum = Math.floor(map_v(2, 1, 4));
+  switch (styleNum) {
+    case 1:
+      lineStyle += 'Loopy'
+      break;
+    case 2:
+      lineStyle += 'Neat loopy'
+      break;
+    default:
+      lineStyle += 'Straight'
+  }
+
+  let randomEndpoints = `Random endpoints: ${map_v(3) < 0.2 ? 'True' : 'False'}`;
+  let hasBorder = `Border: ${map_v(4) < 0.38 ? 'True' : 'False'}`;
+  let isFill = `Filled: ${map_v(5) < 0.15 ? 'True' : 'False'}`;
+
+  let size = 'Size: ';
+  const sizeNum = map_v(6, 2.1, 3);
+  if (sizeNum < 2.3) {
+    size += 'Large';
+  } else if (sizeNum > 2.8) {
+    size += 'Small';
+  } else {
+    size += 'Normal';
+  }
+
+  let doesMove = 'Moves: ';
+  let noiseIncrement = 'Noise increment: ';
+  if (map_v(7) < 0.05) {
+    doesMove += 'True';
+    noiseIncrement += map_v(8, 0.0075, .015);
+  } else {
+    doesMove += 'False';
+    noiseIncrement += "N/A";
+  }
+
+  let startpointStyle = 'Start points style: '
+  const startpointPercent = map_v(11);
+  if (startpointPercent <= 0.2) {
+    startpointStyle += 'Use previous endpoint';
+  } else if (startpointPercent <= 0.4) {
+    startpointStyle += 'Random';
+  } else {
+    startpointStyle += 'On circle edge';
+  }
+
+  let colorScheme = 'Color scheme: '
+  const colorSchemePercent = map_v(12);
+  if (colorSchemePercent <= 0.35) {
+    colorScheme += 'Monochromatic';
+  } else if (colorSchemePercent <= 0.5) {
+    colorScheme += 'Full spectrum';
+  } else {
+    colorScheme += 'Grayscale';
+  }
+
+  nodeStyle = 'Node style: ';
+  if (map_v(13) <= .25 && map_v(14) <= .25) {
+    nodeStyle += 'Start point and endpoint';
+  } else if (map_v(13) <= .25) {
+    nodeStyle += 'Just start point';
+  } else if (map_v(14) <= .25) {
+    nodeStyle += 'Just endpoint';
+  } else {
+    nodeStyle += 'Normal';
+  }
+
+  startpointNodeStyle = `Start point node: ${getNodeStyle(13)}`;
+  endpointNodeStyle = `Endpoint node: ${getNodeStyle(14)}`;
+
+  nodeFill = 'Nodes filled: ';
+  nodeRatio = 'Possible node size: ';
+  nodeRotationStyle = 'Node rotation: '
+  maxNodeRotation = 'Max node rotation: ';
+  if (map_v(13) > .25 && map_v(14) > .25) {
+    nodeRotationStyle += 'N/A';
+    maxNodeRotation += 'N/A';
+    nodeFill += 'N/A';
+    nodeRatio += 'N/A';
+  } else {
+    const nodeRotationStyleBool = map_v(15) < .3;
+    nodeRotationStyle += nodeRotationStyleBool ? 'True': 'False';
+    maxNodeRotationNum = map_v(16, Math.PI, 4 * Math.PI);
+    if (nodeRotationStyleBool) {
+      if (maxNodeRotationNum > 3 * Math.PI) {
+        maxNodeRotation += 'Large';
+      } else if (maxNodeRotation < 2 * Math.PI) {
+        maxNodeRotation += 'Small';
+      } else {
+        maxNodeRotation += 'Medium';
+      }
+    } else {
+      maxNodeRotation += 'N/A';
+    }
+    nodeFill += map_v(17) < 0.5 ? 'True' : 'False';
+    nodeRatioNum = map_v(18, 3, 25);
+    if (nodeRatioNum < 10) {
+      nodeRatio += 'Large';
+    } else if (nodeRatioNum > 18) {
+      nodeRatio += 'Small';
+    } else {
+      nodeRatio += 'Medium';
+    }
+  }
+
+  let noiseMagnitude = 'Noise magnitude: ';
+  let noiseResolution = 'Noise resolution: ';
+  if (((map_v(13) < .25 || map_v(14) < .25) && map_v(15) < .3) || map_v(7) < 0.05) {
+    let noiseMagnitudeNum = map_v(9, 25, 35);
+    if (noiseMagnitudeNum < 28) {
+      noiseMagnitude += 'High'
+    } else if (noiseMagnitudeNum > 32) {
+      noiseMagnitude += 'Low'
+    } else {
+      noiseMagnitude += 'Normal'
+    }
+
+    let noiseResolutionNum = map_v(10, 1, 10);
+    if (noiseResolutionNum < 4) {
+      noiseResolution += 'High'
+    } else if (noiseResolutionNum > 7) {
+      noiseResolution += 'Low'
+    } else {
+      noiseResolution += 'Normal'
+    }
+  } else {
+    noiseMagnitude += 'N/A';
+    noiseResolution += 'N/A';
+  }
+
+
+  let colorAnimation = 'Color animation: ';
+  const colorAnimationPercent = map_v(19);
+  if (colorAnimationPercent <= 0.05) {
+    colorAnimation += 'Hue shift';
+  } else if (colorAnimationPercent <= 0.1) {
+    colorAnimation += 'Random';
+  } else if (colorAnimationPercent <= 0.15) {
+    colorAnimation += 'Rotate';
+  } else {
+    colorAnimation += 'N/A';
+  }
+
+
+  let colorAnimationSpeed = 'Color animation speed: ';
+  if (colorAnimationPercent <= .05) {
+    const colorAnimationSpeedPercent = map_v(20, 0.8, 1.2);
+    if (colorAnimationSpeedPercent < .9) {
+      colorAnimationSpeed += 'Fast';
+    } else if (colorAnimationSpeedPercent > 1.1) {
+      colorAnimationSpeed += 'Slow';
+    } else {
+      colorAnimationSpeed += 'Normal';
+    }
+  } else if (colorAnimationPercent <= .15) {
+    const framesBetweenColorChange = Math.floor(map_v(21, 3, 10));
+    if (framesBetweenColorChange < 5) {
+      colorAnimationSpeed += 'Fast';
+    } else if (framesBetweenColorChange < 8) {
+      colorAnimationSpeed += 'Normal';
+    } else if (framesBetweenColorChange < 10) {
+      colorAnimationSpeed += 'Slow';
+    } else {
+      colorAnimationSpeed += 'Very slow';
+    }
+  } else {
+    colorAnimationSpeed += 'N/A';
+  }
+
+  features = [];
+  features.push(
+      size,
+      lineStyle,
+      colorScheme,
+      doesMove,
+      colorAnimation,
+      isFill,
+      nodeStyle,
+      nodeFill,
+      nodeRatio,
+      nodeRotationStyle,
+      startpointNodeStyle,
+      endpointNodeStyle,
+      lineCount,
+      pointCount,
+      hasBorder,
+      startpointStyle,
+      randomEndpoints,
+      noiseIncrement,
+      noiseMagnitude,
+      noiseResolution,
+      colorAnimationSpeed,
+      maxNodeRotation
+  );
+
+  featuresReduced = [];
+  featuresReduced.push(
+      lineStyle,
+      size,
+      colorScheme,
+      doesMove,
+      colorAnimation,
+      isFill,
+      randomEndpoints,
+      hasBorder,
+      startpointStyle,
+      nodeStyle,
+      startpointNodeStyle,
+      endpointNodeStyle,
+      nodeFill,
+      nodeRatio,
+      nodeRotationStyle,
+  );
+
+  function getNodeStyle(pairPos) {
+    const nodeStyleProb = map_v(pairPos);
+    if (nodeStyleProb <= 0.05) {
+      return 'Circle';
+    } else if (nodeStyleProb <= 0.1) {
+      return 'Square';
+    } else if (nodeStyleProb <= 0.15) {
+      return 'Triangle';
+    } else if (nodeStyleProb <= 0.2) {
+      return 'Cross';
+    } else if (nodeStyleProb <= 0.25) {
+      return 'Asterisk';
+    }
+    return 'N/A';
+  }
+
+  function map_v(index, min = 0, max = 1) {
+      return decPairs[index]/255 * (max - min) + min
+  }
+
+}
+
+
+///////
+
+
+else if (projectId===34){
+
+  var seed = parseInt(tokenData.slice(50, 66), 16);
+let hash = [];
+for (let i = 0; i < (tokenData.length - 2) / 2; i++) {
+  hash.push(parseInt(tokenData.slice(2 + i * 2, 4 + i * 2), 16));
+}
+
+
+choosePaper();
+chooseBrush();
+chooseInk();
+dipIntoInk();
+choosePath();
+doSig();
+//console.log(features);
+
+function choosePaper() {
+  let colorH = getVal(1, 6);
+  if (getVal(0, 100) > 95) {
+    colorH = 0;
+  }
+  let paperHue = "White";
+  if (colorH == 1) {
+    paperHue = "Yellow";
+  } else if (colorH == 2) {
+    paperHue = "Green";
+  } else if (colorH == 3) {
+    paperHue = "Cyan";
+  } else if (colorH == 4) {
+    paperHue = "Blue";
+  } else if (colorH == 5) {
+    paperHue = "Magenta";
+  }
+  features.push("Paper Hue: " + paperHue);
+  let paperTexture = getVal(1, 6);
+  features.push("Paper Texture (1 to 5): " + paperTexture);
+}
+
+function chooseBrush() {
+  let ringCount = getVal(9, 15);
+  features.push("Brush Size (1 to 6): " + (ringCount - 8));
+  let bristleDensity = getVal(1, 8);
+  features.push("Bristle Density (1 to 7): " + bristleDensity);
+}
+
+function chooseInk(){
+  var inkDensity = getVal(1, 6);
+  features.push("Ink Density (1 to 5): " + inkDensity);
+}
+
+function dipIntoInk() {
+  let inkLoad = getVal(1, 6);
+  features.push("Ink Load (1 to 5): " + inkLoad);
+  let v = getVal(1, 6); // not a feature but pops a hash-pairing
+}
+
+function choosePath() {
+  let rotation = getVal(0, 20);
+  features.push("Brushstroke Start: Rotated " + rotation * 18 + " degrees");
+  var r = getVal(4, 7);
+  let sizeRef;
+  if (r == 6) {
+    sizeRef = "Small";
+  } else if (r == 5) {
+    sizeRef = "Medium";
+  } else {
+      sizeRef = "Large";
+  }
+  features.push("Brushstroke Size: " + sizeRef);
+  let stretchX = getVal(19, 26) / 20;
+  let stretchY = getVal(19, 26) / 20;
+  let xyStretch;
+  if (stretchX == stretchY) {
+    xyStretch = "Equal";
+  } else {
+    xyStretch = "Unequal";
+  }
+  features.push("X/Y Stretch: " + xyStretch);
+  let dirRef = "Clockwise";
+  if (getVal(0, 3) == 0) {
+    dirRef = "Counterclockwise";
+  }
+  features.push("Direction: " + dirRef);
+}
+
+function doSig() {
+  var sigInk = getVal(0, 2);
+  let sigRef;
+  if (sigInk == 0) {
+    sigRef = "Light"
+  } else {
+    sigRef = "Dark";
+  }
+  features.push("Signature Style: " + sigRef);
+}
+
+function getVal(min, max) {
+  max = max - 0.001;
+  let x = Math.floor((hash[0] * (max - min)) / 255 + min);
+  hash.shift();
+  return x;
+}
+
+}
+
 
   return [features, featuresReduced];
 }

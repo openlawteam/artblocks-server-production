@@ -49,7 +49,7 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-const currentNetwork = "mainnet";
+const currentNetwork = "rinkeby";
 const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
@@ -60,6 +60,7 @@ const queue = new Queue();
 let queueRef = {};
 let lastSentToRender = [];
 let intervalCount = 0;
+
 
 const web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const address =
@@ -651,9 +652,9 @@ async function serveScriptVideo(tokenId, ratio) {
       });
       const page = await browser.newPage();
       await page.setViewport({
-        width: 400,
-        height: 400,
-        deviceScaleFactor: 2,
+        width,
+        height,
+        deviceScaleFactor: 1,
       });
       if (testing) {
         await page.goto(`http://localhost:1234/generator/${tokenId}`);
@@ -665,7 +666,7 @@ async function serveScriptVideo(tokenId, ratio) {
         await page.goto(url);
       }
 
-      const video = await renderVideo(page, 3);
+      const video = await renderVideo(page, 10);
       const videoFileContent = await readFile(video);
       const uploadVideoParams = {
         Bucket: currentNetwork,
@@ -719,7 +720,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     await browser.close();
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width / 3), Math.round(height / 3))
+      .resize(Math.round(width/1.5), Math.round(height/1.5))
       .png();
 
     const params1 = {
@@ -825,7 +826,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width / 3), Math.round(height / 3))
+      .resize(Math.round(width / 1.5), Math.round(height / 1.5))
       .png();
 
     const params1 = {
