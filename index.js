@@ -95,7 +95,6 @@ app.get("/project/:projectId", async (request, response) => {
     const exists = Number(request.params.projectId) < Number(nextProjectId);
     if (exists) {
       const { project } = await getProject(request.params.projectId);
-      console.log(project);
       project.scriptJSON = JSON.parse(project.scriptJSON);
       const { script } = project;
       const beautifulScript = beautify(script, {
@@ -109,10 +108,10 @@ app.get("/project/:projectId", async (request, response) => {
         website: project.website,
         license: project.license,
         scriptJSON: JSON.stringify(project.scriptJSON),
-        scriptType: project.scriptJSON.type,
-        scriptVersion: project.scriptJSON.version,
-        scriptRatio: project.scriptJSON.aspectRatio,
-        instructions: project.scriptJSON.instructions,
+        scriptType: project.scriptJSON ? project.scriptJSON.type : "",
+        scriptVersion: project.scriptJSON ? project.scriptJSON.version : "",
+        scriptRatio: project.scriptJSON ? project.scriptJSON.aspectRatio : "",
+        instructions: project.scriptJSON ? project.scriptJSON.instructions : "",
         script: beautifulScript,
         /// IS THIS RIGHT?
         hashesGen: project.useHashString,
@@ -287,8 +286,10 @@ app.get("/token/:tokenId", async (request, response) => {
         features: features[0] /* featuresObj, */,
         website: project.website,
         "is dynamic": project.dynamic,
-        "script type": project.scriptJSON.type,
-        "aspect ratio (w/h)": project.scriptJSON.aspectRatio,
+        "script type": project.scriptJSON ? project.scriptJSON.type : "",
+        "aspect ratio (w/h)": project.scriptJSON
+          ? project.scriptJSON.aspectRatio
+          : "",
         "uses hash": usesHash,
         tokenID: request.params.tokenId,
         "token hash": hash,
@@ -321,34 +322,40 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       const { script } = project;
       const data = buildData(hash, request.params.tokenId);
 
-      if (project.scriptJSON.type === "p5js") {
-        response.render(
-          request.params.svg === "svg" && Number(project.id)===0
-            ? "generator_p5js_svg"
-            : "generator_p5js",
-          { script, data }
-        );
-      } else if (project.scriptJSON.type === "processing") {
-        response.render("generator_processing", { script, data });
-      } else if (project.scriptJSON.type === "a-frame") {
-        response.render("generator_aframe", { script, data });
-      } else if (project.scriptJSON.type === "megavox") {
-        response.render("generator_megavox", { script, data });
-      } else if (project.scriptJSON.type === "vox") {
-        response.render("generator_vox", { script, data });
-      } else if (project.scriptJSON.type === "js") {
-        response.render(
-          request.params.svg==="obj" && Number(project.id)===9
-          ?"generator_js_obj"
-          :"generator_js", { script, data });
-      } else if (project.scriptJSON.type === "svg") {
-        response.render("generator_svg", { script, data });
-      } else if (project.scriptJSON.type === "custom") {
-        response.send(`<script>${data}</script>${script}`);
-      } else if (project.scriptJSON.type === "regl") {
-        response.render("generator_regl", { script, data });
+      if (project.scriptJSON) {
+        if (project.scriptJSON.type === "p5js") {
+          response.render(
+            request.params.svg === "svg" && Number(project.id) === 0
+              ? "generator_p5js_svg"
+              : "generator_p5js",
+            { script, data }
+          );
+        } else if (project.scriptJSON.type === "processing") {
+          response.render("generator_processing", { script, data });
+        } else if (project.scriptJSON.type === "a-frame") {
+          response.render("generator_aframe", { script, data });
+        } else if (project.scriptJSON.type === "megavox") {
+          response.render("generator_megavox", { script, data });
+        } else if (project.scriptJSON.type === "vox") {
+          response.render("generator_vox", { script, data });
+        } else if (project.scriptJSON.type === "js") {
+          response.render(
+            request.params.svg === "obj" && Number(project.id) === 9
+              ? "generator_js_obj"
+              : "generator_js",
+            { script, data }
+          );
+        } else if (project.scriptJSON.type === "svg") {
+          response.render("generator_svg", { script, data });
+        } else if (project.scriptJSON.type === "custom") {
+          response.send(`<script>${data}</script>${script}`);
+        } else if (project.scriptJSON.type === "regl") {
+          response.render("generator_regl", { script, data });
+        } else {
+          response.render("generator_threejs", { script, data });
+        }
       } else {
-        response.render("generator_threejs", { script, data });
+        response.send("token script not defined");
       }
     } else {
       response.send("token does not exist");
