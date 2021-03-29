@@ -50,11 +50,11 @@ const s3 = new AWS.S3({
 const currentNetwork = "mainnet";
 const curatedProjects =
   currentNetwork === "mainnet"
-    ? [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 17, 21, 23, 27, 28, 29]
+    ? [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 17, 21, 23, 27, 28, 29, 35]
     : [];
 const playgroundProjects =
   currentNetwork === "mainnet"
-    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30]
+    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37]
     : [];
 const testing = false;
 
@@ -229,10 +229,17 @@ app.get("/token/:tokenId", async (request, response) => {
         request.params.tokenId - projectId * 1000000
       }`;
       const platform = `Art Blocks ${tokenType}`;
-      let tokenSeries = curatedProjects.includes(projectId) ? "2" : "N/A";
-      if (projectId < 8) {
-        tokenSeries = "1";
+      let series;
+      if (projectId<8){
+        series = "1";
+      } else if (projectId>=8 && projectId<36){
+        series = "2";
+      } else {
+        series = "3";
       }
+
+      let tokenSeries = curatedProjects.includes(projectId) ? series: "N/A";
+
       const tokenDescription = `${project.description} ${
         features.length > 0
           ? `Additional project feature(s) => ${features[0].join(", ")}`
@@ -325,6 +332,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
         response.render(
           request.params.svg === "svg" && Number(project.id)===0
             ? "generator_p5js_svg"
+            : request.params.svg === "svg" && Number(project.id)===33
+            ? "generator_p5js_svg_emp"
             : "generator_p5js",
           { script, data }
         );

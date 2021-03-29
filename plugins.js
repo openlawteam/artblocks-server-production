@@ -5806,5 +5806,373 @@ featuresReduced = features;
 }
 
 
+///////
+
+else if (projectId===35){
+  var canvasSize = 500;
+  function getHashCode(s) {
+      var hash = 0,
+          c = (typeof s == 'string') ? s.length : 0,
+          i = 0;
+      while (i < c) {
+          hash = ((hash << 5) - hash) + s.charCodeAt(i++);
+      }
+
+      return (hash < 0) ? ((hash * -1) + 0xFFFFFFFF) : hash;
+  };
+
+  function setFeaturesForAerialView(tokenHash) {
+      var maxChildren = 7;
+      var spacer = 4;
+      var edgeLength = getHashCode(tokenHash) % 20 + 5;
+      if(edgeLength % 2 == 0) edgeLength = edgeLength+1;
+      var gridSize = edgeLength * edgeLength
+      var rSizeWithSpacer = canvasSize / edgeLength;
+      var rSize = rSizeWithSpacer - spacer;
+
+      var matrix = new Array(edgeLength);
+
+      for (var i = 0; i <= edgeLength; ++i) {
+          matrix[i] = new Array(edgeLength);
+      }
+
+      var lightTrailColors = [
+          ['#000000', 'Black'],
+          ['#00FF00', 'Neon Green'],
+          ['#FF00FF', 'Neon Pink'],
+          ['#F2EA02', 'Gold'],
+      ];
+
+      var colors = [
+          ['#9BA1D1', '#BAE2DD', '#D2EACB', '#F6F1C4', 'Sliding'],
+          ['#957DAD', '#D291BC', '#FEC8D8', '#FFDFD3', 'Pastel'],
+          ['#CFD6AD', '#EDE8C6', '#B3C7C5', '#91ADB4', 'Elevating'],
+          ['#A08A86', '#97C6B0', '#515C74', '#F4ABA4', 'Think'],
+          ['#0B3D6F', '#F25930', '#FABB01', '#FFEA48', 'Summer'],
+          ['#2E4770', '#F25930', '#CE5E82', '#ECC6A2', 'Wave'],
+          ['#4FAF44', '#F6EB14', '#EF4423', '#2A3492', 'Retro'],
+          ['#51404F', '#E38B6A', '#6C7244', '#E7BC8A', 'Rustic'],
+          ['#CF4F38', '#DDCBA1', '#659F93', '#DFB859', 'Vintage'],
+          ['#7700D7', '#00BD75', '#F5DA7C', '#DD367C', '60s']
+      ];
+
+      //var style = ['Roadmap', 'Satellite', 'Hybrid'];
+      var style = ['roadmap', 'satellite', 'hybrid', 'terrain', 'astronomical'];
+
+      var fillStat = 0;
+      var styleStat = 0;
+
+      var tmpHash = tokenHash + tokenHash;
+      var backgroundRule = getHashCode(tmpHash) % 100;
+      var quadrantRule = getHashCode(tmpHash+tmpHash+tmpHash) % 100;
+      var overrule = getHashCode(tmpHash+tmpHash) % 100;
+      var rotationRule = getHashCode(tmpHash+tmpHash+tmpHash+tmpHash) % 100;
+
+      var colorsScheme = getHashCode(tokenHash) % colors.length;
+      var backgroundTemplate = '<rect width="100%" height="100%" fill="%COLOR%"/>';
+      var bIndex = 0;
+      if (backgroundRule < 80) {
+          bIndex = 0;
+      } else if (backgroundRule < 85) {
+          bIndex = 1;
+      } else if (backgroundRule < 95) {
+          bIndex = 2;
+      } else {
+          bIndex=3;
+      }
+      styleStat = styleStat + bIndex;
+      backgroundTemplate = backgroundTemplate.replace('%COLOR%', lightTrailColors[bIndex][0])
+
+      var countRectangles = 0;
+      for (var id = 0; id < gridSize; id++) {
+          //coordinates
+          var x = id % edgeLength;
+          var y = Math.floor(id / edgeLength);
+          var xS = x * rSizeWithSpacer;
+          var yS = y * rSizeWithSpacer;
+
+          var overlappedIdThenSkip = (matrix[x][y] == 1);
+          if(overlappedIdThenSkip) {
+              continue;
+          }
+
+          /* quadrant size */
+          var maxQuadrantSize = 1;
+          if(quadrantRule < 7) {
+              quadrantSize = 1;
+          } else {
+              if (quadrantRule < 50) {
+                  maxQuadrantSize = edgeLength / 4 ;
+              } else if (quadrantRule < 85) {
+                  maxQuadrantSize = edgeLength / 2 ;
+              } else if (quadrantRule < 95) {
+                  maxQuadrantSize = edgeLength / 4 * 3;
+              } else {
+                  maxQuadrantSize = edgeLength;
+              }
+              var increaseSize = getHashCode(tmpHash) % 10;
+              var quadrantSize = 1;
+              if(increaseSize == 1) {
+                  quadrantSize = Math.round(getHashCode(tmpHash+id) % maxQuadrantSize)+1;
+              }
+
+              /*check out of bounds - fit */
+              var outOfBounds = true;
+              while(outOfBounds && quadrantSize > 1) {
+                  if(edgeLength < x+quadrantSize || edgeLength < y+quadrantSize) {
+                      quadrantSize--;
+                  } else {
+                      for(var shiftX = 0; shiftX <= quadrantSize; shiftX++) {
+                          for(var shiftY = 0; shiftY <= quadrantSize; shiftY++) {
+                              overlapped = (matrix[x+shiftX][y+shiftY] == 1);
+                              if(overlapped) {
+                                  quadrantSize--;
+                              } else {
+                                  outOfBounds = false;
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+          /* rectangles */
+          var numberOfRectangles = getHashCode(tmpHash) % 10;
+          var modulo;
+          if (numberOfRectangles <= 7) {
+              modulo = 3;
+          } else if (numberOfRectangles > 9 && numberOfRectangles <= 17) {
+              modulo = 5;
+          } else {
+              modulo = maxChildren;
+          }
+
+         if (overrule == 1 ||overrule == 42 || overrule == 85 ||  overrule == 99) {
+              numberOfRectangles = maxChildren;
+              styleStat = 1;
+          } else if (overrule == 22 || overrule == 33 || overrule == 44 || overrule == 55 || overrule == 66) {
+              numberOfRectangles = 1;
+              styleStat = 1;
+          } else {
+              numberOfRectangles = getHashCode(tmpHash) % modulo;
+          }
+
+          var tmpRotation = tmpHash.slice(0, 32);
+          var tmpColor = tmpHash.slice(32, 64);
+          for (var rectangleIdx = 0; rectangleIdx < numberOfRectangles + 1; rectangleIdx++) {
+              countRectangles++;
+
+              if (overrule == 10 || overrule == 11 || overrule == 12 || overrule == 13 || overrule == 14) {
+                  styleStat = 1;
+              } else if (overrule == 95 || overrule == 96 || overrule == 97 || overrule == 98 || overrule == 99) {
+                  styleStat = 1;
+              }
+
+              for(var i=0; i < quadrantSize; i++){
+                  for(var j=0; j < quadrantSize; j++){
+                      matrix[x+i][y+j] = 1;
+                  }
+              }
+              tmpRotation = tmpRotation.slice(1) + tmpRotation.slice(0, 1);
+              tmpColor = tmpColor.slice(1) + tmpColor.slice(0, 1);
+          }
+
+          tmpHash = tmpHash.slice(1) + tmpHash.slice(0, 1);
+      }
+
+      var elevation = Math.ceil(100 / (gridSize * maxChildren + gridSize) * countRectangles);
+      if (elevation < 20 || elevation > 80) {
+          styleStat++;
+      }
+
+      features.push("Style: " + style[styleStat]);
+      features.push("Lighttrail: " + lightTrailColors[bIndex][1]);
+      features.push("Colorset: " + colors[colorsScheme][4]);
+      features.push("Altitude: " + edgeLength);
+      features.push("Elevation: " + elevation);
+
+      featuresReduced.push("Style: " + style[styleStat]);
+      featuresReduced.push("Lighttrail: " + lightTrailColors[bIndex][1]);
+      featuresReduced.push("Colorset: " + colors[colorsScheme][4]);
+  }
+  setFeaturesForAerialView(tokenData);
+}
+
+///////
+
+else if (projectId===36){
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+
+function rnd_dec() {
+  seed ^= seed << 13;
+  seed ^= seed >> 17;
+  seed ^= seed << 5;
+  return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000;
+}
+function rnd_num(a=0, b=1) {
+  return a+(b-a)*rnd_dec();
+}
+function rnd_int(a=0, b=1) {
+  return Math.floor(rnd_num(a, b+1));
+}
+function rnd_arr(x) {
+  return x[Math.floor(rnd_num(0, x.length*0.99))];
+}
+
+var DIM = Math.min(2400, 2400);
+var M = DIM/1000;
+var IG = 20*M;
+var MV_Y = 35*M;
+var SZ_X = 295*M;
+var MV_X = 30*M;
+var STRK_CAP = rnd_int();
+var HEADR_CRV = rnd_num(0, 20);
+var NUM1 = rnd_int(0, 9);
+var NUM2 = rnd_num() > 0.05 ? rnd_int(1, 9) : 0;
+var C_R = rnd_int(0, 15);
+var SHAPES_R = rnd_int(0, 4);
+var MULTI_COL = rnd_num() > 0.5;
+var HEAD_R = rnd_num() > 0.5;
+var MNMX = [[3,3],[1,2],[2,2],[1,3],[1,3],[1,3],[1,3],[1,1]];
+var MNMX_R = rnd_arr(MNMX);
+var ALGN_R = rnd_int(0, 3);
+
+features = [
+"Edition: "+(NUM2 == 0 ? "Single Digits":"Double Digits"),
+"Palette: "+ (C_R+10),
+"Shape Set: "+["Cards", "Chess", "Animals", "Symbols", "Letters"][SHAPES_R],
+"Column Type: "+(MULTI_COL ? "Multi":"Single"),
+"Header Align: "+(HEAD_R ? "Right":"Left"),
+"Paragraph Type: "+["Indent", "Left Align", "Center Align", "Right Align"][ALGN_R]
+]
+
+featuresReduced=features;
+
+console.log(features)
+}
+
+///////
+
+
+else if (projectId===37){
+
+
+  let seed = generateSeedFromTokenData(tokenData);
+
+  const rng = rnd;
+
+  const angle = 'Angle: ' + w_pick(['Tilted left', 'Tilted right', 'Rotated left', 'Rotated right', 'Straight'], [16, 8, 4, 2, 1]);
+  const type = 'Type: ' + w_pick(['Trooper', 'Convoy', 'Carrier', 'Cruiser', 'Mothership', 'Swarm'], [60, 15, 15, 6, 3, 1]);
+
+  const palette = 'Palette: ' + get_palette();
+  const color_mode = 'Coloring strategy: ' + w_pick(['Random', 'Group', 'Main', 'Single'], [4, 16, 4, 1]);
+
+  const base = 'Base color: ' + w_pick(['Black', 'White'], [1, 4]);
+  const coordination = 'Coordination: ' + w_pick(['Good', 'Bad'], type == 'Type: Trooper' || type === 'Type: Swarm' ? [1, 9] : [9, 1]);
+  const unit_shape = 'Unit shape: ' + w_pick(['Satelite', 'Ship'], [1, 19]);
+  const block_shape = 'Block shape:' + w_pick([0.2, 0.5, 0.75], [1, 4, 1]);
+
+  const trooper_rx = 'Width: ' + pick([12, 14, 16]);
+  const trooper_ry = 'Height: ' + pick([16, 18, 20, 22]);
+  const bulldozer_crew = 'Crew size: ' + pick([2, 3, 4]);
+  const zoomer_crew = 'Crew size: ' + pick([2, 3]);
+
+  features.push(type);
+  features.push(palette);
+  features.push(color_mode);
+  features.push(base);
+  features.push(angle);
+
+  if (type !== 'Type: Mothership') features.push(coordination);
+  features.push(unit_shape);
+
+  if (type === 'Type: Trooper') {
+    features.push(trooper_rx);
+    features.push(trooper_ry);
+  }
+
+  if (type === 'Type: Carrier') features.push(bulldozer_crew);
+  if (type === 'Type: Cruiser') features.push(zoomer_crew);
+
+  featuresReduced=features;
+  console.log(features);
+
+  // -----
+
+  function rnd() {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+
+    const n = ((seed < 0 ? ~seed + 1 : seed) % 100000) / 100000;
+    return n === 0 || n === 1 ? 0.5 : n;
+  }
+
+  function range(min, max) {
+    if (max === undefined) {
+      max = min;
+      min = 0;
+    }
+
+    return rng() * (max - min) + min;
+  }
+
+  function rangeFloor(min, max) {
+    return Math.floor(range(min, max));
+  }
+
+  function pick(array) {
+    if (array.length === 0) return undefined;
+    return array[rangeFloor(0, array.length)];
+  }
+
+  function w_pick(arr, warr) {
+    const agg = warr.reduce((a, c) => [...a, a[a.length - 1] + c], [0]);
+    const t = range(agg[agg.length - 1]);
+    const i = agg.findIndex((el) => el > t) - 1;
+    return arr[i];
+  }
+
+  function generateSeedFromTokenData(tokenData) {
+    return parseInt(tokenData.slice(0, 16), 16);
+  }
+
+  function get_palette() {
+    const palettes = [
+      ['Verena', 1],
+      ['Revolucion', 1],
+      ['Mysore', 2],
+      ['Gold Rush', 2],
+      ['Magic Hour', 2],
+      ['Woodwork', 2],
+      ['Ducci', 2],
+      ['Docks', 1],
+      ['Mono', 1],
+      ['Tropico', 2],
+      ['Hotspot', 3],
+      ['Main Course', 1],
+      ['Delphi', 3],
+      ['Nowak', 2],
+      ['Jupiter', 2],
+      ['Spider King', 1],
+      ['Giftcard', 1],
+      ['Slapdash', 2],
+      ['Nightlife', 3],
+      ['Paddle', 3],
+      ['Dayspring', 3],
+      ['Eventide', 3],
+      ['Overgrown', 2],
+      ['Winegum', 2],
+      ['Junkyard', 3],
+    ];
+
+    return w_pick(
+      palettes.map((a) => a[0]),
+      palettes.map((a) => a[1])
+    );
+  }
+
+}
+
+
   return [features, featuresReduced];
 };
