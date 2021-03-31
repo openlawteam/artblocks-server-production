@@ -49,7 +49,7 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-const currentNetwork = "rinkeby";
+const currentNetwork = "mainnet";
 const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
