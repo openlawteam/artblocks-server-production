@@ -47,6 +47,10 @@ const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
   endpoint: process.env.OSS_ENDPOINT,
+  maxRetries: 20,
+  httpOptions: {
+    timeout: 10000,
+  },
 });
 
 const currentNetwork = "mainnet";
@@ -701,14 +705,16 @@ async function serveScriptVideo(tokenId, ratio, refresh) {
 
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
-  console.log(`I'm the renderer. Token ${tokenId} does not exist`);
+  console.log(`I'm the renderer. We are rendering ${tokenId}`);
   const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
   const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
+    console.log(`Renderer: puppeteer launched.`);
     const page = await browser.newPage();
+    console.log(`Renderer: opening new page.`);
     await page.setViewport({
       width,
       height,
@@ -723,9 +729,11 @@ async function renderImage(tokenId, tokenKey, ratio) {
           : `https://api.artblocks.io/generator/${tokenId}`;
       await page.goto(url);
     }
+    console.log(`Renderer: navigated to url`);
 
     await timeout(500);
     const image = await page.screenshot();
+    console.log(`Renderer: captured screenshot`);
     await browser.close();
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
@@ -746,9 +754,11 @@ async function renderImage(tokenId, tokenKey, ratio) {
     };
 
     try {
+      console.log(`Attempting to upload image file`);
       const uploadRes = await s3.upload(params1).promise();
       console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
       try {
+        console.log(`Attempting to upload resized image file`);
         const uploadRes2 = await s3.upload(params2).promise();
         console.log(
           `Resized image file uploaded successfully: ${uploadRes2.Location}`
@@ -776,15 +786,18 @@ async function serveScriptResult(tokenId, ratio, refresh) {
   const tokenKey = `${tokenId}.png`;
   const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
   if (refresh) {
+    console.log("Refreshed Render Image Running....");
     await renderImage(tokenId, tokenKey, ratio);
     return true;
   }
   queue.dequeue();
   try {
+    console.log("checking to see if token exists", checkImageExistsParams);
     await s3.getObject(checkImageExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
     return true;
   } catch (err) {
+    console.log(err);
     await renderImage(tokenId, tokenKey, ratio);
     return true;
   }
@@ -823,14 +836,6 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     await timeout(500);
     const image = await page.screenshot();
-
-    // video render testing
-    // await page.setViewport({
-    //   width: width * 0.5,
-    //   height: height * 0.5,
-    //   deviceScaleFactor: 2,
-    // });
-    // const video = await renderVideo(page, 10);
 
     await browser.close();
 
@@ -1052,7 +1057,7 @@ async function getPlatformInfo() {
 }
 
 async function getProjectId(tokenId) {
-  console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
+  // console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
   return Math.floor(tokenId / 1000000);
 }
 
@@ -1093,19 +1098,27 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
     for (
       let i = Number(request.params.startId);
       i < Number(request.params.endId);
-      i++
+      i += 1
     ) {
       await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log("Puppeteer has run.");
+      console.log(
+        "RenderImageRange: Run completed for ",
+        tokensOfProject[i],
+        "\n\n"
+      );
     }
   } else {
     for (
       let i = Number(request.params.startId);
       i < tokensOfProject.length;
-      i++
+      i += 1
     ) {
-      const res = await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log("Puppeteer has run.", res);
+      await serveScriptResult(tokensOfProject[i], ratio, refresh);
+      console.log(
+        "RenderImageRange: Run completed for ",
+        tokensOfProject[i],
+        "\n\n"
+      );
     }
   }
 
