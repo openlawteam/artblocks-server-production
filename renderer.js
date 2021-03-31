@@ -61,7 +61,6 @@ let queueRef = {};
 let lastSentToRender = [];
 let intervalCount = 0;
 
-
 const web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const address =
   currentNetwork === "mainnet"
@@ -558,6 +557,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     const videoTokenKey = `${request.params.tokenId}.mp4`;
     if (request.params.refresh) {
       // TODO: add refresh logic
+      serveScriptVideo(request.params.tokenId, ratio, true);
       // serveScriptResultRefresh(request.params.tokenId, ratio).then((result) => {
       //   console.log(`serving: ${request.params.tokenId}`);
       //   response.set("Content-Type", "image/png");
@@ -633,60 +633,69 @@ setInterval(() => {
   }
 }, 5000);
 
-async function serveScriptVideo(tokenId, ratio) {
+async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
+  let url;
+  const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
+  const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
+  try {
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
+    await page.setViewport({
+      width,
+      height,
+      deviceScaleFactor: 1,
+    });
+    if (testing) {
+      await page.goto(`http://localhost:1234/generator/${tokenId}`);
+    } else {
+      url =
+        currentNetwork === "rinkeby"
+          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
+          : `https://api.artblocks.io/generator/${tokenId}`;
+      await page.goto(url);
+    }
+
+    const video = await renderVideo(page, 10);
+    const videoFileContent = await readFile(video);
+    const uploadVideoParams = {
+      Bucket: currentNetwork,
+      Key: tokenKey,
+      Body: videoFileContent,
+      ContentType: "video/mp4",
+    };
+
+    try {
+      const uploadRes = await s3.upload(uploadVideoParams).promise();
+      console.log(`Video file uploaded successfully: ${uploadRes.Location}`);
+      return true;
+    } catch (uploadErr) {
+      console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
+      return uploadErr;
+    }
+  } catch (puppeteerErr) {
+    console.log(`${tokenId}| this is the puppeteer error: ${puppeteerErr}`);
+    return puppeteerErr;
+  }
+}
+async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
-  queue.dequeue();
   const tokenKey = `${tokenId}.mp4`;
   const checkVideoExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  if (refresh) {
+    await renderAndUploadVideo(tokenId, tokenKey, ratio);
+    return true;
+  }
+  queue.dequeue();
+
   try {
     await s3.getObject(checkVideoExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
     return true;
   } catch (err) {
-    let url;
-    const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
-    const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
-    try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-      const page = await browser.newPage();
-      await page.setViewport({
-        width,
-        height,
-        deviceScaleFactor: 1,
-      });
-      if (testing) {
-        await page.goto(`http://localhost:1234/generator/${tokenId}`);
-      } else {
-        url =
-          currentNetwork === "rinkeby"
-            ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-            : `https://api.artblocks.io/generator/${tokenId}`;
-        await page.goto(url);
-      }
-
-      const video = await renderVideo(page, 10);
-      const videoFileContent = await readFile(video);
-      const uploadVideoParams = {
-        Bucket: currentNetwork,
-        Key: tokenKey,
-        Body: videoFileContent,
-        ContentType: "video/mp4",
-      };
-
-      try {
-        const uploadRes = await s3.upload(uploadVideoParams).promise();
-        console.log(`Video file uploaded successfully: ${uploadRes.Location}`);
-        return true;
-      } catch (uploadErr) {
-        console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
-        return uploadErr;
-      }
-    } catch (puppeteerErr) {
-      console.log(`${tokenId}| this is the puppeteer error: ${puppeteerErr}`);
-      return puppeteerErr;
-    }
+    await renderAndUploadVideo(tokenId, tokenKey, ratio);
+    return true;
   }
 }
 
@@ -720,7 +729,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     await browser.close();
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width/1.5), Math.round(height/1.5))
+      .resize(Math.round(width / 1.5), Math.round(height / 1.5))
       .png();
 
     const params1 = {
@@ -768,6 +777,7 @@ async function serveScriptResult(tokenId, ratio, refresh) {
   const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
   if (refresh) {
     await renderImage(tokenId, tokenKey, ratio);
+    return true;
   }
   queue.dequeue();
   try {
