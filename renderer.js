@@ -561,7 +561,8 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     const videoTokenKey = `${request.params.tokenId}.mp4`;
     if (request.params.refresh) {
       // TODO: add refresh logic
-      serveScriptVideo(request.params.tokenId, ratio, true);
+      await serveScriptVideo(request.params.tokenId, ratio, true);
+      response.redirect(`https://${mediaUrl}/${request.params.tokenId}.mp4`);
       // serveScriptResultRefresh(request.params.tokenId, ratio).then((result) => {
       //   console.log(`serving: ${request.params.tokenId}`);
       //   response.set("Content-Type", "image/png");
