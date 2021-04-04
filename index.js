@@ -229,15 +229,15 @@ app.get("/token/:tokenId", async (request, response) => {
       }`;
       const platform = `Art Blocks ${tokenType}`;
       let series;
-      if (projectId<8){
+      if (projectId < 8) {
         series = "1";
-      } else if (projectId>=8 && projectId<36){
+      } else if (projectId >= 8 && projectId < 36) {
         series = "2";
       } else {
         series = "3";
       }
 
-      let tokenSeries = curatedProjects.includes(projectId) ? series: "N/A";
+      const tokenSeries = curatedProjects.includes(projectId) ? series : "N/A";
 
       const tokenDescription = `${project.description} ${
         features.length > 0
@@ -259,9 +259,9 @@ app.get("/token/:tokenId", async (request, response) => {
       const tokenTraits =
         traitsArray && traitsArray.length > 0 ? traitsArray : fallbackTraits;
       const usesHash = project.useHashString;
-      const tokenImage = `${project.baseUri.slice(0, -6)}image/${
-        request.params.tokenId
-      }`;
+      const tokenImage =
+        project.baseUri &&
+        `${project.baseUri.slice(0, -6)}image/${request.params.tokenId}`;
 
       project.scriptJSON = JSON.parse(project.scriptJSON);
 
@@ -301,7 +301,7 @@ app.get("/token/:tokenId", async (request, response) => {
         tokenID: request.params.tokenId,
         "token hash": hash,
         license: project.license,
-        image: tokenImage,
+        image: tokenImage || "",
       });
     } else {
       response.send("token does not exist");
@@ -331,9 +331,9 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
 
       if (project.scriptJSON.type === "p5js") {
         response.render(
-          request.params.svg === "svg" && Number(project.id)===0
+          request.params.svg === "svg" && Number(project.id) === 0
             ? "generator_p5js_svg"
-            : request.params.svg === "svg" && Number(project.id)===33
+            : request.params.svg === "svg" && Number(project.id) === 33
             ? "generator_p5js_svg_emp"
             : "generator_p5js",
           { script, data }
@@ -348,9 +348,11 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
         response.render("generator_vox", { script, data });
       } else if (project.scriptJSON.type === "js") {
         response.render(
-          request.params.svg==="obj" && Number(project.id)===9
-          ?"generator_js_obj"
-          :"generator_js", { script, data });
+          request.params.svg === "obj" && Number(project.id) === 9
+            ? "generator_js_obj"
+            : "generator_js",
+          { script, data }
+        );
       } else if (project.scriptJSON.type === "svg") {
         response.render("generator_svg", { script, data });
       } else if (project.scriptJSON.type === "custom") {
