@@ -16,6 +16,8 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 IN THE SOFTWARE.
 */
 
+require("dotenv").config();
+
 const express = require("express");
 const Web3 = require("web3");
 const favicon = require("serve-favicon");
@@ -643,26 +645,16 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
   const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
   const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
   try {
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-    const page = await browser.newPage();
-    await page.setViewport({
-      width,
-      height,
-      deviceScaleFactor: 1,
-    });
     if (testing) {
-      await page.goto(`http://localhost:1234/generator/${tokenId}`);
+      url = `http://localhost:1234/generator/${tokenId}`;
     } else {
       url =
         currentNetwork === "rinkeby"
           ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
           : `https://api.artblocks.io/generator/${tokenId}`;
-      await page.goto(url);
     }
 
-    const video = await renderVideo(page, 10);
+    const video = await renderVideo(url, 10, width, height);
     const videoFileContent = await readFile(video);
     const uploadVideoParams = {
       Bucket: currentNetwork,
