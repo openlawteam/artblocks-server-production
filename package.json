@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev-server": "nodemon index.js",
-    "dev-renderer": "nodemon renderer.js",
+    "dev-render": "nodemon renderer.js",
     "start-renderer": "node renderer.js"
   },
   "repository": {
@@ -37,6 +37,7 @@
     "serve-favicon": "^2.5.0",
     "sharp": "^0.26.3",
     "tempdir": "^2.0.0",
+    "timecut": "^0.2.0",
     "web3": "^1.2.8"
   },
   "devDependencies": {

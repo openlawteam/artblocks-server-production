@@ -16,6 +16,8 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 IN THE SOFTWARE.
 */
 
+require("dotenv").config();
+
 const express = require("express");
 const Web3 = require("web3");
 const favicon = require("serve-favicon");
@@ -47,6 +49,10 @@ const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
   endpoint: process.env.OSS_ENDPOINT,
+  maxRetries: 20,
+  httpOptions: {
+    timeout: 10000,
+  },
 });
 
 const currentNetwork = "mainnet";
@@ -60,7 +66,6 @@ const queue = new Queue();
 let queueRef = {};
 let lastSentToRender = [];
 let intervalCount = 0;
-
 
 const web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const address =
@@ -558,6 +563,8 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     const videoTokenKey = `${request.params.tokenId}.mp4`;
     if (request.params.refresh) {
       // TODO: add refresh logic
+      await serveScriptVideo(request.params.tokenId, ratio, true);
+      response.redirect(`https://${mediaUrl}/${request.params.tokenId}.mp4`);
       // serveScriptResultRefresh(request.params.tokenId, ratio).then((result) => {
       //   console.log(`serving: ${request.params.tokenId}`);
       //   response.set("Content-Type", "image/png");
@@ -633,73 +640,74 @@ setInterval(() => {
   }
 }, 5000);
 
-async function serveScriptVideo(tokenId, ratio) {
+async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
+  let url;
+  const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
+  const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
+  try {
+    if (testing) {
+      url = `http://localhost:1234/generator/${tokenId}`;
+    } else {
+      url =
+        currentNetwork === "rinkeby"
+          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
+          : `https://api.artblocks.io/generator/${tokenId}`;
+    }
+
+    const video = await renderVideo(url, 10, width, height);
+    const videoFileContent = await readFile(video);
+    const uploadVideoParams = {
+      Bucket: currentNetwork,
+      Key: tokenKey,
+      Body: videoFileContent,
+      ContentType: "video/mp4",
+    };
+
+    try {
+      const uploadRes = await s3.upload(uploadVideoParams).promise();
+      console.log(`Video file uploaded successfully: ${uploadRes.Location}`);
+      return true;
+    } catch (uploadErr) {
+      console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
+      return uploadErr;
+    }
+  } catch (puppeteerErr) {
+    console.log(`${tokenId}| this is the puppeteer error: ${puppeteerErr}`);
+    return puppeteerErr;
+  }
+}
+async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
-  queue.dequeue();
   const tokenKey = `${tokenId}.mp4`;
   const checkVideoExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  if (refresh) {
+    await renderAndUploadVideo(tokenId, tokenKey, ratio);
+    return true;
+  }
+  queue.dequeue();
+
   try {
     await s3.getObject(checkVideoExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
     return true;
   } catch (err) {
-    let url;
-    const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
-    const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
-    try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-      const page = await browser.newPage();
-      await page.setViewport({
-        width,
-        height,
-        deviceScaleFactor: 1,
-      });
-      if (testing) {
-        await page.goto(`http://localhost:1234/generator/${tokenId}`);
-      } else {
-        url =
-          currentNetwork === "rinkeby"
-            ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-            : `https://api.artblocks.io/generator/${tokenId}`;
-        await page.goto(url);
-      }
-
-      const video = await renderVideo(page, 10);
-      const videoFileContent = await readFile(video);
-      const uploadVideoParams = {
-        Bucket: currentNetwork,
-        Key: tokenKey,
-        Body: videoFileContent,
-        ContentType: "video/mp4",
-      };
-
-      try {
-        const uploadRes = await s3.upload(uploadVideoParams).promise();
-        console.log(`Video file uploaded successfully: ${uploadRes.Location}`);
-        return true;
-      } catch (uploadErr) {
-        console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
-        return uploadErr;
-      }
-    } catch (puppeteerErr) {
-      console.log(`${tokenId}| this is the puppeteer error: ${puppeteerErr}`);
-      return puppeteerErr;
-    }
+    await renderAndUploadVideo(tokenId, tokenKey, ratio);
+    return true;
   }
 }
 
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
-  console.log(`I'm the renderer. Token ${tokenId} does not exist`);
+  console.log(`I'm the renderer. We are rendering ${tokenId}`);
   const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
   const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
+    console.log(`Renderer: puppeteer launched.`);
     const page = await browser.newPage();
+    console.log(`Renderer: opening new page.`);
     await page.setViewport({
       width,
       height,
@@ -714,13 +722,18 @@ async function renderImage(tokenId, tokenKey, ratio) {
           : `https://api.artblocks.io/generator/${tokenId}`;
       await page.goto(url);
     }
+
     let pId = Math.floor(tokenId/1000000);
     await timeout(pId===39?20000:500);
+
+    console.log(`Renderer: navigated to url`);
+
     const image = await page.screenshot();
+    console.log(`Renderer: captured screenshot`);
     await browser.close();
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width/1.5), Math.round(height/1.5))
+      .resize(Math.round(width / 1.5), Math.round(height / 1.5))
       .png();
 
     const params1 = {
@@ -737,9 +750,11 @@ async function renderImage(tokenId, tokenKey, ratio) {
     };
 
     try {
+      console.log(`Attempting to upload image file`);
       const uploadRes = await s3.upload(params1).promise();
       console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
       try {
+        console.log(`Attempting to upload resized image file`);
         const uploadRes2 = await s3.upload(params2).promise();
         console.log(
           `Resized image file uploaded successfully: ${uploadRes2.Location}`
@@ -767,14 +782,18 @@ async function serveScriptResult(tokenId, ratio, refresh) {
   const tokenKey = `${tokenId}.png`;
   const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
   if (refresh) {
+    console.log("Refreshed Render Image Running....");
     await renderImage(tokenId, tokenKey, ratio);
+    return true;
   }
   queue.dequeue();
   try {
+    console.log("checking to see if token exists", checkImageExistsParams);
     await s3.getObject(checkImageExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
     return true;
   } catch (err) {
+    console.log(err);
     await renderImage(tokenId, tokenKey, ratio);
     return true;
   }
@@ -814,14 +833,6 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     let pId = Math.floor(tokenId/1000000);
     await timeout(pId===39?20000:500);
     const image = await page.screenshot();
-
-    // video render testing
-    // await page.setViewport({
-    //   width: width * 0.5,
-    //   height: height * 0.5,
-    //   deviceScaleFactor: 2,
-    // });
-    // const video = await renderVideo(page, 10);
 
     await browser.close();
 
@@ -1043,7 +1054,7 @@ async function getPlatformInfo() {
 }
 
 async function getProjectId(tokenId) {
-  console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
+  // console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
   return Math.floor(tokenId / 1000000);
 }
 
@@ -1084,19 +1095,27 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
     for (
       let i = Number(request.params.startId);
       i < Number(request.params.endId);
-      i++
+      i += 1
     ) {
       await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log("Puppeteer has run.");
+      console.log(
+        "RenderImageRange: Run completed for ",
+        tokensOfProject[i],
+        "\n\n"
+      );
     }
   } else {
     for (
       let i = Number(request.params.startId);
       i < tokensOfProject.length;
-      i++
+      i += 1
     ) {
-      const res = await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log("Puppeteer has run.", res);
+      await serveScriptResult(tokensOfProject[i], ratio, refresh);
+      console.log(
+        "RenderImageRange: Run completed for ",
+        tokensOfProject[i],
+        "\n\n"
+      );
     }
   }
 
