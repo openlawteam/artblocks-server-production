@@ -6173,6 +6173,467 @@ else if (projectId===37){
 
 }
 
+///////
+
+
+// SNIP FROM HERE
+else if (projectId===38){
+
+    let hash = tokenData
+    let seeds = null
+    let hashChunks = null
+    let playing = null
+    let sound = null
+
+    let o = getMetadata(tokenData)
+
+    features.push(`Tint: ${o.tint}`)
+    features.push(`Visual: ${o.visual}`)
+    features.push(`Family: ${o.family}`)
+    features.push(`Sample Rate: ${o.sample_rate}`)
+    features.push(`Progressions: ${o.progressions}`)
+    //features.push(`Code: ${o.code}`)
+
+    featuresReduced.push(`Tint: ${o.tint}`)
+    featuresReduced.push(`Visual: ${o.visual}`)
+    featuresReduced.push(`Family: ${o.family}`)
+    featuresReduced.push(`Sample Rate: ${o.sample_rate}`)
+    featuresReduced.push(`Progressions: ${o.progressions}`)
+
+
+
+
+    //console.log('FEATURES',JSON.stringify(features))
+
+    // CODE
+    ///////////////
+    // Pseudorandom functions
+
+    // This should be called whenever re-deriving the parameters from the hash.
+    // For example, when calling generateParameters in getMetadata
+    function resetSeeds(){
+        // Pseudorandom chunks from the seed
+        hashChunks = hash.match(/../g)
+        hashChunks.shift() // pop off the '0x'
+        seeds = hashChunks.map(h=>parseInt(h,16))
+    }
+
+    // Return a number 0 to 1 based on the next seed in the hash
+    function notRandom(){
+        //console.log(seeds.length)
+        return seeds.length > 0 ? seeds.pop()/256 : 0
+    }
+
+    // Return one item from the list, pseudorandomly
+    function choose(list){
+        return list[Math.floor(notRandom()*list.length)]
+    }
+
+    // reset the seeds pointer, re-derive parameters from the hash
+    function generateParameters(hash){
+        resetSeeds()
+        let hue = parseFloat(notRandom())
+        //console.log("hue",hue)
+        let visual = choose(["bytes","bytes","bits","waveform","starry"]); // make bytes a bit more likely since it has the widest range of patterns
+        // Choose based on the relative weight of each family
+        let family = choose(
+            Array(8).fill("melodic").concat(
+            Array(6).fill("heavy")).concat(
+            Array(3).fill("wobbly")).concat(
+            Array(3).fill("powerclimb")).concat(
+            Array(3).fill("absurdities")).concat(
+            Array(3).fill("permutations")).concat(
+            Array(0).fill("crazy3"))
+        )
+        // pitch number (use this to derive sample rate and theoretically the root note)
+        let pitch_number = Math.ceil(notRandom()*12)
+        // sample rate
+        let sr = Math.round(Math.pow(2,(pitch_number+-6)/12)*3951.07)
+        // generate the bytebeat
+        //console.log(family)
+        let bb = bytebeatFamilyFunction(family)()
+
+        // melodic and heavy melodic have chord progressions
+        let matches = bb.match(/\,c\=b\%(\d)/)
+        let progressions = (matches && matches.length>=2) ? parseInt(matches[1]) : 0
+        // Let's just say powerclimb has infinity progression
+        if(family=="powerclimb"){
+            progressions = "Infinity";//"∞"
+        }
+
+        var bytebeat = new_bytebeat(bb,sr)
+
+        return {
+            "hue": hue,
+            "visual": visual,
+            "family": family,
+            "bytebeat": bytebeat,
+            "sr": sr,
+            "progressions": progressions,
+            "pitch_number": pitch_number
+        }
+    }
+
+    // getMetadata resets the seeds pointer, re-derives the same parameters,
+    // then returns nice human-readable parameters to be shown on artblocks website
+    function getMetadata(hash){
+        let parameters = generateParameters(hash)
+
+        // Hue > Tint
+        let hue = parseInt(parameters["hue"] * 360)
+        let tint = hue < 36 ? 'Fire' : ''
+        tint = hue >= 36 && hue <= 63 ? 'Goldenrod' : tint
+        tint = hue >= 64 && hue <= 133 ? 'Electric' : tint
+        tint = hue === 73 ? 'Emerald Dragon' : tint
+        tint = hue >= 134 && hue <= 171 ? 'Froggy' : tint
+        tint = hue >= 172 && hue <= 181 ? 'Turquoise' : tint
+        tint = hue >= 182 && hue <= 191 ? 'Sky' : tint
+        tint = hue >= 192 && hue <= 211 ? 'Cobalt' : tint
+        tint = hue >= 212 && hue <= 255 ? 'Royal' : tint
+        tint = hue >= 256 && hue <= 281 ? 'Regal' : tint
+        tint = hue >= 282 && hue <= 323 ? 'Neon' : tint
+        tint = hue >= 324 && hue <= 333 ? 'Sexbomb' : tint
+        tint = hue > 333 ? 'Lipstick' : tint
+
+        //console.log("hue", hue ,"tint", tint)
+
+        // Visual Type
+        let visual = capitalize(parameters["visual"])
+        // Bytebeat code template
+        let family = capitalize(parameters["family"]).replace("_"," ")
+        // update the names
+        if(family=="Absurdities"){
+            family="Inconsistent Absurdities"
+        }else if(family=="Permutations"){
+            family="Permutations"
+        }else if(family=="Crazy3"){
+            family="####"
+        }else if(family=="Heavy"){
+            family="Heavy Melodic"
+        }else if(family=="Melodic"){
+            family="Melodic"
+        }else if(family=="Powerclimb"){
+            family="Powerclimb"
+        }else if(family=="Wobbly"){
+            family="Wobbly"
+        }
+        // Sample rate
+        let sr = parameters["sr"]
+        // Progressions
+        let progressions = parameters["progressions"]
+        // Note Name
+        // This is false actually
+        //let note = ["F","F#","G","G#","A","A#","B","C","C#","D","D#","E","F"][parameters["pitch_number"]]
+
+        let code = parameters["bytebeat"]["code"]
+        let o = {
+            tint: tint,
+            visual: visual,
+            family: family,
+            sample_rate: sr,
+            progressions: progressions,
+            code: code
+        }
+
+        //console.table(o)
+        return o
+    }
+
+
+    function capitalize(s){
+        return s.charAt(0).toUpperCase() + s.slice(1)
+    }
+
+    function make_sample_function(bytebeat_code){
+        //eval("var f = function(t){ return "+bytebeat_code+"; }" )
+        try {
+            var f = new Function('"use strict"; return function(t){ \
+                var a=0,b=0,c=0,d=0,e=0;\
+                return '+bytebeat_code+';};')
+            return f()
+        }catch(e){
+            console.error("FAILED FUNCTION")
+            return
+        }
+    }
+
+    /////////////
+    // BYTEBEAT GENERATING FUNCTIONS
+    /////////
+
+    // returns the function responsible for generating the bytebeat in that family
+    function bytebeatFamilyFunction(family){
+        switch (family) {
+            case "melodic":
+                return make_melodic
+            case "heavy":
+                return make_heavy
+            case "absurdities":
+                return make_absurdities
+            case "permutations":
+                return make_permutations
+            case "crazy3":
+                return make_crazy3
+            case "wobbly":
+                return make_wobbly
+            case "powerclimb":
+                return make_powerclimb
+        }
+    }
+
+    function make_melodic(){
+        let r0 = choose([4,5,6,7,8,9])
+        let r1 = choose([18,18,18,17,17,17,15,14])
+        let r2 = choose(["c=b%2+1","c=b%3+1","c=b%3+1","c=b%4+1","c=b%5+1","c=b%6+1","c=b%24+1"])
+        let r3 = choose([7,6,5,4])
+        let r4 = choose([4,3,3,3,3,3,2])
+        let r5 = choose([
+            "(t*(a/2)/c&t>>10)|(t*a/c&t>>9)",
+            "(t*(a/2)/c&t>>10)|(t*a/c&t>>9)"
+            ])
+        let r6 = choose([
+            "|(t*(a*4/c)&t>>8)|(t*(a*5/c)&t>>"+r3+")|(t*(a*6/c)&t>>"+r4+")",
+            "|(t*(a*4/c)&t>>8)|(t*(a*5/c)&t>>"+r3+")|(t*(a*6/c)&t>>"+r4+")",
+            "|(t*(a*2/c)&t>>8)|(t*(a*3/c)&t>>"+r3+")|(t*(a*4/c)&t>>"+r4+")",
+            "|(t*(a*5/c)&t>>8)|(t*(a*6/c)&t>>"+r3+")|(t*(a*7/c)&t>>"+r4+")"])
+        bb  = "a="+r0+","
+        bb += "b=((t>>"+r1+")&0xFF),"
+        bb += r2+","
+        bb += r5
+        bb += r6
+        return bb
+    }
+
+    // lots of notes, carnival
+    function make_absurdities(){
+        let r0 = choose([5,6,7,8,9,10,11,12,13])
+        let r1 = choose([5,6,7,8,9,10,11,12,13])
+        let r2 = choose([5,6,7,8,9,10,11,12,13])
+        let r3 = choose([5,6,7,8,9,10,11,12,13])
+        let r4 = choose([69,9,4,5,6])
+        let bb = "t*(0x"+r4+"+(0xABCDEF&t>>10))*(("+r0+"&t>>"+r1+")|("+r1+"&t>>"+r2+")|("+r2+"&t>>"+r3+")|("+r3+"&t>>"+r0+"))"
+        return bb
+    }
+
+    // pretty crazy, kind of annoying
+    function make_permutations(){
+        let r0 = choose([1,2])
+        let r1 = choose([1,2,10,20,40,50])
+        let bb = "a=0.5,b="+r0+",c="+r1+",(t/a*((-c*(t/a|t/a*b>>5)/4)>>7))"
+        return bb
+    }
+
+    function make_crazy3(){
+        let r0 = choose([1,2,3,4,5,6,7,8,12,24])
+        let r1 = choose([1,2,3])
+        let r2 = choose(["(c/8<<8)|(c/4<<4)|(c/2<<3)","(c/6<<8)|(c/5<<7)|(c/4<<4)"])
+        let bb = "a="+r0+",b=a/"+r1+",t=t*a,c=(-(t>>b|t>>10)>>4)/4,t*("+r2+")"
+        return bb
+    }
+
+    function make_powerclimb(){
+        let r0 = choose([1.6,1.7,1.8])
+        let r1 = choose([0.05,0.08,0.1,0.15,0.18,0.2])
+        let r2= choose([0,1])
+        let bb ="a=0xFF,b="+r0+",c="+r1+",\
+    ((1*(pow(t,b+c*0))>>14)&a)^\
+    ((1*(pow(t,b+c*1))>>14)&a)^\
+    ((1*(pow(t,b+c*2))>>14)&a)^\
+    ((1*(pow(t,b+c*3))>>14)&a*"+r2+")"
+        return bb
+    }
+
+    function make_heavy(){
+        let r1 = choose([17,17,16,16,15,14])
+        let r2 = choose(["c=b%2+1","c=b%3+1","c=b%3+2","c=b%3+3","c=b%3+4","c=b%4+1","c=b%6+1"])
+        let r3 = choose([1,2,3,4,5,6,7,8,9,11])
+        let r4 = choose([1,2,3])
+        let r5 = choose([8,9])
+        let bb ="b=((t>>("+r1+"))&0xFF),"+r2+",((t>>7)|(t>>"+r5+")|(t*"+r3+"))*(t/c<<"+r4+")"
+        return bb
+    }
+
+    function make_wobbly(){
+        let r1 = choose([2,3,4,5])
+        let r2 = choose([1,8,16,32,42,64,69,99])
+        let bb ="a="+r1+",f="+r2+",b=(((t>>14)&0xFE)+1+f)%0xFE,d=1/4,((t*a*b*(t*a>>(t*a*d>>10)%16)))"
+        return bb
+    }
+
+    function new_bytebeat(code, sr){
+        let original_code = code
+        code = replace_all(code, "pow","Math.pow")
+        code = replace_all(code, "sqrt","Math.sqrt")
+        f = make_sample_function(code)
+        return {
+            f: f,
+            sr: sr,
+            code: code,
+            original_code: original_code
+        }
+    }
+
+    ///////
+    // HELPER FUNCTIONS
+    ////
+
+    // replace all instances of search with replace in string
+    function replace_all(string, search, replace) {
+        return string.split(search).join(replace)
+    }
+
+    // convert hsv to rgb color
+    function hsvToRgb(h, s, v) {
+    var r, g, b
+    var i = Math.floor(h * 6)
+    var f = h * 6 - i
+    var p = v * (1 - s)
+    var q = v * (1 - f * s)
+    var t = v * (1 - (1 - f) * s)
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break
+        case 1: r = q, g = v, b = p; break
+        case 2: r = p, g = v, b = t; break
+        case 3: r = p, g = q, b = v; break
+        case 4: r = t, g = p, b = v; break
+        case 5: r = v, g = p, b = q; break
+    }
+    return [ r * 255, g * 255, b * 255 ]
+    }
+
+    function samplePos2graph(i, w, h){
+        return ( w*(i%h)+Math.floor(i/h) )
+    }
+
+    function graphPos2sample(pos, h){
+        return pos.x*h+pos.y
+    }
+
+
+}
+
+/////////
+
+
+if (projectId===39){
+  const noise = {
+      init(seed) {
+          this.r = this.alea(seed);
+          this.p = this.bp(this.r);
+      },
+      bp(random) {
+          var i;
+          var p = new Uint8Array(256);
+          for (i = 0; i < 256; i++) {
+              p[i] = i;
+          }
+          for (i = 0; i < 255; i++) {
+              var r = i + ~~(random() * (256 - i));
+              var aux = p[i];
+              p[i] = p[r];
+              p[r] = aux;
+          }
+          return p;
+      },
+
+      masher() {
+          var n = 0xefc8249d;
+          return function(data) {
+              data = data.toString();
+              for (var i = 0; i < data.length; i++) {
+                  n += data.charCodeAt(i);
+                  var h = 0.02519603282416938 * n;
+                  n = h >>> 0;
+                  h -= n;
+                  h *= n;
+                  n = h >>> 0;
+                  h -= n;
+                  n += h * 0x100000000; // 2^32
+              }
+              return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+          };
+      },
+      alea() {
+          var s0 = 0;
+          var s1 = 0;
+          var s2 = 0;
+          var c = 1;
+
+          var mash = this.masher();
+          s0 = mash(' ');
+          s1 = mash(' ');
+          s2 = mash(' ');
+
+          for (var i = 0; i < arguments.length; i++) {
+              s0 -= mash(arguments[i]);
+              if (s0 < 0) {
+                  s0 += 1;
+              }
+              s1 -= mash(arguments[i]);
+              if (s1 < 0) {
+                  s1 += 1;
+              }
+              s2 -= mash(arguments[i]);
+              if (s2 < 0) {
+                  s2 += 1;
+              }
+          }
+          mash = null;
+          return function() {
+              var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+              s0 = s1;
+              s1 = s2;
+              return s2 = t - (c = t | 0);
+          };
+      },
+
+  };
+
+
+
+	//reset the noise!
+  	noise.init(tokenData);
+  	//no more random!
+  	const rd = noise.r;//Math.random;
+
+
+	let xp = rd();
+	let xp1 = rd();
+
+
+	if(xp1>=0.95){
+		features.push("Background: Dark");
+	} else {
+		features.push("Background: Light");
+	}
+
+	if(xp>0.45){
+		features.push("Origin: Center");
+	} else if(xp<=0.15){
+		features.push("Origin: Right");
+	} else if(xp>0.15 && xp<=0.3){
+		features.push("Origin: Bottom");
+	} else if(xp>0.3 && xp<=0.45){
+		features.push("Origin: Left");
+	}
+
+
+	if(xp<=0.2){
+		features.push("Orientation: The Mirror");
+	} else if(xp>0.2 && xp<=0.4){
+		features.push("Orientation: ‘The Skewed Mirror");
+	} else if(xp>0.4&& xp<=0.6){
+		features.push("Orientation: The Reflection");
+	} else if(xp>0.6 && xp<0.7){
+		features.push("Orientation: The Spread")
+
+	} else {
+		feature.push("Orientation: Free")
+	}
+
+  featuresReduced = features;
+	}
+
 
   return [features, featuresReduced];
 };

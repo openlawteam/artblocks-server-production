@@ -50,11 +50,11 @@ const s3 = new AWS.S3({
 const currentNetwork = "mainnet";
 const curatedProjects =
   currentNetwork === "mainnet"
-    ? [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 17, 21, 23, 27, 28, 29, 35]
+    ? [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 17, 21, 23, 27, 28, 29, 35, 39,40,41]
     : [];
 const playgroundProjects =
   currentNetwork === "mainnet"
-    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37]
+    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37,42]
     : [];
 const testing = false;
 
@@ -222,7 +222,7 @@ app.get("/token/:tokenId", async (request, response) => {
         ? "Curated"
         : "Factory";
       if (playgroundProjects.includes(projectId)) {
-        tokenType = " Playground";
+        tokenType = "Playground";
       }
       const tokenName = `${project.name} #${
         request.params.tokenId - projectId * 1000000
@@ -328,7 +328,7 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
 
       const { script } = project;
       const data = buildData(hash, request.params.tokenId);
-
+      if (project.scriptJSON){
       if (project.scriptJSON.type === "p5js") {
         response.render(
           request.params.svg === "svg" && Number(project.id) === 0
@@ -360,6 +360,10 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       } else if (project.scriptJSON.type === "regl") {
         response.render("generator_regl", { script, data });
       } else {
+        response.render("generator_threejs", { script, data });
+      }
+    }
+        else {
         response.send("token script not defined");
       }
     } else {

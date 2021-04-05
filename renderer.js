@@ -722,9 +722,12 @@ async function renderImage(tokenId, tokenKey, ratio) {
           : `https://api.artblocks.io/generator/${tokenId}`;
       await page.goto(url);
     }
+
+    let pId = Math.floor(tokenId/1000000);
+    await timeout(pId===39?20000:500);
+
     console.log(`Renderer: navigated to url`);
 
-    await timeout(500);
     const image = await page.screenshot();
     console.log(`Renderer: captured screenshot`);
     await browser.close();
@@ -827,7 +830,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       await page.goto(url);
     }
 
-    await timeout(500);
+    let pId = Math.floor(tokenId/1000000);
+    await timeout(pId===39?20000:500);
     const image = await page.screenshot();
 
     await browser.close();
