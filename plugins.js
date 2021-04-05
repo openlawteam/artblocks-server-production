@@ -6512,5 +6512,128 @@ else if (projectId===38){
 
 }
 
+/////////
+
+
+if (projectId===39){
+  const noise = {
+      init(seed) {
+          this.r = this.alea(seed);
+          this.p = this.bp(this.r);
+      },
+      bp(random) {
+          var i;
+          var p = new Uint8Array(256);
+          for (i = 0; i < 256; i++) {
+              p[i] = i;
+          }
+          for (i = 0; i < 255; i++) {
+              var r = i + ~~(random() * (256 - i));
+              var aux = p[i];
+              p[i] = p[r];
+              p[r] = aux;
+          }
+          return p;
+      },
+
+      masher() {
+          var n = 0xefc8249d;
+          return function(data) {
+              data = data.toString();
+              for (var i = 0; i < data.length; i++) {
+                  n += data.charCodeAt(i);
+                  var h = 0.02519603282416938 * n;
+                  n = h >>> 0;
+                  h -= n;
+                  h *= n;
+                  n = h >>> 0;
+                  h -= n;
+                  n += h * 0x100000000; // 2^32
+              }
+              return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+          };
+      },
+      alea() {
+          var s0 = 0;
+          var s1 = 0;
+          var s2 = 0;
+          var c = 1;
+
+          var mash = this.masher();
+          s0 = mash(' ');
+          s1 = mash(' ');
+          s2 = mash(' ');
+
+          for (var i = 0; i < arguments.length; i++) {
+              s0 -= mash(arguments[i]);
+              if (s0 < 0) {
+                  s0 += 1;
+              }
+              s1 -= mash(arguments[i]);
+              if (s1 < 0) {
+                  s1 += 1;
+              }
+              s2 -= mash(arguments[i]);
+              if (s2 < 0) {
+                  s2 += 1;
+              }
+          }
+          mash = null;
+          return function() {
+              var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+              s0 = s1;
+              s1 = s2;
+              return s2 = t - (c = t | 0);
+          };
+      },
+
+  };
+
+
+
+	//reset the noise!
+  	noise.init(tokenData);
+  	//no more random!
+  	const rd = noise.r;//Math.random;
+
+
+	let xp = rd();
+	let xp1 = rd();
+
+
+	if(xp1>=0.95){
+		features.push("Background: Dark");
+	} else {
+		features.push("Background: Light");
+	}
+
+	if(xp>0.45){
+		features.push("Origin: Center");
+	} else if(xp<=0.15){
+		features.push("Origin: Right");
+	} else if(xp>0.15 && xp<=0.3){
+		features.push("Origin: Bottom");
+	} else if(xp>0.3 && xp<=0.45){
+		features.push("Origin: Left");
+	}
+
+
+	if(xp<=0.2){
+		features.push("Orientation: The Mirror");
+	} else if(xp>0.2 && xp<=0.4){
+		features.push("Orientation: ‘The Skewed Mirror");
+	} else if(xp>0.4&& xp<=0.6){
+		features.push("Orientation: The Reflection");
+	} else if(xp>0.6 && xp<0.7){
+		features.push("Orientation: The Spread")
+
+	} else {
+		feature.push("Orientation: Free")
+	}
+
+  featuresReduced = features;
+	}
+
+
   return [features, featuresReduced];
 };
