@@ -326,6 +326,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       const { hash, project } = tokenAndProjectData.token;
       project.scriptJSON = JSON.parse(project.scriptJSON);
 
+      console.log("Generator running for token "+request.params.tokenId + " using hash: "+hash);
+
       const { script } = project;
       const data = buildData(hash, request.params.tokenId);
       if (project.scriptJSON){

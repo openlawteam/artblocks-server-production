@@ -49,10 +49,7 @@ const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
   endpoint: process.env.OSS_ENDPOINT,
-  maxRetries: 20,
-  httpOptions: {
-    timeout: 10000,
-  },
+
 });
 
 const currentNetwork = "mainnet";
@@ -271,6 +268,8 @@ app.get("/generator/:tokenId", async (request, response) => {
       );
       const data = buildData(tokenDetails.hashes, request.params.tokenId);
 
+      console.log("Generator running for token "+request.params.tokenId + " using hash: "+tokenDetails.hashes);
+
       if (projectDetails.projectScriptInfo.scriptJSON.type === "p5js") {
         response.render("generator_p5js", { script, data });
       } else if (
@@ -371,6 +370,9 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     const Key = `${request.params.tokenId}.png`;
 
     if (exists) {
+      const tokenDetails = await getToken(request.params.tokenId);
+      console.log("I'm the renderer and the hash from Infura for tokenId: " + request.params.tokenId+ " is: "+ tokenDetails.hashes);
+
       if (request.params.refresh) {
         serveScriptResultRefresh(request.params.tokenId, ratio).then(
           (result) => {

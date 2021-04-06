@@ -6516,123 +6516,873 @@ else if (projectId===38){
 
 
 if (projectId===39){
-  const noise = {
-      init(seed) {
-          this.r = this.alea(seed);
-          this.p = this.bp(this.r);
-      },
-      bp(random) {
-          var i;
-          var p = new Uint8Array(256);
-          for (i = 0; i < 256; i++) {
-              p[i] = i;
-          }
-          for (i = 0; i < 255; i++) {
-              var r = i + ~~(random() * (256 - i));
-              var aux = p[i];
-              p[i] = p[r];
-              p[r] = aux;
-          }
-          return p;
-      },
+  let seed = generateSeedFromTokenData(tokenData);
 
-      masher() {
-          var n = 0xefc8249d;
-          return function(data) {
-              data = data.toString();
-              for (var i = 0; i < data.length; i++) {
-                  n += data.charCodeAt(i);
-                  var h = 0.02519603282416938 * n;
-                  n = h >>> 0;
-                  h -= n;
-                  h *= n;
-                  n = h >>> 0;
-                  h -= n;
-                  n += h * 0x100000000; // 2^32
-              }
-              return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
-          };
-      },
-      alea() {
-          var s0 = 0;
-          var s1 = 0;
-          var s2 = 0;
-          var c = 1;
+  function rnd() {
 
-          var mash = this.masher();
-          s0 = mash(' ');
-          s1 = mash(' ');
-          s2 = mash(' ');
+      seed ^= seed << 13;
 
-          for (var i = 0; i < arguments.length; i++) {
-              s0 -= mash(arguments[i]);
-              if (s0 < 0) {
-                  s0 += 1;
-              }
-              s1 -= mash(arguments[i]);
-              if (s1 < 0) {
-                  s1 += 1;
-              }
-              s2 -= mash(arguments[i]);
-              if (s2 < 0) {
-                  s2 += 1;
-              }
-          }
-          mash = null;
-          return function() {
-              var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-              s0 = s1;
-              s1 = s2;
-              return s2 = t - (c = t | 0);
-          };
-      },
+      seed ^= seed >> 17;
 
-  };
+      seed ^= seed << 5;
+
+      return (((seed < 0) ? ~seed + 1 : seed) % 1000) / 1000;
+  }
+
+  function generateSeedFromTokenData(tokenData) {
+      return parseInt(tokenData.slice(0, 16), 16);
+  }
 
 
+  let xp = rnd();
+  let xp1 = rnd();
 
-	//reset the noise!
-  	noise.init(tokenData);
-  	//no more random!
-  	const rd = noise.r;//Math.random;
+  if(xp1>=0.95){
+      features.push('Background: Dark');
+  } else {
+      features.push('Background: Light');
+  }
 
-
-	let xp = rd();
-	let xp1 = rd();
-
-
-	if(xp1>=0.95){
-		features.push("Background: Dark");
-	} else {
-		features.push("Background: Light");
-	}
-
-	if(xp>0.45){
-		features.push("Origin: Center");
-	} else if(xp<=0.15){
-		features.push("Origin: Right");
-	} else if(xp>0.15 && xp<=0.3){
-		features.push("Origin: Bottom");
-	} else if(xp>0.3 && xp<=0.45){
-		features.push("Origin: Left");
-	}
+  if(xp>0.45){
+      features.push('Origin: Center');
+  } else if(xp<=0.15){
+      features.push('Origin: Right');
+  } else if(xp>0.15 && xp<=0.3){
+      features.push('Origin: Bottom');
+  } else if(xp>0.3 && xp<=0.45){
+      features.push('Origin: Left');
+  }
 
 
-	if(xp<=0.2){
-		features.push("Orientation: The Mirror");
-	} else if(xp>0.2 && xp<=0.4){
-		features.push("Orientation: ‘The Skewed Mirror");
-	} else if(xp>0.4&& xp<=0.6){
-		features.push("Orientation: The Reflection");
-	} else if(xp>0.6 && xp<0.7){
-		features.push("Orientation: The Spread")
+  if(xp<=0.2){
+      features.push('Orientation: The Mirror');
+  } else if(xp>0.2 && xp<=0.4){
+      features.push('Orientation: ‘The Skewed Mirror');
+  } else if(xp>0.4&& xp<=0.6){
+      features.push('Orientation: The Reflection');
+  } else if(xp>0.6 && xp<0.7){
+      features.push('Orientation: The Spread')
 
-	} else {
-		feature.push("Orientation: Free")
-	}
+  } else {
+      features.push('Orientation: Free')
+  }
+  console.log(features);
+
 
   featuresReduced = features;
 	}
+
+  ////////
+
+  else if (projectId === 42){
+
+    "use strict";
+    {
+
+        const noise = {
+            init(seed) {
+                this.r = this.alea(seed);
+              this.p = this.bp(this.r);
+            },
+            bp(random) {
+                var i;
+                var p = new Uint8Array(256);
+                for (i = 0; i < 256; i++) {
+                    p[i] = i;
+                }
+                for (i = 0; i < 255; i++) {
+                    var r = i + ~~(random() * (256 - i));
+                    var aux = p[i];
+                    p[i] = p[r];
+                    p[r] = aux;
+                }
+                return p;
+            },
+
+            masher() {
+                var n = 0xefc8249d;
+                return function(data) {
+                    data = data.toString();
+                    for (var i = 0; i < data.length; i++) {
+                        n += data.charCodeAt(i);
+                        var h = 0.02519603282416938 * n;
+                        n = h >>> 0;
+                        h -= n;
+                        h *= n;
+                        n = h >>> 0;
+                        h -= n;
+                        n += h * 0x100000000; // 2^32
+                    }
+                    return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+                };
+            },
+            alea() {
+                var s0 = 0;
+                var s1 = 0;
+                var s2 = 0;
+                var c = 1;
+
+                var mash = this.masher();
+                s0 = mash(' ');
+                s1 = mash(' ');
+                s2 = mash(' ');
+
+                for (var i = 0; i < arguments.length; i++) {
+                    s0 -= mash(arguments[i]);
+                    if (s0 < 0) {
+                        s0 += 1;
+                    }
+                    s1 -= mash(arguments[i]);
+                    if (s1 < 0) {
+                        s1 += 1;
+                    }
+                    s2 -= mash(arguments[i]);
+                    if (s2 < 0) {
+                        s2 += 1;
+                    }
+                }
+                mash = null;
+                return function() {
+                    var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+                    s0 = s1;
+                    s1 = s2;
+                    return s2 = t - (c = t | 0);
+                };
+            },
+        };
+
+
+        noise.init(tokenData);
+        let rd=noise.r;
+
+        //THE PARAMETERS
+        let palette_index = parseInt(Math.floor(rd()*27));
+        let repeat = 1;
+        if (rd()>0.95) repeat = 2;
+        let scale_noise = 0.5 + rd() * 1.5;
+        let n_sides = 100;
+        let ns = rd();
+        if (ns > 0.8) n_sides = 0;
+        else if (ns > 0.3) n_sides = Math.floor(Math.pow(rd(),2)*3) + 4; // 4 to 6
+
+        let huge = rd()>0.5;
+        let half = rd()>0.7;
+        let cut = rd()>0.5;
+        let phat = rd()>0.6;
+        let two_planets = rd() > 0.95&&(n_sides!=0);
+        let excentred = (!two_planets && rd()>0.7)&&(n_sides!=0);
+        phat = phat&&!excentred&&(n_sides!=0);
+        let spiral_colors = !two_planets&&!excentred&&!cut&&rd()>0.95;
+        let dark = rd()>0.6;
+        let bicolor = rd()>0.3;
+        let donut = rd()>0.9;
+
+        let palettesNames = [
+            'Green(Y&B)',
+            'Fluorescent Moss',
+            'Geode',
+            'Verdigris',
+            'Monochrome',
+            'Autumn is coming',
+            'Sea Shore',
+            'Boy and Girl',
+            'Icy Blues',
+            'Down in the forest',
+            'Burning',
+            'It\'s a long story',
+            'Pastel',
+            'Bright Sky',
+            'Rust',
+            'Aurora Skies',
+            'From the forge',
+            'Fire',
+            'Floral Essence',
+            'Bold choice, no doubt',
+            'Too much purple',
+            'Macha Strawberry',
+            'Time for blood',
+            'Cotton Candy',
+            'Light breeze',
+            'Teal to 11',
+            'I miss yellow',
+        ];
+        features.push('Palette: '+palettesNames[palette_index]);
+
+        if(repeat==1) {
+            features.push('See Double Colors: No'); //0
+        } else {
+            features.push('See Double Colors: Yes');
+        }
+      if(scale_noise>1.0){
+          features.push('Energy: High'); //9
+      } else {
+          features.push('Energy: Low');
+      }
+      switch(n_sides) {
+          case 4:
+              features.push('Shape: Square');
+              break;
+          case 5:
+              features.push('Shape: Pentagon');
+              break;
+          case 6:
+              features.push('Shape: Hexagon');
+              break;
+          case 0:
+              features.push('Shape: Shapeless');
+              break;
+          default:
+              features.push('Shape: Circle');
+              break;
+      }
+      if(huge){
+          features.push('Size: Huge');
+      } else {
+          features.push('Size: Medium');
+      }
+      if(half){
+          features.push('Room: Spacious');
+      } else {
+          features.push('Room: Compact');
+      }
+      if(cut){
+          features.push('Cut: Line');
+      } else {
+          features.push('Cut: None');
+      }
+        if(phat){
+          features.push('Framed: Tightly');
+      } else {
+          features.push('Framed: Nicely');
+      }
+        if(two_planets) {
+          features.push('System: Binay Star');
+        } else if(excentred) {
+          features.push('System: Corner');
+        } else if (spiral_colors) {
+          features.push('System: Spiral');
+        } else {
+          features.push('System: Planet');
+        }
+
+        if(dark){
+          features.push('Time: Night');
+        } else {
+          features.push('Time: Day');
+        }
+        if(bicolor){
+          features.push('Atmosphere: Yes');
+        } else {
+          features.push('Atmosphere: No');
+        }
+        if(donut){
+          features.push('Fill: Rings');
+        } else {
+          features.push('Fill: Full');
+        }
+
+
+
+    }
+    featuresReduced=features;
+
+  }
+
+
+  ////////////////
+  else if (projectId===43){
+
+    function p5() {
+        this._lcg_random_state = null;
+        this._gaussian_previous = false;
+    }
+
+    // variables used for random number generators
+    const randomStateProp = '_lcg_random_state';
+    // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+    // m is basically chosen to be large (as it is the max period)
+    // and for its relationships to a and c
+    const m = 4294967296;
+    // a - 1 should be divisible by m's prime factors
+    const a = 1664525;
+    // c and m should be co-prime
+    const c = 1013904223;
+    let y2 = 0;
+
+    // Linear Congruential Generator that stores its state at instance[stateProperty]
+    p5.prototype._lcg = function(stateProperty) {
+      // define the recurrence relationship
+      this[stateProperty] = (a * this[stateProperty] + c) % m;
+      // return a float in [0, 1)
+      // we've just used % m, so / m is always < 1
+      return this[stateProperty] / m;
+    };
+
+    p5.prototype._lcgSetSeed = function(stateProperty, val) {
+      // pick a random seed if val is undefined or null
+      // the >>> 0 casts the seed to an unsigned 32-bit integer
+      this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+    };
+
+    p5.prototype.randomSeed = function(seed) {
+      this._lcgSetSeed(randomStateProp, seed);
+      this._gaussian_previous = false;
+    };
+
+    p5.prototype.random = function(min, max) {
+      let rand;
+
+      if (this[randomStateProp] != null) {
+        rand = this._lcg(randomStateProp);
+      } else {
+        rand = Math.random();
+      }
+      if (typeof min === 'undefined') {
+        return rand;
+      } else if (typeof max === 'undefined') {
+        if (min instanceof Array) {
+          return min[Math.floor(rand * min.length)];
+        } else {
+          return rand * min;
+        }
+      } else {
+        if (min > max) {
+          const tmp = min;
+          min = max;
+          max = tmp;
+        }
+
+        return rand * (max - min) + min;
+      }
+    };
+
+    p5.prototype.randomGaussian = function(mean, sd = 1) {
+      let y1, x1, x2, w;
+      if (this._gaussian_previous) {
+        y1 = y2;
+        this._gaussian_previous = false;
+      } else {
+        do {
+          x1 = this.random(2) - 1;
+          x2 = this.random(2) - 1;
+          w = x1 * x1 + x2 * x2;
+        } while (w >= 1);
+        w = Math.sqrt(-2 * Math.log(w) / w);
+        y1 = x1 * w;
+        y2 = x2 * w;
+        this._gaussian_previous = true;
+      }
+
+      const m = mean || 0;
+      return y1 * sd + m;
+    };
+
+    p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
+
+    let traits = [];
+
+    if(p5.prototype.random() < 0.05) {
+      traits.push("Ghost edition: True");
+      traits.push("Red channel: 220");
+      traits.push("Green channel: 220");
+      traits.push("Blue channel: 220");
+    } else {
+      traits.push("Ghost edition: False");
+      traits.push("Red channel: "+parseInt(p5.prototype.random(0, 255)));
+      traits.push("Green channel: "+parseInt(p5.prototype.random(0, 255)));
+      traits.push("Blue channel: "+parseInt(p5.prototype.random(0, 255)));
+    }
+
+    console.log(traits);
+
+    features=traits;
+    featuresReduced=traits;
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+  ////////////
+
+  else if (projectId===45){
+    let seed = tokenData;
+
+        let traits = []
+
+        let dna = seed.substring(2, seed.length);
+
+        const BOOLS = dna.split("").map(h => parseInt(Number("0x"+h), 10) % 2);
+
+        if (BOOLS[22] && BOOLS[5]){
+            traits.push("Widener: Random");
+        } else if(BOOLS[13]){
+            traits.push("Widener: Static");
+        } else {
+            traits.push("Widener: None");
+        }
+
+
+        if (BOOLS[3]){
+            traits.push("Pre-Wash: True");
+            if (BOOLS[9]) {
+                traits.push("Wash: True");
+            } else {
+                traits.push("Wash: False");
+            }
+        } else {
+            traits.push("Pre-Wash: False");
+            traits.push("Wash: False");
+        }
+
+        if (BOOLS[5]) {
+            traits.push("Ring Expander: True");
+        } else {
+            traits.push("Ring Expander: False");
+        }
+
+        if (BOOLS[7]) {
+            traits.push("Accelerator: True");
+        } else {
+            traits.push("Accelerator: True");
+        }
+
+        console.log(traits);
+
+        features=traits;
+        featuresReduced=traits;
+  }
+
+  ////////
+
+  else if (projectId===46){
+
+      ! function (a, b, c, d, e, f, g, h, i) {
+        function j(a) {
+          var b, c = a.length,
+            e = this,
+            f = 0,
+            g = e.i = e.j = 0,
+            h = e.S = [];
+          for (c || (a = [c++]); d > f;) h[f] = f++;
+          for (f = 0; d > f; f++) h[f] = h[g = s & g + a[f % c] + (b = h[f])], h[g] = b;
+          (e.g = function (a) {
+            for (var b, c = 0, f = e.i, g = e.j, h = e.S; a--;) b = h[f = s & f + 1], c = c * d + h[s & (h[
+              f] = h[g = s & g + b]) + (h[g] = b)];
+            return e.i = f, e.j = g, c
+          })(d)
+        }
+
+        function k(a, b) {
+          var c, d = [],
+            e = typeof a;
+          if (b && "object" == e)
+            for (c in a) try {
+              d.push(k(a[c], b - 1))
+            } catch (f) {}
+          return d.length ? d : "string" == e ? a : a + "\0"
+        }
+
+        function l(a, b) {
+          for (var c, d = a + "", e = 0; e < d.length;) b[s & e] = s & (c ^= 19 * b[s & e]) + d.charCodeAt(e++);
+          return n(b)
+        }
+
+        function m(c) {
+          try {
+            return o ? n(o.randomBytes(d)) : (a.crypto.getRandomValues(c = new Uint8Array(d)), n(c))
+          } catch (e) {
+            return [+new Date, a, (c = a.navigator) && c.plugins, a.screen, n(b)]
+          }
+        }
+
+        function n(a) {
+          return String.fromCharCode.apply(0, a)
+        }
+        var o, p = c.pow(d, e),
+          q = c.pow(2, f),
+          r = 2 * q,
+          s = d - 1,
+          t = c["seed" + i] = function (a, f, g) {
+            var h = [];
+            f = 1 == f ? {
+              entropy: !0
+            } : f || {};
+            var o = l(k(f.entropy ? [a, n(b)] : null == a ? m() : a, 3), h),
+              s = new j(h);
+            return l(n(s.S), b), (f.pass || g || function (a, b, d) {
+              return d ? (c[i] = a, b) : a
+            })(function () {
+              for (var a = s.g(e), b = p, c = 0; q > a;) a = (a + c) * d, b *= d, c = s.g(1);
+              for (; a >= r;) a /= 2, b /= 2, c >>>= 1;
+              return (a + c) / b
+            }, o, "global" in f ? f.global : this == c)
+          };
+        if (l(c[i](), b), g && g.exports) {
+          g.exports = t;
+          try {
+            o = require("crypto")
+          } catch (u) {}
+        } else h && h.amd && h(function () {
+          return t
+        })
+      }(this, [], Math, 256, 6, 52, "object" == typeof module && module, "function" == typeof define && define,
+        "random");
+
+      (function (global) {
+        var module = global.noise = {}
+
+        function Grad(x, y, z) {
+          this.x = x
+          this.y = y
+          this.z = z
+        }
+
+        Grad.prototype.dot3 = function (x, y, z) {
+          return this.x * x + this.y * y + this.z * z
+        }
+
+        var grad3 = [new Grad(1, 1, 0), new Grad(-1, 1, 0), new Grad(1, -1, 0), new Grad(-1, -1, 0),
+          new Grad(1, 0, 1), new Grad(-1, 0, 1), new Grad(1, 0, -1), new Grad(-1, 0, -1),
+          new Grad(0, 1, 1), new Grad(0, -1, 1), new Grad(0, 1, -1), new Grad(0, -1, -1)
+        ]
+
+        var p = [151, 160, 137, 91, 90, 15,
+          131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21,
+          10,
+          23,
+          190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177,
+          33,
+          88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27,
+          166,
+          77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40,
+          244,
+          102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200,
+          196,
+          135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124,
+          123,
+          5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189,
+          28,
+          42,
+          223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9,
+          129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97,
+          228,
+          251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239,
+          107,
+          49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254,
+          138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
+        ]
+        // To remove the need for index wrapping, double the permutation table length
+        var perm = new Array(512)
+        var gradP = new Array(512)
+
+        // This isn't a very good seeding function, but it works ok. It supports 2^16
+        // different seed values. Write something better if you need more seeds.
+        module.seed = function (seed) {
+          if (seed > 0 && seed < 1) {
+            // Scale the seed out
+            seed *= 65536
+          }
+
+          seed = Math.floor(seed)
+          if (seed < 256) {
+            seed |= seed << 8
+          }
+
+          for (var i = 0; i < 256; i++) {
+            var v
+            if (i & 1) {
+              v = p[i] ^ (seed & 255)
+            } else {
+              v = p[i] ^ ((seed >> 8) & 255)
+            }
+
+            perm[i] = perm[i + 256] = v
+            gradP[i] = gradP[i + 256] = grad3[v % 12]
+          }
+        }
+
+        module.seed(0)
+
+        // Skewing and unskewing factors for 2, 3, and 4 dimensions
+        var F2 = 0.5 * (Math.sqrt(3) - 1)
+        var G2 = (3 - Math.sqrt(3)) / 6
+
+        var F3 = 1 / 3
+        var G3 = 1 / 6
+
+
+
+        // ##### Perlin noise stuff
+        function fade(t) {
+          return t * t * t * (t * (t * 6 - 15) + 10)
+        }
+
+        function lerp(a, b, t) {
+          return (1 - t) * a + t * b
+        }
+
+        // 3D Perlin Noise
+        module.perlin3 = function (x, y, z) {
+          // Find unit grid cell containing point
+          var X = Math.floor(x)
+          var Y = Math.floor(y)
+          var Z = Math.floor(z)
+          // Get relative xyz coordinates of point within that cell
+          x = x - X
+          y = y - Y
+          z = z - Z
+          // Wrap the integer cells at 255 (smaller integer period can be introduced here)
+          X = X & 255
+          Y = Y & 255
+          Z = Z & 255
+
+          // Calculate noise contributions from each of the eight corners
+          var n000 = gradP[X + perm[Y + perm[Z]]].dot3(x, y, z)
+          var n001 = gradP[X + perm[Y + perm[Z + 1]]].dot3(x, y, z - 1)
+          var n010 = gradP[X + perm[Y + 1 + perm[Z]]].dot3(x, y - 1, z)
+          var n011 = gradP[X + perm[Y + 1 + perm[Z + 1]]].dot3(x, y - 1, z - 1)
+          var n100 = gradP[X + 1 + perm[Y + perm[Z]]].dot3(x - 1, y, z)
+          var n101 = gradP[X + 1 + perm[Y + perm[Z + 1]]].dot3(x - 1, y, z - 1)
+          var n110 = gradP[X + 1 + perm[Y + 1 + perm[Z]]].dot3(x - 1, y - 1, z)
+          var n111 = gradP[X + 1 + perm[Y + 1 + perm[Z + 1]]].dot3(x - 1, y - 1, z - 1)
+
+          // Compute the fade curve value for x, y, z
+          var u = fade(x)
+          var v = fade(y)
+          var w = fade(z)
+
+          // Interpolate
+          return lerp(
+            lerp(
+              lerp(n000, n100, u),
+              lerp(n001, n101, u), w),
+            lerp(
+              lerp(n010, n110, u),
+              lerp(n011, n111, u), w),
+            v)
+        }
+      })(this)
+
+      //  This will manage the random number generator
+      const shuffleArray = (array) => {
+        for (var i = array.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+        }
+        return array
+      }
+
+      //  Define the colour palettes
+      const palettes = []
+      palettes.push(["1b065e", "ff47da", "ff87ab", "fcc8c2", "f5eccd"])
+      palettes.push(["eafdf8", "e5e9ec", "ddcad9", "d1b1cb", "7c616c"])
+      palettes.push(["d7d9b1", "84acce", "827191", "7d1d3f", "512500"])
+      palettes.push(["93b5c6", "ddedaa", "f0cf65", "d7816a", "bd4f6c"])
+
+      palettes.push(["114b5f", "1a936f", "88d498", "c6dabf", "f3e9d2"])
+      palettes.push(["22115e", "1b4394", "87c6d4", "bfd9d1", "dcf2d0"])
+      palettes.push(["5e114e", "6b1b94", "9587d4", "bfc7d9", "d0f2e6"])
+      palettes.push(["5e2011", "941b43", "d487c6", "d1bfd9", "d0dcf2"])
+      palettes.push(["4f5e11", "946b1b", "d49587", "d9bfc7", "e6d0f2"])
+      palettes.push(["115e20", "43941b", "c6d487", "d9d1bf", "f2d0dc"])
+
+      palettes.push(["bbdef0", "00a6a6", "efca08", "f49f0a", "f08700"])
+      palettes.push(["f0bbde", "a600a6", "07f0c9", "0af59f", "00f088"])
+      palettes.push(["def0bb", "a6a600", "c907f0", "9f0af5", "8800f0"])
+      palettes.push(["bbdef0", "00a6a6", "f0c907", "f59f0a", "f08800"])
+      palettes.push(["1be7ff", "6eeb83", "e4ff1a", "ffb800", "ff5714"])
+      palettes.push(["3a405a", "aec5eb", "f9dec9", "e9afa3", "685044"])
+
+      const paletteName = []
+      paletteName.push('From the nighttime neon city wasteland of the 80s music scene')
+      paletteName.push('Winter')
+      paletteName.push('Grove')
+      paletteName.push('Tuscany')
+
+      paletteName.push('Delta')
+      paletteName.push('Spray')
+      paletteName.push('7pm')
+      paletteName.push('Not Plum')
+      paletteName.push('Abandoned Flip-Flop')
+      paletteName.push('Woodland Camping')
+
+      paletteName.push('7am')
+      paletteName.push('False Colour Nebular')
+      paletteName.push('Twilight Field')
+      paletteName.push('3pm')
+      paletteName.push('C64')
+      paletteName.push('In the White Room at 3am')
+
+      //  Seed the randomiser with the hash
+      Math.seedrandom(tokenData)
+
+      //  Define all the settings we need.
+      //  This only happens once
+      let lineTile1 = Math.random()
+      let lineTile2 = Math.random()
+      let borderChance = Math.random()
+      let tiles = Math.floor((((lineTile1 + (lineTile2 / 2)) / 1.5) * 14) + 5)
+      let lines = Math.floor(9 - (lineTile1 + lineTile2) / 2 * 8) + 1
+      let phase = false
+
+      let double = Math.random() < 0.0234375
+
+      let linesBoost = 0
+      if (Math.random() < 0.1) linesBoost--
+      if (Math.random() < 0.1) linesBoost -= 2
+      if (Math.random() < 0.1) linesBoost++
+      if (Math.random() < 0.1) linesBoost += 2
+      lines += linesBoost
+      if (tiles >= 16) lines--
+      if (lines < 1) lines = 1
+
+      if (tiles > 17 && lines > 5) lines = 6
+
+      let chance = 0.5
+      let invertChance = 0.4
+      let inverted = false
+      let pickSelector = Math.random()
+      let format = 'Normal'
+
+      if (pickSelector < 0.75) {
+        if (pickSelector < 0.6) {
+          invertChance = 0.2
+          if (pickSelector < 0.2) {
+            format = 'Middle'
+          } else {
+            format = 'Noise'
+          }
+        } else {
+          if (Math.random() < 0.5) {
+            format = 'Sideways'
+          } else {
+            format = 'Top-bottom'
+          }
+        }
+      }
+
+      if (Math.random() <= invertChance) inverted = true
+
+      const paletteIndex = Math.floor(Math.random() * palettes.length)
+      const thisPalette = shuffleArray(palettes[paletteIndex])
+      let startCol = thisPalette.pop()
+      let endCol = thisPalette.pop()
+      const fixedStartCol = JSON.parse(JSON.stringify(startCol))
+      const fixedEndCol = JSON.parse(JSON.stringify(endCol))
+
+      let composite = 'darken'
+      if (Math.random() < 0.075) {
+        composite = 'exclusion'
+      }
+
+      let fill = 'Normal'
+      let target = 0.2
+      if (paletteIndex === 0) target = 0.8
+      if (Math.random() < target) {
+        fill = 'Left-right'
+        if (Math.random() < 0.5) {
+          fill = 'Top-down'
+        }
+        if (Math.random() < 0.2) {
+          const radType = Math.random()
+          fill = 'Radial'
+          if (radType < 0.4) {
+            fill = 'Radial-tl'
+          }
+          if (radType < 0.3) {
+            fill = 'Radial-tr'
+          }
+          if (radType < 0.2) {
+            fill = 'Radial-bl'
+          }
+          if (radType < 0.1) {
+            fill = 'Radial-br'
+          }
+        }
+      }
+      if (fill !== 'Normal' && Math.random() <= 0.1) phase = true
+      if (composite === 'exclusion' && Math.random() <= 0.25) phase = true
+
+      let special = 'None'
+      let rotation = 0
+      const specialChance = Math.random()
+      if (Math.random() <= 0.05) {
+        rotation = Math.floor(Math.random() * 4) * 90
+        special = 'scales'
+        if (specialChance < 0.76) special = 'feather'
+        if (specialChance < 0.55) special = 'flow'
+        if (specialChance < 0.38) special = 'weave'
+        if (specialChance < 0.24) special = 'tiles'
+        if (specialChance < 0.13) special = 'zig'
+        if (specialChance < 0.05) special = 'zag'
+      }
+
+      let decoration = 'None'
+      if (Math.random() <= 0.07) {
+        decoration = 'cornerRose'
+        if (Math.random() < 0.1 && !(tiles % 2) && tiles > 6) decoration = 'CornerRoseMiddle'
+      }
+      if (!(tiles % 2)) {
+        if (Math.random() <= 0.08) {
+          decoration = 'rose'
+          if (Math.random() < 0.25) decoration = 'bigRose'
+        }
+      }
+
+      if (typeof (featuresObj) === 'undefined') {
+        featuresObj = {}
+      }
+      if (typeof (features) === 'undefined') {
+        features = []
+      }
+
+      featuresObj.Tiles = `${tiles}x${tiles}`
+      featuresObj.Lines = lines
+      featuresObj.Boosted = linesBoost
+      featuresObj.Format = format
+      featuresObj.Reversed = inverted
+      featuresObj.Pattern = special
+      featuresObj.decoration = decoration
+      if (featuresObj.decoration === 'cornerRose') featuresObj.decoration = 'Corner Rose'
+      if (featuresObj.decoration === 'CornerRoseMiddle') featuresObj.decoration = 'Corner + Middle Rose'
+      if (featuresObj.decoration === 'rose') featuresObj.decoration = 'Rose'
+      if (featuresObj.decoration === 'bigRose') featuresObj.decoration = 'Big Rose'
+      featuresObj.Palette = paletteName[paletteIndex]
+      featuresObj.Fill = fill
+      featuresObj.Rotation = rotation
+      featuresObj.Inverted = composite === 'exclusion'
+      featuresObj.Doubled = double
+      featuresObj.Phased = phase
+
+      features.push(`Series: One`)
+      features.push(`Tiles: ${featuresObj.Tiles}`)
+      features.push(`Lines: ${featuresObj.Lines}`)
+      features.push(`Boosted: ${featuresObj.Boosted}`)
+      features.push(`Format: ${featuresObj.Format}`)
+      features.push(`Reversed: ${featuresObj.Reversed}`)
+      features.push(`Pattern: ${featuresObj.Pattern}`)
+      features.push(`Decoration: ${featuresObj.decoration}`)
+      features.push(`Palette: ${featuresObj.Palette}`)
+      features.push(`Fill: ${featuresObj.Fill}`)
+      features.push(`Rotation: ${featuresObj.Rotation}`)
+      features.push(`Inverted: ${featuresObj.Inverted}`)
+      features.push(`Doubled: ${featuresObj.Doubled}`)
+      features.push(`Phased: ${featuresObj.Phased}`)
+
+      featuresReduced=features;
+  }
+
+  //////
 
 
   return [features, featuresReduced];
