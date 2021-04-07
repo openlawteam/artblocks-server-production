@@ -198,13 +198,19 @@ app.get("/token/:tokenId", async (request, response) => {
       request.params.tokenId
     );
 
+    let infuraHash = await getTokenHashes(request.params.tokenId);
+    // extract if is array
+    infuraHash = Array.isArray(infuraHash) ? infuraHash[0] : infuraHash;
+
     const exists = tokenAndProjectData.token;
-    console.log(`exists? ${exists}`);
+    console.log(`exists? ${Boolean(exists)}`);
     console.log(`token request ${request.params.tokenId}`);
 
     if (exists) {
       const { hash, project } = tokenAndProjectData.token;
       const projectId = Number(project.id);
+
+      console.log(`Infura Hash: ${infuraHash} - TheGraph Hash: ${hash}`);
 
       let traitsArray;
       let features = [];
@@ -287,7 +293,6 @@ app.get("/token/:tokenId", async (request, response) => {
         `${project.baseUri.slice(0, -6)}image/${request.params.tokenId}`;
 
       project.scriptJSON = JSON.parse(project.scriptJSON);
-
       response.json({
         platform,
         name: tokenName,
@@ -341,15 +346,19 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       request.params.tokenId
     );
 
-    const exists = tokenAndProjectData.token;
+    let hash = await getTokenHashes(request.params.tokenId);
+    // extract if is array
+    hash = Array.isArray(hash) ? hash[0] : hash;
+
+    const exists =
+      hash !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+      hash;
     console.log(`exists? ${Boolean(exists)}`);
     console.log(`token request ${request.params.tokenId}`);
 
     if (exists) {
       const { project } = tokenAndProjectData.token;
-      let hash = await getTokenHashes(request.params.tokenId);
-      // extract if is array
-      hash = Array.isArray(hash) ? hash[0] : hash;
 
       project.scriptJSON = JSON.parse(project.scriptJSON);
 
