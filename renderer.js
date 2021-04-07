@@ -49,7 +49,6 @@ const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
   endpoint: process.env.OSS_ENDPOINT,
-
 });
 
 const currentNetwork = "mainnet";
@@ -268,7 +267,12 @@ app.get("/generator/:tokenId", async (request, response) => {
       );
       const data = buildData(tokenDetails.hashes, request.params.tokenId);
 
-      console.log("Generator running for token "+request.params.tokenId + " using hash: "+tokenDetails.hashes);
+      console.log(
+        "Generator running for token " +
+          request.params.tokenId +
+          " using hash: " +
+          tokenDetails.hashes
+      );
 
       if (projectDetails.projectScriptInfo.scriptJSON.type === "p5js") {
         response.render("generator_p5js", { script, data });
@@ -371,7 +375,12 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
 
     if (exists) {
       const tokenDetails = await getToken(request.params.tokenId);
-      console.log("I'm the renderer and the hash from Infura for tokenId: " + request.params.tokenId+ " is: "+ tokenDetails.hashes);
+      console.log(
+        "I'm the renderer and the hash from Infura for tokenId: " +
+          request.params.tokenId +
+          " is: " +
+          tokenDetails.hashes
+      );
 
       if (request.params.refresh) {
         serveScriptResultRefresh(request.params.tokenId, ratio).then(
@@ -686,14 +695,15 @@ async function serveScriptVideo(tokenId, ratio, refresh) {
     await renderAndUploadVideo(tokenId, tokenKey, ratio);
     return true;
   }
-  queue.dequeue();
 
   try {
     await s3.getObject(checkVideoExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+    queue.dequeue();
     return true;
   } catch (err) {
     await renderAndUploadVideo(tokenId, tokenKey, ratio);
+    queue.dequeue();
     return true;
   }
 }
@@ -725,8 +735,8 @@ async function renderImage(tokenId, tokenKey, ratio) {
       await page.goto(url);
     }
 
-    let pId = Math.floor(tokenId/1000000);
-    await timeout(pId===39?20000:500);
+    let pId = Math.floor(tokenId / 1000000);
+    await timeout(pId === 39 ? 20000 : 500);
 
     console.log(`Renderer: navigated to url`);
 
@@ -788,15 +798,16 @@ async function serveScriptResult(tokenId, ratio, refresh) {
     await renderImage(tokenId, tokenKey, ratio);
     return true;
   }
-  queue.dequeue();
   try {
     console.log("checking to see if token exists", checkImageExistsParams);
     await s3.getObject(checkImageExistsParams).promise();
     console.log(`I'm the renderer. Token ${tokenId} already exists.`);
+    queue.dequeue();
     return true;
   } catch (err) {
     console.log(err);
     await renderImage(tokenId, tokenKey, ratio);
+    queue.dequeue();
     return true;
   }
 }
@@ -832,8 +843,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       await page.goto(url);
     }
 
-    let pId = Math.floor(tokenId/1000000);
-    await timeout(pId===39?20000:500);
+    let pId = Math.floor(tokenId / 1000000);
+    await timeout(pId === 39 ? 20000 : 500);
     const image = await page.screenshot();
 
     await browser.close();

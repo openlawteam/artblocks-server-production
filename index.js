@@ -50,11 +50,34 @@ const s3 = new AWS.S3({
 const currentNetwork = "mainnet";
 const curatedProjects =
   currentNetwork === "mainnet"
-    ? [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 17, 21, 23, 27, 28, 29, 35, 39,40,41]
+    ? [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        17,
+        21,
+        23,
+        27,
+        28,
+        29,
+        35,
+        39,
+        40,
+        41,
+      ]
     : [];
 const playgroundProjects =
   currentNetwork === "mainnet"
-    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37,42]
+    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37, 42]
     : [];
 const testing = false;
 
@@ -323,49 +346,57 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
     console.log(`token request ${request.params.tokenId}`);
 
     if (exists) {
-      const { hash, project } = tokenAndProjectData.token;
+      const { project } = tokenAndProjectData.token;
+      let hash = await getTokenHashes(request.params.tokenId);
+      // extract if is array
+      hash = Array.isArray(hash) ? hash[0] : hash;
+
       project.scriptJSON = JSON.parse(project.scriptJSON);
 
-      console.log("Generator running for token "+request.params.tokenId + " using hash: "+hash);
+      console.log(
+        "Generator running for token " +
+          request.params.tokenId +
+          " using hash: " +
+          hash
+      );
 
       const { script } = project;
       const data = buildData(hash, request.params.tokenId);
-      if (project.scriptJSON){
-      if (project.scriptJSON.type === "p5js") {
-        response.render(
-          request.params.svg === "svg" && Number(project.id) === 0
-            ? "generator_p5js_svg"
-            : request.params.svg === "svg" && Number(project.id) === 33
-            ? "generator_p5js_svg_emp"
-            : "generator_p5js",
-          { script, data }
-        );
-      } else if (project.scriptJSON.type === "processing") {
-        response.render("generator_processing", { script, data });
-      } else if (project.scriptJSON.type === "a-frame") {
-        response.render("generator_aframe", { script, data });
-      } else if (project.scriptJSON.type === "megavox") {
-        response.render("generator_megavox", { script, data });
-      } else if (project.scriptJSON.type === "vox") {
-        response.render("generator_vox", { script, data });
-      } else if (project.scriptJSON.type === "js") {
-        response.render(
-          request.params.svg === "obj" && Number(project.id) === 9
-            ? "generator_js_obj"
-            : "generator_js",
-          { script, data }
-        );
-      } else if (project.scriptJSON.type === "svg") {
-        response.render("generator_svg", { script, data });
-      } else if (project.scriptJSON.type === "custom") {
-        response.send(`<script>${data}</script>${script}`);
-      } else if (project.scriptJSON.type === "regl") {
-        response.render("generator_regl", { script, data });
+      if (project.scriptJSON) {
+        if (project.scriptJSON.type === "p5js") {
+          response.render(
+            request.params.svg === "svg" && Number(project.id) === 0
+              ? "generator_p5js_svg"
+              : request.params.svg === "svg" && Number(project.id) === 33
+              ? "generator_p5js_svg_emp"
+              : "generator_p5js",
+            { script, data }
+          );
+        } else if (project.scriptJSON.type === "processing") {
+          response.render("generator_processing", { script, data });
+        } else if (project.scriptJSON.type === "a-frame") {
+          response.render("generator_aframe", { script, data });
+        } else if (project.scriptJSON.type === "megavox") {
+          response.render("generator_megavox", { script, data });
+        } else if (project.scriptJSON.type === "vox") {
+          response.render("generator_vox", { script, data });
+        } else if (project.scriptJSON.type === "js") {
+          response.render(
+            request.params.svg === "obj" && Number(project.id) === 9
+              ? "generator_js_obj"
+              : "generator_js",
+            { script, data }
+          );
+        } else if (project.scriptJSON.type === "svg") {
+          response.render("generator_svg", { script, data });
+        } else if (project.scriptJSON.type === "custom") {
+          response.send(`<script>${data}</script>${script}`);
+        } else if (project.scriptJSON.type === "regl") {
+          response.render("generator_regl", { script, data });
+        } else {
+          response.render("generator_threejs", { script, data });
+        }
       } else {
-        response.render("generator_threejs", { script, data });
-      }
-    }
-        else {
         response.send("token script not defined");
       }
     } else {
@@ -580,6 +611,15 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
 //   const hashes = await getTokenHashes(tokenId);
 //   return { tokenId, projectId, hashes };
 // }
+
+async function getTokenHashes(tokenId) {
+  if (tokenId < 3000000) {
+    const result = await contract.methods.showTokenHashes(tokenId).call();
+    return result;
+  }
+  const result = await contract2.methods.tokenIdToHash(tokenId).call();
+  return result;
+}
 
 async function getPlatformInfo() {
   const totalSupply =
