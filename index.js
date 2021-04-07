@@ -342,10 +342,6 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const tokenAndProjectData = await getTokenAndProject(
-      request.params.tokenId
-    );
-
     let hash = await getTokenHashes(request.params.tokenId);
     // extract if is array
     hash = Array.isArray(hash) ? hash[0] : hash;
@@ -358,7 +354,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
     console.log(`token request ${request.params.tokenId}`);
 
     if (exists) {
-      const { project } = tokenAndProjectData.token;
+      const projectId = Math.floor(request.params.tokenId / 1000000);
+      const { project } = await getProject(projectId);
 
       project.scriptJSON = JSON.parse(project.scriptJSON);
 
