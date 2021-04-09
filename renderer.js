@@ -349,6 +349,8 @@ app.get("/generator/:tokenId", async (request, response) => {
 // });
 
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
+  let blockNumber = await web3.eth.getBlockNumber();
+  console.log(blockNumber);
   const file = path.resolve(__dirname, "./src/rendering.png");
   if (!Number.isInteger(Number(request.params.tokenId))) {
     console.log("not integer");
@@ -383,6 +385,17 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       );
 
       if (request.params.refresh) {
+
+        /////To add to queue
+        /*
+        let count = 0;
+        if (!queueRef[request.params.tokenId]) {
+          console.log("adding to queue");
+          queueRef[request.params.tokenId] = true;
+          queue.enqueue([request.params.tokenId, ratio, blockNumber]);
+        }
+        */
+
         serveScriptResultRefresh(request.params.tokenId, ratio).then(
           (result) => {
             console.log(`serving: ${request.params.tokenId}`);
@@ -390,6 +403,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
             response.send(result);
           }
         );
+
       } else {
         const params = {
           Bucket: currentNetwork,
@@ -401,7 +415,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
             if (!queueRef[request.params.tokenId]) {
               console.log("adding to queue");
               queueRef[request.params.tokenId] = true;
-              queue.enqueue([request.params.tokenId, ratio]);
+              queue.enqueue([request.params.tokenId, ratio, blockNumber]);
             }
             const checkForImage = setInterval(() => {
               s3.getObject(params, (checkImageErr) => {
@@ -624,14 +638,18 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
   }
 });
 
-setInterval(() => {
+setInterval(async () => {
+  let qBlockNumber = await web3.eth.getBlockNumber();
   console.log("Running Render Interval");
   console.log(`queue length: ${queue.getLength()}`);
   console.log(`queue obj:  ${JSON.stringify(queueRef)}`);
   console.log(`lastSent: ${lastSentToRender} \n`);
+  console.log(`current Block Number: ${qBlockNumber}`);
+
   if (queue.getLength() > 0) {
     const nextToken = queue.peek();
-    if (nextToken[0] !== lastSentToRender[0] || intervalCount > 10) {
+    console.log(nextToken);
+    if ((nextToken[0] !== lastSentToRender[0] || intervalCount > 10) && qBlockNumber - nextToken[2]>=3) {
       console.log(`render triggered for token: ${nextToken[0]}`);
       console.log("reset intervalCount");
       lastSentToRender = nextToken;
@@ -643,6 +661,7 @@ setInterval(() => {
         serveScriptResult(nextToken[0], nextToken[1]);
       }
     } else {
+      console.log("not enough blocks have passed");
       intervalCount += 1;
     }
   } else {
