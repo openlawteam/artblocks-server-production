@@ -52,8 +52,31 @@ var s3  = new AWS.S3({
 
 
 const currentNetwork = "mainnet";
-let curatedProjects = currentNetwork==="mainnet"?[0,1,2,3,4,7,8,9,10,11,12,13,17,21,23,27,28,29]:[];
-let playgroundProjects = currentNetwork==="mainnet"?[6,14,15,16,18,19,20,22,24,25,26,30]:[];
+let curatedProjects = currentNetwork==="mainnet"?[
+    0,
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    17,
+    21,
+    23,
+    27,
+    28,
+    29,
+    35,
+    39,
+    40,
+    41,
+  ]:[];
+let playgroundProjects = currentNetwork==="mainnet"?[6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37, 42]:[];
 //console.log(curatedProjects);
 const testing = false;
 
@@ -154,6 +177,18 @@ app.get('/token/:tokenId', async(request,response)=>{
     console.log('token request '+request.params.tokenId);
 
     if (exists){
+      const tokenKey = `${request.params.tokenId}.png`;
+      const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+      try {
+        console.log("checking to see if token exists", checkImageExistsParams);
+        await s3.getObject(checkImageExistsParams).promise();
+        console.log(`I'm the renderer. Token ${request.params.tokenId} image already exists.`);
+        return true;
+      } catch (err) {
+        console.log(err);
+        return true;
+      }
+
       let tokenDetails = await getToken(request.params.tokenId);
 	     let projectDetails = await getDetails(tokenDetails.projectId);
        let tokenHashes = await getTokenHashes(request.params.tokenId);
