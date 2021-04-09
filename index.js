@@ -170,29 +170,23 @@ app.get('/token/:tokenId', async(request,response)=>{
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    //const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
     //console.log(tokensOfProject);
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
     console.log("exists? "+exists);
     console.log('token request '+request.params.tokenId);
 
     if (exists){
       const tokenKey = `${request.params.tokenId}.png`;
       const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
-      try {
-        console.log("checking to see if token exists", checkImageExistsParams);
-        await s3.getObject(checkImageExistsParams).promise();
-        console.log(`I'm the renderer. Token ${request.params.tokenId} image already exists.`);
-        return true;
-      } catch (err) {
-        console.log(err);
-        return true;
-      }
+
 
       let tokenDetails = await getToken(request.params.tokenId);
 	     let projectDetails = await getDetails(tokenDetails.projectId);
        let tokenHashes = await getTokenHashes(request.params.tokenId);
        let royalties = await getTokenRoyaltyInfo(request.params.tokenId);
+
 
        let traitsArray;
        let features = currentNetwork==="rinkeby"?[]:plugins.features(projectId,projectId<3?tokenHashes[0]:tokenHashes, Number(request.params.tokenId));
@@ -225,13 +219,10 @@ app.get('/token/:tokenId', async(request,response)=>{
        }
 
      }
-
-       //console.log(traitsArray);
-
-       //console.log(traitsArray);
-
-       //console.log(JSON.stringify(featuresObj).join());
-
+     try {
+       console.log("checking to see if token exists", checkImageExistsParams);
+       await s3.getObject(checkImageExistsParams).promise();
+       console.log(`I'm the renderer. Token ${request.params.tokenId} image already exists.`);
        response.json(
          {
            "platform":"Art Blocks"+(curatedProjects.includes(projectId)?" Curated":playgroundProjects.includes(projectId)?" Playground":" Factory"),
@@ -247,12 +238,7 @@ app.get('/token/:tokenId', async(request,response)=>{
              "additionalPayeePercentage":royalties.additionalPayeePercentage,
              "royaltyFeeByID":royalties.royaltyFeeByID
            },
-           /*
-           "traits":[
-             {"trait_type":"Project",
-             "value":projectDetails.projectDescription.projectName+ " by "+projectDetails.projectDescription.artistName}
-           ],
-           */
+
            "collection_name":projectDetails.projectDescription.projectName + " by " + projectDetails.projectDescription.artistName,
            "traits":traitsArray && traitsArray.length>0?traitsArray:[{"trait_type":projectDetails.projectDescription.projectName,
            "value":"all"}],
@@ -268,6 +254,42 @@ app.get('/token/:tokenId', async(request,response)=>{
            "license":projectDetails.projectDescription.license,
            "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId
          });
+       //return true;
+     } catch (err) {
+       console.log("Image not uploaded yet, returning limited response");
+       response.json(
+         {
+           "platform":"Art Blocks"+(curatedProjects.includes(projectId)?" Curated":playgroundProjects.includes(projectId)?" Playground":" Factory"),
+           "name":projectDetails.projectDescription.projectName + " #"+(request.params.tokenId-tokenDetails.projectId*1000000),
+           "curation_status": curatedProjects.includes(projectId)?"curated":playgroundProjects.includes(projectId)?"playground":"factory",
+           "series": curatedProjects.includes(projectId)?(projectId<8?"1":"2"):"N/A",
+           "description":projectDetails.projectDescription.description,
+           "external_url": (currentNetwork==="mainnet"?"https://www.artblocks.io/":"https://rinkeby.artblocks.io/")+"token/"+request.params.tokenId,
+           "artist":projectDetails.projectDescription.artistName,
+           "collection_name":projectDetails.projectDescription.projectName + " by " + projectDetails.projectDescription.artistName,
+           "traits":[{"trait_type":projectDetails.projectDescription.projectName,
+           "value":"all"}],
+           "payout_address":"0x8E9398907d036e904ffF116132ff2Be459592277",
+           //"features":features[0], /*featuresObj,*/
+           "website":projectDetails.projectDescription.artistWebsite,
+           "is dynamic":projectDetails.projectDescription.dynamic,
+           "script type":projectDetails.projectScriptInfo.scriptJSON.type,
+           "aspect ratio (w/h)":projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
+           "uses hash":(projectDetails.projectScriptInfo.hashesPerToken==true || projectDetails.projectScriptInfo.hashesPerToken==1)? true: false,
+           "tokenID":request.params.tokenId,
+           //"token hash":tokenHashes,
+           "license":projectDetails.projectDescription.license,
+           "image":projectDetails.projectURIInfo.projectBaseURI.slice(0,-6)+"image/"+request.params.tokenId
+         });
+
+     }
+       //console.log(traitsArray);
+
+       //console.log(traitsArray);
+
+       //console.log(JSON.stringify(featuresObj).join());
+
+
     } else {
       response.send('token does not exist');
     }
@@ -280,8 +302,9 @@ app.get('/generator/:tokenId/:svg?', async (request, response) => {
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(Number(request.params.tokenId));
-    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    //console.log(tokensOfProject);
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
     console.log("exists? "+exists);
     console.log('generator request for token: '+request.params.tokenId);
 
@@ -325,8 +348,9 @@ app.get("/vox/:tokenId", async (request, response)=>{
     response.send('invalid request');
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    //console.log(tokensOfProject);
+    const exists = request.params.tokenId<tokensOfProject[2];
     console.log("exists? "+exists);
     console.log('vox request for token: '+request.params.tokenId);
 
@@ -357,8 +381,9 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
   } else {
 
       const projectId = await getProjectId(request.params.tokenId);
-      const tokensOfProject = projectId<3?await contract.methods.projectShowAllTokens(projectId).call():await contract2.methods.projectShowAllTokens(projectId).call();
-      const exists = tokensOfProject.includes(request.params.tokenId);
+      const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+      //console.log(tokensOfProject);
+      const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
       const scriptInfo = projectId<3?await contract.methods.projectScriptInfo(projectId).call():await contract2.methods.projectScriptInfo(projectId).call();
       const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
       const ratio = eval(scriptJSON.aspectRatio?scriptJSON.aspectRatio:1);
@@ -553,13 +578,13 @@ async function getURIInfo(projectId){
 
 async function getTokenDetails(projectId){
   if (projectId<3){
-    const tokens = await contract.methods.projectShowAllTokens(projectId).call();
+    //const tokens = await contract.methods.projectShowAllTokens(projectId).call();
     const result = await contract.methods.projectTokenInfo(projectId).call();
-    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],tokens:tokens};
+    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6]/*,tokens:tokens*/};
   } else {
-    const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
+    //const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
     const result = await contract2.methods.projectTokenInfo(projectId).call();
-    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],currency:result[7],currencyAddress:result[8], tokens:tokens};
+    return {artistAddress:result[0], pricePerTokenInWei:result[1], invocations:result[2], maxInvocations:result[3], active:result[4], additionalPayee:result[5], additionalPayeePercentage:result[6],currency:result[7],currencyAddress:result[8]/*, tokens:tokens*/};
   }
 }
 

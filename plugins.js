@@ -6574,6 +6574,289 @@ if (projectId===39){
 
   ////////
 
+  if (projectId===40){
+
+  	let seed = parseInt(tokenData.slice(0, 16));
+
+  	function rnd() {
+
+  		seed ^= seed << 13;
+
+  		seed ^= seed >> 17;
+
+  		seed ^= seed << 5;
+
+  		return (((seed < 0) ? ~seed + 1 : seed) % 1000);
+  	}
+
+  	Number.prototype.map = function (max_arr_index) {
+  		return Math.round(this * max_arr_index / 999);
+  	}
+
+
+  	const colors = [
+  		'Amethyst',
+  		'Cavansite',
+  		'Turquoise',
+  		'Lemon',
+  		'Orange',
+  		'Bubble gum',
+  		'Strawberry',
+  		'Tanzanite',
+  		'Hematite',
+  		'Silver'
+  	];
+
+
+  	const bases = [
+  		{
+  			feature: 'Headphones: Circumaural',
+  			name: 'b-01a',
+  			bodies: ['bd-01','bd-02','bd-03','bd-04','bd-05'],
+  			ears: null,
+  			markings: ['m-02','m-03','m-04','m-05','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Headphones: Supra-aural',
+  			name: 'b-01b',
+  			bodies: ['bd-01','bd-02','bd-03','bd-04','bd-05'],
+  			ears: null,
+  			markings: ['m-02','m-03','m-04','m-05','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Headphones: Earbuds',
+  			name: 'b-01c',
+  			bodies: ['bd-01','bd-02','bd-03','bd-04','bd-05'],
+  			ears: null,
+  			markings: ['m-02','m-03','m-04','m-05','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Bodywork: Ducts',
+  			name: 'b-02',
+  			bodies: null,
+  			ears: null,
+  			markings: ['m-01','m-02','m-03','m-04','m-05','m-06','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Bodywork: Bun',
+  			name: 'b-03',
+  			bodies: null,
+  			ears: ['e-01','e-02','e-03'],
+  			markings: null,
+  			faces: ['f-01-b','f-02-b','f-03-b','f-04-b','f-06-b','f-07-b'],
+  		},
+  		{
+  			feature: 'Bodywork: Capsule',
+  			name: 'b-04',
+  			bodies: null,
+  			ears: ['e-05','e-06'],
+  			markings: ['m-01','m-02','m-03','m-04','m-05','m-06','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Bodywork: Bug',
+  			name: 'b-05',
+  			bodies: null,
+  			ears: ['e-05','e-06'],
+  			markings: ['m-01','m-02','m-03','m-04','m-05','m-06','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		},
+  		{
+  			feature: 'Bodywork: Round Top',
+  			name: 'b-06',
+  			bodies: null,
+  			ears: ['e-06'],
+  			markings: ['m-01','m-02','m-03','m-04','m-05','m-06','m-07','m-08','m-09'],
+  			faces: ['f-01-t','f-02-t','f-03-t','f-04-t','f-05-t','f-06-t','f-07-t'],
+  		}
+  	]
+
+
+  	const bodies = [
+  		{
+  			feature: 'Bodywork: Wedge',
+  			name: 'bd-01',
+  		},
+  		{
+  			feature: 'Bodywork: Tentacles',
+  			name: 'bd-02',
+  		},
+  		{
+  			feature: 'Bodywork: Jelly',
+  			name: 'bd-03',
+  		},
+  		{
+  			feature: 'Bodywork: Block',
+  			name: 'bd-04',
+  		},
+  		{
+  			feature: 'Bodywork: Orb',
+  			name: 'bd-05',
+  		},
+  	]
+
+  	const ears = [
+  		{
+  			feature: 'Antenna: Propeller',
+  			name: 'e-01',
+  		},
+  		{
+  			feature: 'Antenna: Magnets',
+  			name: 'e-02',
+  		},
+  		{
+  			feature: 'Antenna: Telekinesis',
+  			name: 'e-03',
+  		},
+  		{
+  			feature: 'Antenna: Sensors',
+  			name: 'e-05',
+  		},
+  		{
+  			feature: 'Antenna: Transceivers',
+  			name: 'e-06',
+  		},
+  	]
+
+  	const markings = [
+  		{
+  			feature: 'Component: Staples',
+  			name: 'm-01',
+  		},
+  		{
+  			feature: 'Component: Flora',
+  			name: 'm-02',
+  		},
+  		{
+  			feature: 'Component: X',
+  			name: 'm-03',
+  		},
+  		{
+  			feature: 'Component: Gemstone',
+  			name: 'm-04',
+  		},
+  		{
+  			feature: 'Component: Window',
+  			name: 'm-05',
+  		},
+  		{
+  			feature: 'Component: Armour',
+  			name: 'm-06',
+  		},
+  		{
+  			feature: 'Component: Power Button',
+  			name: 'm-07',
+  		},
+  		{
+  			feature: 'Component: Sliders',
+  			name: 'm-08',
+  		},
+  		{
+  			feature: 'Component: LEDs',
+  			name: 'm-09',
+  		},
+  	];
+
+  	const faces = [
+  		{
+  			feature: 'State: Idle',
+  			name: 'f-01-b',
+  		},
+  		{
+  			feature: 'State: Idle',
+  			name: 'f-01-t',
+  		},
+  		{
+  			feature: 'State: Calculating',
+  			name: 'f-02-b',
+  		},
+  		{
+  			feature: 'State: Calculating',
+  			name: 'f-02-t',
+  		},
+  		{
+  			feature: 'State: Hibernate',
+  			name: 'f-03-b',
+  		},
+  		{
+  			feature: 'State: Hibernate',
+  			name: 'f-03-t',
+  		},
+  		{
+  			feature: 'State: Startup',
+  			name: 'f-04-b',
+  		},
+  		{
+  			feature: 'State: Startup',
+  			name: 'f-04-t',
+  		},
+  		{
+  			feature: 'State: Error',
+  			name: 'f-05-t',
+  		},
+  		{
+  			feature: 'State: Rec',
+  			name: 'f-06-b',
+  		},
+  		{
+  			feature: 'State: Rec',
+  			name: 'f-06-t',
+  		},
+  		{
+  			feature: 'State: Searching',
+  			name: 'f-07-b',
+  		},
+  		{
+  			feature: 'State: Searching',
+  			name: 'f-07-t',
+  		},
+  	];
+
+  	const chosenColor = colors[rnd().map(colors.length - 1)]
+
+  	features = [];
+
+  	features.push('Colour: '+ chosenColor)
+
+  	const chosenBase = bases[rnd().map(bases.length - 1)]
+  	features.push(chosenBase.feature)
+
+  	let chosenBody = null;
+  	if(chosenBase.bodies){
+  		const possibleBodies = bodies.filter((body)=>chosenBase.bodies.includes(body.name))
+  		chosenBody = possibleBodies[rnd().map(possibleBodies.length - 1)]
+  		features.push(chosenBody.feature)
+  	}
+
+  	if(chosenBase.ears){
+  		const possibleEars = ears.filter((ear)=>chosenBase.ears.includes(ear.name))
+  		const chosenEar = possibleEars[rnd().map(possibleEars.length - 1)]
+  		features.push(chosenEar.feature)
+  	}
+
+  	if(chosenBase.markings && (!chosenBody || chosenBody.name !== 'bd-02')){
+  		const possibleMarkings = markings.filter((marking)=>chosenBase.markings.includes(marking.name))
+  		const chosenMarking = possibleMarkings[rnd().map(possibleMarkings.length - 1)]
+  		features.push(chosenMarking.feature)
+  	}
+
+  	if(chosenBase.faces){
+  		const possibleFaces = faces.filter((face)=>chosenBase.faces.includes(face.name))
+  		const chosenFace = possibleFaces[rnd().map(possibleFaces.length - 1)]
+  		features.push(chosenFace.feature)
+  	}
+
+    featuresReduced=features;
+
+
+  }
+
+  /////////
+
   else if (projectId === 42){
 
     "use strict";
@@ -6756,7 +7039,7 @@ if (projectId===39){
           features.push('Framed: Nicely');
       }
         if(two_planets) {
-          features.push('System: Binay Star');
+          features.push('System: Binary Star');
         } else if(excentred) {
           features.push('System: Corner');
         } else if (spiral_colors) {
@@ -6880,23 +7163,63 @@ if (projectId===39){
     p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
 
     let traits = [];
+    let red = 0;
+    let green = 0;
+    let blue = 0;
 
     if(p5.prototype.random() < 0.05) {
       traits.push("Ghost edition: True");
+      red = 220;
+      green = 220;
+      blue = 220;
       traits.push("Red channel: 220");
       traits.push("Green channel: 220");
       traits.push("Blue channel: 220");
     } else {
       traits.push("Ghost edition: False");
-      traits.push("Red channel: "+parseInt(p5.prototype.random(0, 255)));
-      traits.push("Green channel: "+parseInt(p5.prototype.random(0, 255)));
-      traits.push("Blue channel: "+parseInt(p5.prototype.random(0, 255)));
+      red = p5.prototype.random(0, 255);
+      green = p5.prototype.random(0, 255);
+      blue = p5.prototype.random(0, 255);
+      traits.push("Red channel: "+parseInt(red));
+      traits.push("Green channel: "+parseInt(green));
+      traits.push("Blue channel: "+parseInt(blue));
     }
+
+    if(red > 200 || green > 200 || blue > 200) {
+      traits.push("Light edition: True");
+    } else {
+      traits.push("Light edition: False");
+    }
+
+    if(red < 100 && green < 100 && blue < 100) {
+      traits.push("Dark edition: True");
+    } else {
+      traits.push("Dark edition: False");
+    }
+
+    let kanjis = [
+      "dream",
+      "book",
+      "tree",
+      "fire",
+      "ashes",
+      "rain",
+      "mountain",
+      "moon",
+      "sky",
+      "poetry",
+      "death",
+      "soul",
+      "sea"
+    ];
+
+    traits.push("Character: "+p5.prototype.random(kanjis));
 
     console.log(traits);
 
     features=traits;
     featuresReduced=traits;
+
 
   }
 
@@ -7169,7 +7492,7 @@ else if (projectId===44){
     }
 
     addFeaturesBoth(`Color Spectrum: ${COLOR_SCHEME}`)
-    addFeaturesBoth(BACKGROUND_TYPE)
+    addFeaturesBoth(`Background: ${BACKGROUND_TYPE}`)
 
 
     if (PY_EYE) {
@@ -7265,11 +7588,12 @@ else if (projectId===44){
       }
 
       if (Math.abs(ARCH_S - ARCH_E)) {
-        addFeaturesReduced(`Spiritual Interest`)
-        addFeatures(`Spiritual Interest Rate: ${Math.abs(ARCH_S - ARCH_E).toFixed(4)}`)
+        addFeaturesReduced(`Karmic Interest`)
+        addFeatures(`Karmic Interest Rate: ${Math.abs(ARCH_S - ARCH_E).toFixed(4)}`)
       }
 
       if (ARCH_W) {
+        addFeaturesReduced(`Financial Burden: ${Math.round(ARCH_W)}`)
         addFeatures(`Financial Burden: ${ARCH_W.toFixed(4)}`)
       }
 
@@ -7338,13 +7662,29 @@ else if (projectId===44){
   ////////////
 
   else if (projectId===45){
+
     let seed = tokenData;
 
         let traits = []
 
         let dna = seed.substring(2, seed.length);
 
-        const BOOLS = dna.split("").map(h => parseInt(Number("0x"+h), 10) % 2);
+        const BOOLS = dna.split("").map(h => parseInt(Number("0x" + h), 10) % 2);
+        const INTS = dna.split("").map(h => parseInt(Number("0x" + h), 10));
+        const COLORS = dna.match(/.{2}/g).map(h => parseInt(Number("0x" + h), 10));
+
+        OFFSET = (function () {
+                o = COLORS[22] * INTS[5] * INTS[9];
+                if (o < 100 && BOOLS[3]) {
+                    o = o * COLORS[10] * 30;
+                }
+                else if (o > 5000 && BOOLS[3]) {
+                    o = o * COLORS[15] * 1.2;
+                }
+                return o;
+            })()
+
+        traits.push("Offset: " + OFFSET)
 
         if (BOOLS[22] && BOOLS[5]){
             traits.push("Widener: Random");
@@ -7379,7 +7719,7 @@ else if (projectId===44){
             traits.push("Accelerator: True");
         }
 
-        console.log(traits);
+        traits.push("Cell Alpha: " + Math.round(COLORS[1] * 0.6))
 
         features=traits;
         featuresReduced=traits;
