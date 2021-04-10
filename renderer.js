@@ -29,6 +29,7 @@ const CombinedStream = require("combined-stream");
 const sharp = require("sharp");
 const AWS = require("aws-sdk");
 const fs = require("fs");
+const tempdir = require("tempdir");
 const util = require("util");
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -385,7 +386,6 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       );
 
       if (request.params.refresh) {
-
         /////To add to queue
         /*
         let count = 0;
@@ -403,7 +403,6 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
             response.send(result);
           }
         );
-
       } else {
         const params = {
           Bucket: currentNetwork,
@@ -649,7 +648,10 @@ setInterval(async () => {
   if (queue.getLength() > 0) {
     const nextToken = queue.peek();
     console.log(nextToken);
-    if ((nextToken[0] !== lastSentToRender[0] || intervalCount > 10) && qBlockNumber - nextToken[2]>=3) {
+    if (
+      (nextToken[0] !== lastSentToRender[0] || intervalCount > 10) &&
+      qBlockNumber - nextToken[2] >= 3
+    ) {
       console.log(`render triggered for token: ${nextToken[0]}`);
       console.log("reset intervalCount");
       lastSentToRender = nextToken;
@@ -727,6 +729,65 @@ async function serveScriptVideo(tokenId, ratio, refresh) {
   }
 }
 
+async function uploadToS3(params, maxRetries) {
+  const upload = async () => {
+    try {
+      console.log(`Attempting to upload file`, params.Key, params.Bucket);
+      const uploadRes = await s3.upload(params).promise();
+      console.log(`file uploaded: ${uploadRes.Location}`);
+      return;
+    } catch (uploadErr) {
+      console.log(`s3 upload error: ${uploadErr}`);
+      throw uploadErr;
+    }
+  };
+
+  for (let i = 0; i < maxRetries; i += 1) {
+    console.log("Attempt #", i + 1);
+    try {
+      await upload();
+
+      const { Bucket, Key } = params;
+      const getRes = await s3
+        .getObject({
+          Bucket,
+          Key,
+        })
+        .promise();
+      return getRes;
+    } catch (err) {
+      console.log("err", err);
+      const timeoutAmount = 500 * (i + 1);
+      console.log(`Waiting ${timeoutAmount} ms...`);
+      await timeout(timeoutAmount);
+      console.log("Retrying...");
+    }
+  }
+  throw new Error(`Failed retrying ${maxRetries} times`);
+
+  // await upload();
+
+  // while (retries <= maxRetries) {
+  //   const { Bucket, Key } = params;
+  //   try {
+  //     const getRes = await s3
+  //       .getObject({
+  //         Bucket,
+  //         Key,
+  //       })
+  //       .promise();
+  //     console.log(getRes);
+  //     break;
+  //   } catch (err) {
+  //     console.log(err);
+  //     retries += 1;
+  //     upload
+  //   }
+
+  //   break;
+  // }
+}
+
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
   console.log(`I'm the renderer. We are rendering ${tokenId}`);
@@ -763,9 +824,11 @@ async function renderImage(tokenId, tokenKey, ratio) {
     console.log(`Renderer: captured screenshot`);
     await browser.close();
     const imageResizer = Buffer.from(image);
-    const resizedImage = sharp(imageResizer)
+
+    const resizedImage = await sharp(imageResizer)
       .resize(Math.round(width / 1.5), Math.round(height / 1.5))
-      .png();
+      .png()
+      .toBuffer();
 
     const params1 = {
       Bucket: currentNetwork,
@@ -779,28 +842,10 @@ async function renderImage(tokenId, tokenKey, ratio) {
       ContentType: "image/png",
       Body: resizedImage,
     };
+    await uploadToS3(params1, 10);
+    await uploadToS3(params2, 10);
 
-    try {
-      console.log(`Attempting to upload image file`);
-      const uploadRes = await s3.upload(params1).promise();
-      console.log(`Image file uploaded successfully: ${uploadRes.Location}`);
-      try {
-        console.log(`Attempting to upload resized image file`);
-        const uploadRes2 = await s3.upload(params2).promise();
-        console.log(
-          `Resized image file uploaded successfully: ${uploadRes2.Location}`
-        );
-        return true;
-      } catch (uploadErr) {
-        console.log(
-          `${tokenId}| this is the s3 upload (resized) error: ${uploadErr}`
-        );
-        throw uploadErr;
-      }
-    } catch (uploadErr) {
-      console.log(`${tokenId}| this is the s3 upload error: ${uploadErr}`);
-      throw uploadErr;
-    }
+    return true;
   } catch (puppeteerErr) {
     return puppeteerErr;
   }
