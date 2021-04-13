@@ -48,6 +48,10 @@ const s3 = new AWS.S3({
 });
 
 const currentNetwork = "mainnet";
+const mediaUrl =
+  currentNetwork === "mainnet"
+    ? "mainnet.oss.nodechef.com"
+    : "rinkeby.oss.nodechef.com";
 const curatedProjects =
   currentNetwork === "mainnet"
     ? [
@@ -194,23 +198,50 @@ app.get("/token/:tokenId", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const tokenAndProjectData = await getTokenAndProject(
-      request.params.tokenId
-    );
+    const existsData = await checkTokenExists(request.params.tokenId);
+    if (existsData.exists) {
+      const projectId = await getProjectId(request.params.tokenId);
+      let project = null;
+      let hash = null;
+      let scriptJSON = null;
 
-    let infuraHash = await getTokenHashes(request.params.tokenId);
-    // extract if is array
-    infuraHash = Array.isArray(infuraHash) ? infuraHash[0] : infuraHash;
+      if (existsData.source === "graph") {
+        const tokenProjectData = await getTokenAndProject(
+          request.params.tokenId
+        );
+        const { token } = tokenProjectData;
+        project = token.project;
+        hash = token.hash;
+        scriptJSON = JSON.parse(project.scriptJSON);
+      } else {
+        const tokenDetails = await getToken(request.params.tokenId);
+        const royalties = await getTokenRoyaltyInfo(request.params.tokenId);
+        const projectDetails = await getDetails(projectId);
 
-    const exists = tokenAndProjectData.token;
-    console.log(`exists? ${Boolean(exists)}`);
-    console.log(`token request ${request.params.tokenId}`);
+        hash = Array.isArray(tokenDetails.hashes)
+          ? tokenDetails.hashes[0]
+          : tokenDetails.hashes;
+        scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
 
-    if (exists) {
-      const { hash, project } = tokenAndProjectData.token;
-      const projectId = Number(project.id);
+        project = {
+          name: projectDetails.projectDescription.projectName,
+          description: projectDetails.projectDescription.description,
+          artistName: projectDetails.projectDescription.artistName,
+          useHashString: Boolean(
+            projectDetails.projectScriptInfo.hashesPerToken
+          ),
+          baseUri: projectDetails.projectURIInfo.projectBaseURI,
+          artistAddress: royalties.artistAddress,
+          additionalPayee: royalties.additionalPayee,
+          additionalPayeePercentage: royalties.additionalPayeePercentage,
+          royaltyPercentage: royalties.royaltyFeeByID,
+          website: projectDetails.projectDescription.artistWebsite,
+          dynamic: projectDetails.projectDescription.dynamic,
+          license: projectDetails.projectDescription.license,
+        };
+      }
 
-      console.log(`Infura Hash: ${infuraHash} - TheGraph Hash: ${hash}`);
+      // console.log(`Infura Hash: ${infuraHash} - TheGraph Hash: ${hash}`);
 
       let traitsArray;
       let features = [];
@@ -292,7 +323,7 @@ app.get("/token/:tokenId", async (request, response) => {
         project.baseUri &&
         `${project.baseUri.slice(0, -6)}image/${request.params.tokenId}`;
 
-      project.scriptJSON = JSON.parse(project.scriptJSON);
+      // project.scriptJSON = JSON.parse(project.scriptJSON);
       response.json({
         platform,
         name: tokenName,
@@ -321,10 +352,8 @@ app.get("/token/:tokenId", async (request, response) => {
         features: features[0] /* featuresObj, */,
         website: project.website,
         "is dynamic": project.dynamic,
-        "script type": project.scriptJSON ? project.scriptJSON.type : "",
-        "aspect ratio (w/h)": project.scriptJSON
-          ? project.scriptJSON.aspectRatio
-          : "",
+        "script type": scriptJSON ? scriptJSON.type : "",
+        "aspect ratio (w/h)": scriptJSON ? scriptJSON.aspectRatio : "",
         "uses hash": usesHash,
         tokenID: request.params.tokenId,
         "token hash": hash,
@@ -342,22 +371,36 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    let hash = await getTokenHashes(request.params.tokenId);
-    // extract if is array
-    hash = Array.isArray(hash) ? hash[0] : hash;
+    const existsData = await checkTokenExists(request.params.tokenId);
+    if (existsData.exists) {
+      const projectId = await getProjectId(request.params.tokenId);
+      let project = null;
+      let hash = null;
+      let script = null;
+      let scriptJSON = null;
 
-    const exists =
-      hash !==
-        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
-      hash;
-    console.log(`exists? ${Boolean(exists)}`);
-    console.log(`token request ${request.params.tokenId}`);
+      if (existsData.source === "graph") {
+        const tokenProjectData = await getTokenAndProject(
+          request.params.tokenId
+        );
+        const { token } = tokenProjectData;
+        project = token.project;
+        hash = token.hash;
+        scriptJSON = JSON.parse(project.scriptJSON);
+        script = project.script;
+      } else {
+        const tokenDetails = await getToken(request.params.tokenId);
 
-    if (exists) {
-      const projectId = Math.floor(request.params.tokenId / 1000000);
-      const { project } = await getProject(projectId);
-
-      project.scriptJSON = JSON.parse(project.scriptJSON);
+        const projectDetails = await getDetails(projectId);
+        script = await getScript(
+          tokenDetails.projectId,
+          projectDetails.projectScriptInfo.scriptCount
+        );
+        hash = Array.isArray(tokenDetails.hashes)
+          ? tokenDetails.hashes[0]
+          : tokenDetails.hashes;
+        scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
+      }
 
       console.log(
         "Generator running for token " +
@@ -366,10 +409,9 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           hash
       );
 
-      const { script } = project;
       const data = buildData(hash, request.params.tokenId);
-      if (project.scriptJSON) {
-        if (project.scriptJSON.type === "p5js") {
+      if (scriptJSON && script) {
+        if (scriptJSON.type === "p5js") {
           response.render(
             request.params.svg === "svg" && Number(project.id) === 0
               ? "generator_p5js_svg"
@@ -378,26 +420,26 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
               : "generator_p5js",
             { script, data }
           );
-        } else if (project.scriptJSON.type === "processing") {
+        } else if (scriptJSON.type === "processing") {
           response.render("generator_processing", { script, data });
-        } else if (project.scriptJSON.type === "a-frame") {
+        } else if (scriptJSON.type === "a-frame") {
           response.render("generator_aframe", { script, data });
-        } else if (project.scriptJSON.type === "megavox") {
+        } else if (scriptJSON.type === "megavox") {
           response.render("generator_megavox", { script, data });
-        } else if (project.scriptJSON.type === "vox") {
+        } else if (scriptJSON.type === "vox") {
           response.render("generator_vox", { script, data });
-        } else if (project.scriptJSON.type === "js") {
+        } else if (scriptJSON.type === "js") {
           response.render(
-            request.params.svg === "obj" && Number(project.id) === 9
+            request.params.svg === "obj" && Number(projectId) === 9
               ? "generator_js_obj"
               : "generator_js",
             { script, data }
           );
-        } else if (project.scriptJSON.type === "svg") {
+        } else if (scriptJSON.type === "svg") {
           response.render("generator_svg", { script, data });
-        } else if (project.scriptJSON.type === "custom") {
+        } else if (scriptJSON.type === "custom") {
           response.send(`<script>${data}</script>${script}`);
-        } else if (project.scriptJSON.type === "regl") {
+        } else if (scriptJSON.type === "regl") {
           response.render("generator_regl", { script, data });
         } else {
           response.render("generator_threejs", { script, data });
@@ -457,15 +499,12 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const tokenAndProjectData = await getTokenAndProject(
-      request.params.tokenId
-    );
+    const existsData = await checkTokenExists(request.params.tokenId);
 
-    const exists = tokenAndProjectData.token;
-    console.log(`exists? ${Boolean(exists)}`);
+    console.log(`exists? ${Boolean(existsData.exists)}`);
     console.log(`token request ${request.params.tokenId}`);
 
-    if (exists) {
+    if (existsData.exists) {
       const tokenKey = `${request.params.tokenId}.png`;
 
       const params = {
@@ -510,57 +549,9 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
             })
             .pipe(response);
         } else {
-          // Files larger then 5mb must be retreived in chunks
-          s3.headObject(params)
-            .promise()
-            .then((res) => {
-              console.log(`stream size:${res.ContentLength}`);
-              if (res.ContentLength < 5000000) {
-                const data = s3
-                  .getObject({
-                    Bucket: currentNetwork,
-                    Key: tokenKey,
-                  })
-                  .createReadStream();
-                data.on("error", (dataErr) => {
-                  console.error(dataErr);
-                });
-
-                console.log("Returning single stream");
-
-                response.writeHead(200, { "Content-Type": "image/png" });
-                data.pipe(response);
-              } else {
-                const numStreams = Math.ceil(res.ContentLength / 5000000);
-                const dataArray = [];
-                let range;
-                for (let s = 0; s < numStreams; s += 1) {
-                  if (s === 0) {
-                    range = "bytes=0-5000000";
-                  } else if (s === numStreams - 1) {
-                    range = `bytes=${s * 5000000 + 1}-${res.ContentLength}`;
-                  } else {
-                    range = `bytes=${s * 5000000 + 1}-${s * 5000000 + 5000000}`;
-                  }
-                  const data = s3
-                    .getObject({
-                      Bucket: currentNetwork,
-                      Key: tokenKey,
-                      Range: range,
-                    })
-                    .createReadStream();
-                  console.log(`Pushing stream ${s} to stream array.`);
-                  dataArray.push(data);
-                }
-                const combinedStream = CombinedStream.create();
-                for (let t = 0; t < numStreams; t += 1) {
-                  combinedStream.append(dataArray[t]);
-                }
-                console.log("Returning combined streams");
-                response.writeHead(200, { "Content-Type": "image/png" });
-                combinedStream.pipe(response);
-              }
-            });
+          response.redirect(
+            `https://${mediaUrl}/${request.params.tokenId}.png`
+          );
         }
       });
     } else {
@@ -618,13 +609,177 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
 //   return { tokenId, projectId, hashes };
 // }
 
-async function getTokenHashes(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.showTokenHashes(tokenId).call();
-    return result;
+async function checkTokenExists(tokenId) {
+  const tokenAndProjectData = await getTokenAndProject(tokenId);
+
+  const existsGraph = tokenAndProjectData.token;
+
+  if (existsGraph) {
+    return { exists: true, source: "graph", data: tokenAndProjectData };
   }
-  const result = await contract2.methods.tokenIdToHash(tokenId).call();
-  return result;
+
+  let providerHash = await getTokenHashes(tokenId);
+  // extract if is array
+  providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
+
+  const existsInfura =
+    providerHash !==
+      "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+    providerHash;
+
+  if (existsInfura) {
+    return { exists: true, source: "provider", data: { hash: providerHash } };
+  }
+
+  return { exists: false, source: "both", data: null };
+}
+
+async function getToken(tokenId) {
+  const projectId = await getProjectId(tokenId);
+  const hashes = await getTokenHashes(tokenId);
+  return { tokenId, projectId, hashes };
+}
+
+async function getDetails(projectId) {
+  const projectDescription = await getProjectDescription(projectId);
+  const projectScriptInfo = await getScriptInfo(projectId);
+  const projectTokenInfo = await getTokenDetails(projectId);
+  const projectURIInfo = await getURIInfo(projectId);
+  return {
+    projectDescription,
+    projectScriptInfo,
+    projectTokenInfo,
+    projectURIInfo,
+  };
+}
+
+async function getScript(projectId, scriptCount) {
+  const scripts = [];
+  for (let i = 0; i < scriptCount; i += 1) {
+    if (projectId < 3) {
+      const newScript = await contract.methods
+        .projectScriptByIndex(projectId, i)
+        .call();
+      scripts.push(newScript);
+    } else {
+      const newScript = await contract2.methods
+        .projectScriptByIndex(projectId, i)
+        .call();
+      scripts.push(newScript);
+    }
+  }
+  return scripts.join(" ");
+}
+
+async function getScriptInfo(projectId) {
+  if (projectId < 3) {
+    const result = await contract.methods.projectScriptInfo(projectId).call();
+    return {
+      scriptJSON: result[0] && JSON.parse(result[0]),
+      scriptCount: result[1],
+      hashesPerToken: result[2],
+      ipfsHash: result[3],
+      locked: result[4],
+      paused: result[5],
+    };
+  }
+  const result = await contract2.methods.projectScriptInfo(projectId).call();
+  return {
+    scriptJSON: result[0] && JSON.parse(result[0]),
+    scriptCount: result[1],
+    hashesPerToken: result[2],
+    ipfsHash: result[3],
+    locked: result[4],
+    paused: result[5],
+  };
+}
+
+async function getProjectDescription(projectId) {
+  if (projectId < 3) {
+    const result = await contract.methods.projectDetails(projectId).call();
+    return {
+      projectName: result[0],
+      artistName: result[1],
+      description: result[2],
+      artistWebsite: result[3],
+      license: result[4],
+      dynamic: result[5],
+    };
+  }
+  const result = await contract2.methods.projectDetails(projectId).call();
+  return {
+    projectName: result[0],
+    artistName: result[1],
+    description: result[2],
+    artistWebsite: result[3],
+    license: result[4],
+    dynamic: result[5],
+  };
+}
+
+async function getURIInfo(projectId) {
+  if (projectId < 3) {
+    const result = await contract.methods.projectURIInfo(projectId).call();
+    return {
+      projectBaseURI: result[0],
+      projectBaseIpfsURI: result[1],
+      useIpfs: result[2],
+    };
+  }
+  const result = await contract2.methods.projectURIInfo(projectId).call();
+  return {
+    projectBaseURI: result[0],
+    projectBaseIpfsURI: result[1],
+    useIpfs: result[2],
+  };
+}
+
+async function getTokenDetails(projectId) {
+  if (projectId < 3) {
+    // const tokens = await contract.methods.projectShowAllTokens(projectId).call();
+    const result = await contract.methods.projectTokenInfo(projectId).call();
+    return {
+      artistAddress: result[0],
+      pricePerTokenInWei: result[1],
+      invocations: result[2],
+      maxInvocations: result[3],
+      active: result[4],
+      additionalPayee: result[5],
+      additionalPayeePercentage: result[6] /* tokens:tokens */,
+    };
+  }
+  // const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
+  const result = await contract2.methods.projectTokenInfo(projectId).call();
+  return {
+    artistAddress: result[0],
+    pricePerTokenInWei: result[1],
+    invocations: result[2],
+    maxInvocations: result[3],
+    active: result[4],
+    additionalPayee: result[5],
+    additionalPayeePercentage: result[6],
+    currency: result[7],
+    currencyAddress: result[8] /* tokens:tokens */,
+  };
+}
+
+async function getTokenRoyaltyInfo(tokenId) {
+  if (tokenId < 3000000) {
+    const result = await contract.methods.getRoyaltyData(tokenId).call();
+    return {
+      artistAddress: result[0],
+      additionalPayee: result[1],
+      additionalPayeePercentage: result[2],
+      royaltyFeeByID: result[3],
+    };
+  }
+  const result = await contract2.methods.getRoyaltyData(tokenId).call();
+  return {
+    artistAddress: result[0],
+    additionalPayee: result[1],
+    additionalPayeePercentage: result[2],
+    royaltyFeeByID: result[3],
+  };
 }
 
 async function getPlatformInfo() {
@@ -635,6 +790,20 @@ async function getPlatformInfo() {
   const name = await contract.methods.name().call();
   const symbol = await contract.methods.symbol().call();
   return { totalSupply, nextProjectId, name, symbol };
+}
+
+async function getProjectId(tokenId) {
+  console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
+  return Math.floor(tokenId / 1000000);
+}
+
+async function getTokenHashes(tokenId) {
+  if (tokenId < 3000000) {
+    const result = await contract.methods.showTokenHashes(tokenId).call();
+    return result;
+  }
+  const result = await contract2.methods.tokenIdToHash(tokenId).call();
+  return result;
 }
 
 function buildData(hashes, tokenId) {
