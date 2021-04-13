@@ -7716,13 +7716,13 @@ else if (projectId===44){
         if (BOOLS[7]) {
             traits.push("Accelerator: True");
         } else {
-            traits.push("Accelerator: True");
+            traits.push("Accelerator: False");
         }
 
         traits.push("Cell Alpha: " + Math.round(COLORS[1] * 0.6))
 
-        features=traits;
-        featuresReduced=traits;
+        features = traits;
+        featuresReduced=features;
   }
 
   ////////
@@ -8145,6 +8145,89 @@ else if (projectId===44){
       features.push(`Phased: ${featuresObj.Phased}`)
 
       featuresReduced=features;
+  }
+
+  /////////////
+
+
+  else if (projectId === 48){
+
+
+
+    let hp = [];
+    let hashstring = "";
+
+
+
+    //take everything after the 0x and get the hash pairs
+    hashstring = tokenData.substring(2)
+    for (let i = 0; i < hashstring.length / 2; i++) {
+      hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
+    }
+
+    //begin features collection
+
+
+     if (hp[2]>128) features.push("Layer: color disk");
+      if (hp[3] >128) {
+       if(hp[15] > 25){
+         features.push("Layer: hash string loop")
+       } else {
+         features.push("Layer: hash string runners")
+       }
+      }
+      if (hp[4] >128) features.push("Layer: electrons");
+      if (hp[5] >128) features.push("Layer: hash grid");
+      if (hp[6] >128) features.push("Layer: floor grid");
+      if (hp[7] >128) features.push("Layer: orb");
+      if (hp[8] >128) features.push("Layer: gradient");
+      if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
+      if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
+      if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
+      switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
+        case 0:
+          features.push("Words: b/w");
+          break;
+        case 1:
+          features.push("Words: color");
+          break;
+        case 2:
+          features.push("Words: b/w");
+          break;
+        case 3:
+          features.push("Words: color");
+          break;
+      }
+
+    featuresReduced = features
+
+    //print features to console
+    for (let i = 0; i < features.length; i++) {
+      console.log(features[i]);
+    }
+
+
+    // maps the hp to a value between 0 and 32
+    function R(_num) {
+      return Math.floor(mapperz(_num, 0, 255, 0, 32));
+    }
+
+    //vanilla js replacement for the p5.js map function
+    function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
+      const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+      if (!withinBounds) {
+        return newval;
+      }
+      if (start2 < stop2) {
+        return this.constrain(newval, start2, stop2);
+      } else {
+        return this.constrain(newval, stop2, start2);
+      }
+    }
+
+    function unhex(n) {
+      return parseInt(`0x${n}`, 16);
+    }
   }
 
   //////
