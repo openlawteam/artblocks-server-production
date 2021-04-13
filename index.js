@@ -25,7 +25,6 @@ const path = require("path");
 const beautify = require("js-beautify").js;
 
 const imgRequest = require("request");
-const CombinedStream = require("combined-stream");
 require("dotenv").config();
 
 const AWS = require("aws-sdk");
