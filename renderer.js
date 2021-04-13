@@ -816,8 +816,11 @@ async function renderImage(tokenId, tokenKey, ratio) {
     }
 
     let pId = Math.floor(tokenId / 1000000);
-    await timeout(pId === 39 ? 20000 : 500);
-
+    if (currentNetwork === "rinkeby") {
+        await timeout(pId === 36 ? 20000 : 500);
+      } else {
+        await timeout(pId === 39 ? 20000 : 500);
+      }
     console.log(`Renderer: navigated to url`);
 
     const image = await page.screenshot();
@@ -908,7 +911,11 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     }
 
     let pId = Math.floor(tokenId / 1000000);
-    await timeout(pId === 39 ? 20000 : 500);
+    if (currentNetwork === "rinkeby") {
+        await timeout(pId === 36 ? 20000 : 500);
+      } else {
+        await timeout(pId === 39 ? 20000 : 500);
+      }
     const image = await page.screenshot();
 
     await browser.close();
