@@ -391,7 +391,6 @@ app.get("/token/:tokenId", async (request, response) => {
           "aspect ratio (w/h)": scriptJSON ? scriptJSON.aspectRatio : "",
           "uses hash": usesHash,
           tokenID: request.params.tokenId,
-          "token hash": hash,
           license: project.license,
           animation_url:tokenGenerator || "",
           image: tokenImage || "",
