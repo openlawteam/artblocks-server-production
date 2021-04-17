@@ -105,7 +105,7 @@ console.log(address, address2);
 app.set("views", "./views");
 app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "./")));
-app.use(express.static("src"));
+app.use(express.static("src", { setHeaders: (res) => res.set("Access-Control-Allow-Origin", "*")}));
 
 app.use(cors());
 app.use(favicon(path.join(__dirname, "/favicon.ico")));
@@ -321,6 +321,9 @@ app.get("/token/:tokenId", async (request, response) => {
       const tokenImage =
         project.baseUri &&
         `${project.baseUri.slice(0, -6)}image/${request.params.tokenId}`;
+      const tokenGenerator =
+        project.baseUri &&
+        `${project.baseUri.slice(0, -6)}generator/${request.params.tokenId}`;
       try {
         const tokenKey = `${request.params.tokenId}.png`;
         const checkImageExistsParams = {
@@ -328,38 +331,50 @@ app.get("/token/:tokenId", async (request, response) => {
           Key: tokenKey,
         };
         await s3.getObject(checkImageExistsParams).promise();
-        response.json({
-          platform,
-          name: tokenName,
-          curation_status: tokenType.toLowerCase(),
-          series: tokenSeries,
-          description: tokenDescription,
-          external_url: tokenExternalUrl,
-          artist: project.artistName,
-          royaltyInfo: {
-            artistAddress: project.artistAddress,
-            additionalPayee:
-              project.additionalPayee ||
-              "0x0000000000000000000000000000000000000000",
-            additionalPayeePercentage: project.additionalPayeePercentage || "0",
-            royaltyFeeByID: project.royaltyPercentage || "0",
-          },
-          collection_name: tokenCollectionName,
-          traits: tokenTraits,
-          payout_address: "0x8E9398907d036e904ffF116132ff2Be459592277",
-          features: features[0] /* featuresObj, */,
-          website: project.website,
-          "is dynamic": project.dynamic,
-          "script type": scriptJSON ? scriptJSON.type : "",
-          "aspect ratio (w/h)": scriptJSON ? scriptJSON.aspectRatio : "",
-          "uses hash": usesHash,
-          tokenID: request.params.tokenId,
-          "token hash": hash,
-          license: project.license,
-          image: tokenImage || "",
-        });
+
+        let responseWithToken = {platform,
+        name: tokenName,
+        curation_status: tokenType.toLowerCase(),
+        series: tokenSeries,
+        description: tokenDescription,
+        external_url: tokenExternalUrl,
+        artist: project.artistName,
+        royaltyInfo: {
+          artistAddress: project.artistAddress,
+          additionalPayee:
+            project.additionalPayee ||
+            "0x0000000000000000000000000000000000000000",
+          additionalPayeePercentage: project.additionalPayeePercentage || "0",
+          royaltyFeeByID: project.royaltyPercentage || "0",
+        },
+        collection_name: tokenCollectionName,
+        traits: tokenTraits,
+        payout_address: "0x8E9398907d036e904ffF116132ff2Be459592277",
+        features: features[0] /* featuresObj, */,
+        website: project.website,
+        "is dynamic": project.dynamic,
+        "script type": scriptJSON ? scriptJSON.type : "",
+        "aspect ratio (w/h)": scriptJSON ? scriptJSON.aspectRatio : "",
+        "uses hash": usesHash,
+        tokenID: request.params.tokenId,
+        "token hash": hash,
+        license: project.license,
+        animation_url:tokenGenerator || "",
+        image: tokenImage || ""}
+
+
+
+        if (projectId === 1 || projectId ===2 ){
+          delete responseWithToken.animation_url;
+        }
+
+
+
+        response.json(
+          responseWithToken
+        );
       } catch (err) {
-        response.json({
+        let responseWithoutToken = {
           platform,
           name: tokenName,
           curation_status: tokenType.toLowerCase(),
@@ -378,8 +393,17 @@ app.get("/token/:tokenId", async (request, response) => {
           tokenID: request.params.tokenId,
           "token hash": hash,
           license: project.license,
+          animation_url:tokenGenerator || "",
           image: tokenImage || "",
-        });
+        }
+
+        if (projectId === 1 || projectId ===2 ){
+          delete responseWithoutToken.animation_url;
+        }
+        
+        response.json(
+          responseWithoutToken
+        );
       }
     } else {
       response.send("token does not exist");

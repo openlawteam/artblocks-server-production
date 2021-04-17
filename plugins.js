@@ -6857,7 +6857,535 @@ if (projectId===39){
 
   /////////
 
+  else if (projectId ===41 ){
+    // START Comment this out before minifying
+    //function random_hash() {
+    //    let chars = "0123456789abcdef";
+    //    let result = '0x';
+    //    for (let i = 64; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    //    return result;
+    //}
+    //tokenData = {
+    //    "hash": random_hash()
+    //}
+    // END Comment this out before minifying
+
+    let hashPairs = [];
+    for (let j = 0; j < 32; j++) {
+        hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
+    }
+
+    const decPairs = hashPairs.map((x) => {
+        return parseInt(x, 16);
+    });
+
+    let seed = parseInt(tokenData.slice(0, 16), 16);
+
+    let gridLoops1 = [];
+    let gridLoops2 = [];
+    let gridLoops_stroke = [];
+
+    let unit, unit2, unit3, count, count2, count3;
+    let offset, offsetH, offsetB, offsetHB, styleMaster, countX, countX2, strokeThick;
+    let rectY = true;
+    let ellipseY = false;
+    let tri1Y = false;
+    let tri2Y = false;
+    let gradY = false;
+    let space1Y = false;
+    let space2Y = false;
+    let smlRect = false;
+    let smlEllipse = false;
+    let rectGradY = false;
+    const Y_AXIS = 1;
+    const X_AXIS = 2;
+    let b1, b2, c1, c2;
+    let myColRnd1, myColRnd2, myColRnd3, palSwitch;
+
+    var palette;
+
+    // let features = [];
+    let parallelCount = [];
+    let parallelColour = [];
+    let strokeColour = [];
+    let dotCount = [];
+    let headingCount = [];
+
+    if (decPairs[1] <= 85) {
+        features.push("Offset: Goldilocks")
+    } else if (decPairs[1] > 85 && decPairs[1] <= 170) {
+        features.push("Offset: Biggie")
+    } else {
+        features.push("Offset: Smalls")
+    }
+
+    if (decPairs[2] <= 85) {
+        countX = 0;
+        features.push("Base: None")
+    } else if (decPairs[2] > 85 && decPairs[2] < 170) {
+        countX = 1;
+        features.push("Base: Single")
+    } else {
+        countX = 2;
+        features.push("Base: Double")
+    }
+
+    if (decPairs[3] <= 85) {
+        countX2 = 0;
+    } else {
+        countX2 = 1;
+    }
+
+    unit = Math.floor(map_range(decPairs[4], 0, 255, 2, 6));
+    unit2 = Math.floor(map_range(decPairs[5], 0, 255, 3, 6));
+    unit3 = Math.floor(map_range(decPairs[6], 0, 255, 2, 7));
+
+    if (decPairs[2] > 85) {
+
+        features.push("Base Grid: " + unit + "x" + unit)
+    }
+
+    features.push("Top Grid: " + unit2 + "x" + unit2)
+
+    palSwitch = map_range(decPairs[10], 0, 255, 0, 1);
+
+    if (palSwitch <= 0.5) {
+        features.push("Palette: Mid-century")
+    } else {
+        features.push("Palette: Candy")
+    }
+
+    class Random {
+        constructor(seed) {
+            this.seed = seed
+        }
+        random_dec() {
+            this.seed ^= this.seed << 13
+            this.seed ^= this.seed >> 17
+            this.seed ^= this.seed << 5
+            return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+        }
+        random_between(a, b) {
+            return a + (b - a) * this.random_dec()
+        }
+        random_int(a, b) {
+            return Math.floor(this.random_between(a, b + 1))
+        }
+        random_choice(x) {
+            return x[Math.floor(this.random_between(0, x.length * 0.99))]
+        }
+    }
+
+    let R = new Random(seed);
+
+    let val = R.random_between(0, 1);
+    					console.log(val);
+
+    console.log(R);
+
+    class GridLooper {
+        constructor(k, l, c, rnd1, rnd2) {
+            this.k = k;
+            this.l = l;
+            this.c = c;
+            this.rnd1 = rnd1;
+            this.rnd2 = rnd2;
+        }
+
+        display() {
+
+            for (let i = 0; i < this.k; i++) {
+                for (let j = 0; j < this.l; j++) {
+
+                    styleMaster = Math.floor(R.random_between(0, 9));
+
+                    if (styleMaster == 0) {
+                        rectY = true;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 1) {
+                        rectY = false;
+                        ellipseY = true;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 2) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = true;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 3) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = true;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 4) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = true;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 5) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = true;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 6) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = true;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 7) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = true;
+                        smlEllipse = false;
+                        rectGradY = false;
+                    } else if (styleMaster == 8) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = true;
+                        rectGradY = false;
+                    } else if (styleMaster == 9) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        gradY = false;
+                        space1Y = false;
+                        space2Y = false;
+                        smlRect = false;
+                        smlEllipse = false;
+                        rectGradY = true;
+                    }
+
+
+
+                    if (rectY) {
+                        if (R.random_between(0, 1) <= 0.9) {
+                        } else if (R.random_between(0, 1) > 0.9 && R.random_between(0, 1) <= 0.99) {
+                        } else {
+    //                        parallelCount.push("yes")
+    //                        if (decPairs[9] <= 127.5) {
+    //                           parallelColour.push("Black");
+    //                        } else {
+    //                            parallelColour.push("White");
+    //                        }
+                        }
+                    }
+
+                    if (smlRect) {}
+
+                    if (ellipseY) {
+                        if (R.random_between(0, 1) < 0.9) {
+
+                        } else {
+                        //    dotCount.push("yes")
+                        }
+                    }
+
+                    if (smlEllipse) {
+
+                    }
+
+                    if (tri1Y) {
+                        if (decPairs[11] <= 229.5) {
+
+                            headingCount.push("East")
+
+
+                        } else {
+
+
+                            headingCount.push("West")
+
+
+                        }
+
+
+                    }
+
+                    if (tri2Y) {
+
+                        if (decPairs[11] <= 229.5) {
+
+                            headingCount.push("East")
+                        } else {
+
+                            headingCount.push("West")
+
+                        }
+                    }
+
+                    if (gradY) {
+                        if (R.random_between(0, 1) < 0.5) {
+
+                        } else {
+
+                        }
+                    }
+                    if (rectGradY) {
+
+                    }
+                    if (space1Y) {}
+                    if (space2Y) {}
+                }
+            }
+
+
+        }
+
+    }
+
+    class GridLooper_stroke {
+        constructor(k, l, c, sw) {
+            this.k = k;
+            this.l = l;
+            this.c = c;
+            this.sw = sw;
+        }
+
+        display() {
+
+            if (decPairs[8] <= 127.5) {
+                strokeColour.push("White")
+            } else {
+                strokeColour.push("Black")
+            }
+
+            for (let i = 0; i < this.k; i++) {
+                for (let j = 0; j < this.l; j++) {
+
+                    styleMaster = Math.floor(R.random_between(0, 6));
+
+                    if (styleMaster == 0) {
+                        rectY = true;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        space1Y = false;
+                        space2Y = false;
+                    } else if (styleMaster == 1) {
+                        rectY = false;
+                        ellipseY = true;
+                        tri1Y = false;
+                        tri2Y = false;
+                        space1Y = false;
+                        space2Y = false;
+                    } else if (styleMaster == 2) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = true;
+                        tri2Y = false;
+                        space1Y = false;
+                        space2Y = false;
+                    } else if (styleMaster == 3) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = true;
+                        space1Y = false;
+                        space2Y = false;
+                    } else if (styleMaster == 4) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        space1Y = true;
+                        space2Y = false;
+                    } else if (styleMaster == 5) {
+                        rectY = false;
+                        ellipseY = false;
+                        tri1Y = false;
+                        tri2Y = false;
+                        space1Y = false;
+                        space2Y = true;
+                    }
+
+
+
+                    if (decPairs[8] <= 127.5) {
+
+                    } else {}
+
+                    if (rectY) {
+
+                    }
+
+                    if (ellipseY) {
+
+                    }
+
+                    if (tri1Y) {
+                        if (decPairs[11] <= 229.5) {
+
+
+                        } else {
+
+
+
+                        }
+                    }
+
+                    if (tri2Y) {
+                        if (decPairs[11] <= 229.5) {
+
+
+                        } else {
+
+
+                        }
+                    }
+
+                    if (space1Y) {}
+                    if (space2Y) {}
+                }
+            }
+        }
+    }
+
+
+
+    for (let i = 0; i < countX; i++) {
+        gridLoops1.push(new GridLooper(unit, unit, count, 0, 0));
+    }
+
+    for (let i = 0; i < 1; i++) {
+        gridLoops2.push(new GridLooper(unit2, unit2, count2, 0, 0));
+    }
+
+    for (let i = 0; i < countX2; i++) {
+        gridLoops_stroke.push(new GridLooper_stroke(unit3, unit3, count3, 0));
+    }
+
+    if (decPairs[7] <= 85) {
+
+        features.push("Background: Gray")
+
+    } else if (decPairs[7] > 85 && decPairs[7] < 170) {
+
+
+        features.push("Background: Tint")
+
+    } else {
+        features.push("Background: Full")
+
+    }
+
+    for (let i = 0; i < gridLoops1.length; i++) {
+        gridLoops1[i].display();
+    }
+
+    for (let i = 0; i < gridLoops2.length; i++) {
+        gridLoops2[i].display();
+    }
+
+    for (let i = 0; i < gridLoops_stroke.length; i++) {
+        gridLoops_stroke[i].display();
+    }
+
+
+    if (decPairs[3] <= 85) {
+        features.push("Stroke: None")
+
+    } else {
+        features.push("Stroke: " + strokeColour)
+        features.push("Stroke Grid: " + unit3 + "x" + unit3)
+
+    }
+
+
+
+    if (dotCount.length != 0) {
+        features.push("White Dot: " + dotCount.length);
+    }
+
+
+    if (headingCount.length != 0) {
+    	features.push("Heading: " + headingCount[0]);
+    }
+
+    //if (decPairs[11] <= 229.5) {
+    //    features.push("Heading: East");
+    //} else {
+    //    features.push("Heading: West");
+    //}
+
+
+
+
+    function map_range(value, low1, high1, low2, high2) {
+        return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+    }
+
+    if (parallelCount.length != 0) {
+        features.push("Blinds: " + parallelCount.length + " " + parallelColour[0]);
+    }
+
+
+
+    featuresReduced=features;
+    console.log(features);
+
+}
+
+
+  /////////
+
   else if (projectId === 42){
+
 
     "use strict";
     {
@@ -6952,10 +7480,14 @@ if (projectId===39){
         let half = rd()>0.7;
         let cut = rd()>0.5;
         let phat = rd()>0.6;
-        let two_planets = rd() > 0.95&&(n_sides!=0);
-        let excentred = (!two_planets && rd()>0.7)&&(n_sides!=0);
+        let two_planets = rd() > 0.95;
+        let excentred = (!two_planets && rd()>0.7);
         phat = phat&&!excentred&&(n_sides!=0);
         let spiral_colors = !two_planets&&!excentred&&!cut&&rd()>0.95;
+        if(n_sides==0) {
+            two_planets=false;
+            excentred=false;
+        }
         let dark = rd()>0.6;
         let bicolor = rd()>0.3;
         let donut = rd()>0.9;
@@ -7064,9 +7596,12 @@ if (projectId===39){
           features.push('Fill: Full');
         }
 
+        console.log(features);
 
 
     }
+
+
     featuresReduced=features;
 
   }
@@ -8152,10 +8687,10 @@ else if (projectId===44){
 
   else if (projectId === 48){
 
-
-
     let hp = [];
     let hashstring = "";
+
+
 
 
 
@@ -8184,9 +8719,11 @@ else if (projectId===44){
       if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
       if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
       if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
+    console.log(Math.floor(mapperz(hp[4], 0, 255, 0, 3.999)));
+    console.log(hp[4]);
       switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
         case 0:
-          features.push("Words: b/w");
+          features.push("Words: color");
           break;
         case 1:
           features.push("Words: color");
@@ -8195,7 +8732,7 @@ else if (projectId===44){
           features.push("Words: b/w");
           break;
         case 3:
-          features.push("Words: color");
+          features.push("Words: b/w");
           break;
       }
 
@@ -8229,6 +8766,609 @@ else if (projectId===44){
       return parseInt(`0x${n}`, 16);
     }
   }
+
+  //////
+
+else if (projectId===47){
+
+  function p5() {
+      this._lcg_random_state = null;
+      this._gaussian_previous = false;
+  }
+
+  // variables used for random number generators
+  const randomStateProp = '_lcg_random_state';
+  // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+  // m is basically chosen to be large (as it is the max period)
+  // and for its relationships to a and c
+  const m = 4294967296;
+  // a - 1 should be divisible by m's prime factors
+  const a = 1664525;
+  // c and m should be co-prime
+  const c = 1013904223;
+  let y2 = 0;
+
+  // Linear Congruential Generator that stores its state at instance[stateProperty]
+  p5.prototype._lcg = function(stateProperty) {
+    // define the recurrence relationship
+    this[stateProperty] = (a * this[stateProperty] + c) % m;
+    // return a float in [0, 1)
+    // we've just used % m, so / m is always < 1
+    return this[stateProperty] / m;
+  };
+
+  p5.prototype._lcgSetSeed = function(stateProperty, val) {
+    // pick a random seed if val is undefined or null
+    // the >>> 0 casts the seed to an unsigned 32-bit integer
+    this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+  };
+
+  p5.prototype.randomSeed = function(seed) {
+    this._lcgSetSeed(randomStateProp, seed);
+    this._gaussian_previous = false;
+  };
+
+  p5.prototype.random = function(min, max) {
+    let rand;
+
+    if (this[randomStateProp] != null) {
+      rand = this._lcg(randomStateProp);
+    } else {
+      rand = Math.random();
+    }
+    if (typeof min === 'undefined') {
+      return rand;
+    } else if (typeof max === 'undefined') {
+      if (min instanceof Array) {
+        return min[Math.floor(rand * min.length)];
+      } else {
+        return rand * min;
+      }
+    } else {
+      if (min > max) {
+        const tmp = min;
+        min = max;
+        max = tmp;
+      }
+
+      return rand * (max - min) + min;
+    }
+  };
+
+  p5.prototype.randomGaussian = function(mean, sd = 1) {
+    let y1, x1, x2, w;
+    if (this._gaussian_previous) {
+      y1 = y2;
+      this._gaussian_previous = false;
+    } else {
+      do {
+        x1 = this.random(2) - 1;
+        x2 = this.random(2) - 1;
+        w = x1 * x1 + x2 * x2;
+      } while (w >= 1);
+      w = Math.sqrt(-2 * Math.log(w) / w);
+      y1 = x1 * w;
+      y2 = x2 * w;
+      this._gaussian_previous = true;
+    }
+
+    const m = mean || 0;
+    return y1 * sd + m;
+  };
+
+  let size = 1
+  p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
+
+  let traits = [];
+
+  let iniStars = parseInt(p5.prototype.random(size*20, size*200));
+  let minSize = p5.prototype.random(size*0.1, size*1);
+  let maxSize = p5.prototype.random(size*2, size*6);
+  let minSpeed = p5.prototype.random(size*0.05, size*0.08);
+  let maxSpeed = p5.prototype.random(size*0.15, size*0.3);
+  let linkForce = p5.prototype.random(size*50, size*65);
+  let colorLink = p5.prototype.random(12, 240);
+  let lineWeight = p5.prototype.random(size*0.25, size*1.5);
+  let colorR = p5.prototype.random(50, 255);
+  let colorG = p5.prototype.random(50, 255);
+  let colorB = p5.prototype.random(50, 255);
+  let alphaL = p5.prototype.random(200, 255);
+  let backgroundR = p5.prototype.random(0, 20)
+  let backgroundB = p5.prototype.random(0, 20)
+  let backgroundG = p5.prototype.random(0, 20)
+  let fullTrait = p5.prototype.random(10)
+
+
+    //STARS
+    if(iniStars < size*40){
+      // console.log('stars: ' + iniStars)
+      traits.push("Sky type: Dark Night")}
+    else if(iniStars >= size*40 && iniStars <size*80){
+      // console.log('stars: ' + iniStars)
+      traits.push("Sky type: Calm Night")
+    }
+    else{
+      // console.log('stars: ' + iniStars)
+      traits.push("Sky type: Starry Night")
+    }
+
+    if(maxSize >= size*0 && maxSize <=size*3.2) {
+      // console.log('maxSize ' + maxSize)
+      traits.push("Star size: Dwarf Star")
+      }
+    else if(maxSize > size*3.2 && maxSize <= size*4.5){
+      // console.log('maxSize ' + maxSize)
+      traits.push("Star size: Giant Star")
+      }
+    else {
+      // console.log('maxSize ' + maxSize)
+      traits.push("Star size: Super Giant Star")
+      }
+    if(maxSpeed < size*0.2){
+      // console.log("Speed: " + maxSpeed)
+      traits.push("Speed: Low")
+    } else {
+      // console.log("Speed: " + maxSpeed)
+      traits.push("Speed: Fast")
+    }
+
+    if(lineWeight >= size*0.25 && lineWeight < size*0.4){
+      // console.log('lineWeight ' + lineWeight)
+      traits.push("Stroke: Low")
+      }
+    else if(lineWeight >= size*0.4 && lineWeight < size*1.2){
+      // console.log('lineWeight ' + lineWeight)
+      traits.push("Stroke: Regular")
+      }
+    else if(lineWeight >= size*1.2) {
+      // console.log('lineWeight ' + lineWeight)
+      traits.push("Stroke: Bold")
+      }
+
+    //BACKGROUND
+    if(backgroundR < 6 && backgroundG < 6 && backgroundB < 6){
+      // console.log("red " + backgroundR);
+      // console.log("green " + backgroundG);
+      // console.log("blue " + backgroundB);
+      traits.push("Light pollution: Low")
+      }
+    else if(backgroundR > 15 || backgroundG > 15 || backgroundB > 15){
+      // console.log("red " + backgroundR);
+      // console.log("green " + backgroundG);
+      // console.log("blue " + backgroundB);
+      traits.push("Light pollution: Hard")
+      }
+    else if(backgroundR > 6 && backgroundR < 15 || backgroundG > 6 && backgroundG < 15 || backgroundB > 6 && backgroundB < 15){
+      // console.log("red " + backgroundR);
+      // console.log("green " + backgroundG);
+      // console.log("blue " + backgroundB);
+      traits.push("Light pollution: Regular")
+      }
+
+    //PLANETS
+    if(fullTrait < 0.1){
+      traits.push("Lucky Night: On")
+      traits.push("Aldebaran: Visible")
+      traits.push("Mars: Visible")
+      traits.push("Moon: Visible")
+      traits.push("Sirio: Visible")
+      traits.push("Comet: Visible")
+
+    }else{
+      traits.push("Lucky Night: Off")
+    	let aldebaranRandom = p5.prototype.random(10)
+    	let marsRandom = p5.prototype.random(10)
+    	let moonRandom = p5.prototype.random(10)
+    	let sirioRandom = p5.prototype.random(10)
+    	let cometProb = p5.prototype.random(10)
+
+      if(aldebaranRandom > 4){
+        // console.log('aldebaranRadius ' + aldebaranRadius)
+        traits.push("Aldebaran: Visible")
+      }else{
+        // console.log('aldebaranRadius ' + aldebaranRadius)
+        traits.push("Aldebaran: Hidden" )
+      }
+
+      if(marsRandom > 6){
+        // console.log('marsRadius ' + marsRadius)
+        traits.push("Mars: Visible")
+      }else{
+        // console.log('marsRadius ' + marsRadius)
+        traits.push("Mars: Hidden")
+      }
+
+      if(moonRandom > 2){
+        // console.log('moonRadius ' + moonRadius)
+        traits.push("Moon: Visible")
+      } else {
+        // console.log('moonRadius ' + moonRadius)
+        traits.push("Moon: Hidden")
+      }
+
+      if(sirioRandom > 8){
+        // console.log('sirioRadius ' + sirioRadius)
+        traits.push("Sirio: Visible")
+      } else {
+        // console.log('sirioRadius ' + sirioRadius)
+        traits.push("Sirio: Hidden")
+      }
+
+      //COMETS
+      if(cometProb < 0.5){
+        // console.log("Comet: Visible")
+        traits.push("Comet: Visible")
+      } else {
+        // console.log("Comet: Hidden")
+        traits.push("Comet: Hidden")
+      }
+    }
+
+  console.log(traits);
+
+  features=traits;
+  featuresReduced=traits;
+
+
+}
+////////
+
+else if (projectId===49){
+
+var DEFAULT_SIZE_R=800,WIDTH_R=600,HEIGHT_R=600,DIM_R=Math.min(WIDTH_R,HEIGHT_R),M_2=DIM_R/DEFAULT_SIZE_R;let cols_R,rows_R,oX_R,oY_R,canvas_R=DEFAULT_SIZE_R*M_2,ttlPnts_R=5,grdSprSz_R=100*M_2,grdGap_R=170*M_2;cols=4,rows=4,oX_R=80,oY_R=80;let rectCoors_R={x:[],y:[]};function setGridType_R(e){switch(e){case 0:ttlPnts=Math.round(R_R.random_between(10,80)),cols=2,rows=2,grdSprSz_R=250*M_2,grdGap_R=400*M_2,oX_R=80*M_2,oY_R=80*M_2,fontsize_R=200*M_2,yOff_R=175*M_2,triSz_R=48*M_2,sqrSz_R=80*M_2,cirSz_R=80*M_2;break;case 1:ttlPnts=5,cols=4,rows=4,grdSprSz_R=100*M_2,grdGap_R=170*M_2,oX_R=88*M_2,oY_R=88*M_2,fontsize_R=72*M_2,yOff_R=80*M_2,triSz_R=28*M_2,sqrSz_R=40*M_2,cirSz_R=40*M_2;break;case 2:ttlPnts=5,cols=8,rows=8,grdSprSz_R=70*M_2,grdGap_R=95*M_2,oX_R=32*M_2,oY_R=32*M_2,fontsize_R=16*M_2,yOff_R=0,triSz_R=14*M_2,sqrSz_R=20*M_2,cirSz_R=20*M_2}}function mapRange_R(e,_,r,t,R){return Math.round(t+(R-t)*(e-_)/(r-_))}var hashPairs_R=[],gridHashPairs_R=[],decPairs_R=[];let myHash_R;function splitHash_R(e){let _=myHash_R.length;for(let e=0;e<_;e++)for(let _=0;_<32;_++)hashPairs_R.push(myHash_R[e].slice(2+2*_,4+2*_))}function getDecPairs_R(){return decPairs_R=hashPairs_R.map(e=>parseInt(e,16))}myHash_R=[tokenData];class Random_R{constructor(e){this.seed=e}random_dec(){return this.seed^=this.seed<<13,this.seed^=this.seed>>17,this.seed^=this.seed<<5,(this.seed<0?1+~this.seed:this.seed)%1e3/1e3}random_between(e,_){return e+(_-e)*this.random_dec()}random_int(e,_){return Math.floor(this.random_between(e,_+1))}random_choice(e){return e[Math.floor(this.random_between(0,.99*e.length))]}}splitHash_R(),getDecPairs_R();let mySeed_R=parseInt(tokenData.slice(0,16),16),R_R=new Random_R(mySeed_R);function getOccurrence_R(e,_){var r=0;return e.forEach(e=>e===_&&r++),r}var gl={tf:!1,txt:155,lines:0,bg:200};function setHashTxt_R(e,_){switch(_){case 0:gridHashPairs_R.push("0x","..","..",myHash_R[0][64]+myHash_R[0][65]);break;case 1:gridHashPairs_R=["0x"].concat(hashPairs_R.slice(0,e).concat(["..."]).concat(hashPairs_R.slice(e+18,32)));break;case 2:for(var r=0;r<myHash_R[0].length;r++)0==r||1==r||64==r||65==r||gridHashPairs_R.push(myHash_R[0][r]);(gridHashPairs_R=["0x"].concat(gridHashPairs_R)).push(myHash_R[0][64]+myHash_R[0][65])}}function createGrid_R(){for(let r=0;r<rows;r++)for(let t=0;t<cols;t++){var e=r*grdGap_R,_=t*grdGap_R;rectCoors_R.x.push(_+oX_R),rectCoors_R.y.push(e+oY_R)}hashTxtCreate_R()}let font_R,fontsize_R=72,yOff_R=80;function hashTxtCreate_R(){for(let e=0;e<gridHashPairs_R.length;e++)drawHashTxt_R(gridHashPairs_R[e],rectCoors_R.x[e],rectCoors_R.y[e])}function drawHashTxt_R(e,_,r){}function getPoints_R(e,_){let r={x:[],y:[]};for(let t=0;t<ttlPnts;t++)r.x.push(R_R.random_between(e,e+grdSprSz_R)),r.y.push(R_R.random_between(_,_+grdSprSz_R));return r}let triSz_R=28,sqrSz_R=40,cirSz_R=40;var msgN_R=!0,msgNarr_R=[];function createShape_R(e,_,r){let t;1==gl.tf?t=Math.round(R_R.random_between(3,6)):(t=Math.round(R_R.random_between(0,6)),msgNarr_R.push(t))}let clrs_R,c0_R,c1_R,c2_R,c3_R,c4_R,c5_R,c6_R;function pkClrs_R(e){c0=[0,1,2],c1=[3,4,5],c2=[6,7,8],c3=[9,10,11],c4=[12,13,14],c5=[15,16,17],c6=[18,19,20],clrs=[c0,c1,c2,c3,c4,c5,c6];var _=Math.round(R_R.random_between(0,2));return clrs[e][_]}var cP_R=Math.round(R_R.random_between(0,6));function drawLine_R(){for(let e=0;e<rectCoors_R.x.length;e++){let _=getPoints_R(rectCoors_R.x[e],rectCoors_R.y[e]);for(let e=0;e<_.x.length;e++);createShape_R(pkClrs_R(cP_R),_.x[0],_.y[0])}(getOccurrence_R(msgNarr_R,0)>=1||getOccurrence_R(msgNarr_R,1)>=1||getOccurrence_R(msgNarr_R,2)>=1)&&(msgN_R=!1)}var glClr_R=Math.round(R_R.random_between(0,2)),gl7_R=getOccurrence_R(decPairs_R,7);let vType_R=mapRange_R(decPairs_R[31],0,255,0,2);function setup_R(){if(gl7_R>=3)switch(glClr_R){case 0:case 1:case 2:gl.tf=!0}setGridType_R(vType_R),setHashTxt_R(mapRange_R(decPairs_R[30],0,255,0,13),vType_R),createGrid_R(),drawLine_R(),results_R(myHash_R)};function results_R(e){var _,r;_={gridSize:["2x2","4x4","8x8"],palette:["Playful","Growth","Calm","Naughty","Dark","Excited","Ambiguous","Neutral"],sPalette:["Love","Encrypted","Happy"]},r=1==msgN_R?7:cP_R,gl7_R>=3?features.push("Length: "+_.gridSize[vType_R],"Message: "+_.sPalette[glClr_R],"To: "+e):features.push("Length: "+_.gridSize[vType_R],"Message: "+_.palette[r],"To: "+e)}setup_R(vType_R);
+
+featuresReduced.push(features[0]);
+featuresReduced.push(features[1]);
+
+}
+
+
+
+  //////
+
+else if (projectId===51){
+  // sfc32 is a chaotic PRNG, the sfc stands for "Small Fast Counter".
+  function sfc32(a, b, c, d) {
+    return function() {
+      a |= 0;
+      b |= 0;
+      c |= 0;
+      d |= 0;
+      var t = (((a + b) | 0) + d) | 0;
+      d = (d + 1) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11);
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+
+  // Call `prng()` to generate a pseudo-random number.
+  let prng = new sfc32(
+    parseInt(tokenData.substr(2, 8), 16),
+    parseInt(tokenData.substr(10, 8), 16),
+    parseInt(tokenData.substr(18, 8), 16),
+    parseInt(tokenData.substr(27, 8), 16)
+  );
+
+  // returns a random integer from 0 to max, with a given PRNG.
+  function rI(prng, max) {
+    return parseInt(max * prng());
+  }
+
+  // turns an array of 3 0-255 RGB color values into a RGB color string.
+  function rgbC(colorArray) {
+    return "rgb(" +
+      colorArray[0] + "," +
+      colorArray[1] + "," +
+      colorArray[2] +
+      ")";
+  }
+
+  // turns 2 arrays of 3 0-255 RGB color values into a RGB color string,
+  // given a specified blending ratio.
+  function rgbCB(colorArrayA, colorArrayB, blendA, blendB) {
+    return "rgb(" +
+      parseInt(colorArrayA[0] * blendA + colorArrayB[0] * blendB) + "," +
+      parseInt(colorArrayA[1] * blendA + colorArrayB[1] * blendB) + "," +
+      parseInt(colorArrayA[2] * blendA + colorArrayB[2] * blendB) +
+      ")";
+  }
+
+  // Color palettes (9 different options).
+  let palettes = [
+    // Cool Summer (2x).
+    [
+      [209, 41, 66],
+      [245, 221, 129],
+      [75, 129, 184],
+      [144, 184, 230]
+    ],
+    [
+      [209, 41, 66],
+      [245, 221, 129],
+      [75, 129, 184],
+      [144, 184, 230]
+    ],
+    // Autumn Breeze.
+    [
+      [62, 137, 137],
+      [29, 45, 68],
+      [232, 221, 181],
+      [167, 117, 77]
+    ],
+    // Fallen Leaves.
+    [
+      [89, 83, 88],
+      [168, 172, 61],
+      [255, 236, 89],
+      [252, 127, 49]
+    ],
+    // Preserves.
+    [
+      [158, 0, 89],
+      [93, 127, 218],
+      [182, 156, 211],
+      [239, 121, 138]
+    ],
+    // Forest Stroll.
+    [
+      [218, 165, 136],
+      [176, 208, 211],
+      [163, 201, 168],
+      [68, 99, 63]
+    ],
+    // Sunny Day.
+    [
+      [0, 50, 73],
+      [98, 144, 195],
+      [234, 225, 81],
+      [240, 135, 0]
+    ],
+    // Sunglasses Required (2x).
+    [
+      [215, 65, 167],
+      [6, 174, 213],
+      [255, 252, 49],
+      [247, 92, 3]
+    ],
+    [
+      [215, 65, 167],
+      [6, 174, 213],
+      [255, 252, 49],
+      [247, 92, 3]
+    ]
+  ];
+
+  // Cool Summer (2x).
+  let coolSummer = [
+      [209, 41, 66],
+      [245, 221, 129],
+      [75, 129, 184],
+      [144, 184, 230]
+    ];
+  // Autumn Breeze.
+  let autumnBreeze = [
+    [62, 137, 137],
+    [29, 45, 68],
+    [232, 221, 181],
+    [167, 117, 77]
+  ];
+  // Fallen Leaves.
+  let fallenLeaves = [
+    [89, 83, 88],
+    [168, 172, 61],
+    [255, 236, 89],
+    [252, 127, 49]
+  ];
+  // Preserves.
+  let preserves = [
+    [158, 0, 89],
+    [93, 127, 218],
+    [182, 156, 211],
+    [239, 121, 138]
+  ];
+  // Forest Stroll.
+  let forestStroll = [
+    [218, 165, 136],
+    [176, 208, 211],
+    [163, 201, 168],
+    [68, 99, 63]
+  ];
+  // Sunny Day.
+  let sunnyDay = [
+    [0, 50, 73],
+    [98, 144, 195],
+    [234, 225, 81],
+    [240, 135, 0]
+  ];
+  // Sunglasses Required (2x).
+  let sunglassesRequired = [
+    [215, 65, 167],
+    [6, 174, 213],
+    [255, 252, 49],
+    [247, 92, 3]
+  ];
+
+  function getPaletteName(pal) {
+    if (JSON.stringify(pal) === JSON.stringify(coolSummer)) {
+      return "Cool Summer";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(autumnBreeze)) {
+      return "Autumn Breeze";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(fallenLeaves)) {
+      return "Fallen Leaves";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(preserves)) {
+      return "Preserves";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(forestStroll)) {
+      return "Forest Stroll";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(sunnyDay)) {
+      return "Sunny Day";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(sunglassesRequired)) {
+      return "Sunglasses Required";
+    }
+    return "Unknown";
+  }
+
+  // Params to use for building the sunset.
+  //
+  // These two ratios *not* adding up to 1 makes the reflection darker
+  // and adding up to greater than 1 makes the reflection lighter.
+  let s_CR = 0.75;
+  let w_CR = 0.25;
+  let s_R = 1 / 650;
+
+  function getFeatures() {
+    let paletteA = palettes.splice(rI(prng, 9), 1)[0];
+    let plaetteAName = getPaletteName(paletteA);
+    let sunColorsA = paletteA.splice(rI(prng, 4), 1)[0];
+    let skyColorsA = paletteA.splice(rI(prng, 3), 1)[0];
+    let waterColorsA = paletteA.splice(rI(prng, 2), 1)[0];
+    let paletteB = palettes.splice(rI(prng, 8), 1)[0];
+    let plaetteBName = getPaletteName(paletteB);
+    let sunColorsB = paletteB.splice(rI(prng, 4), 1)[0];
+    let skyColorsB = paletteB.splice(rI(prng, 3), 1)[0];
+    let waterColorsB = paletteB.splice(rI(prng, 2), 1)[0];
+
+    let featureParams = {
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+      // Fixed Params (fixed across potential double exposures) //
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+
+      // whether or not to leave the sun empty
+      e_S: rI(prng, 90) == 0,
+      // whether or not to display an aura around the sun
+      s_A: rI(prng, 12) == 0,
+      // side-by-side "double exposure"
+      s_BSE: rI(prng, 18) == 0,
+      // shift (if any) to apply, moving the side-by-side split left/right
+      // 0 == no shift, even == left shift, odd == right shift
+      // (for variant A in double exposures)
+      s_BSS: rI(prng, 5),
+      // whether or not to A/B color-blend
+      c_B: rI(prng, 18) == 0,
+      // whether A/B color-blend should use glyph homage
+      g_H: rI(prng, 2) == 0,
+
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+      // Variable Params (per-exposure specific, if applicable) //
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+
+      ////////////////////////////////////////////////////////////
+      // For variant A in double exposures. //////////////////////
+      ////////////////////////////////////////////////////////////
+      // color of the sky
+      sk_CA: rgbC(skyColorsA),
+      // color of the sun
+      su_CA: rgbC(sunColorsA),
+      // color of the water
+      wa_CA: rgbC(waterColorsA),
+      // color of the sun reflection on the water
+      rf_CA: rgbCB(sunColorsA, waterColorsA, s_CR, w_CR),
+      // color of the aura reflection on the water
+      au_CA: rgbCB(waterColorsA, sunColorsA, w_CR, s_CR),
+      // shift (if any) to apply, moving the sun left/right
+      // 0 == no shift, even == left shift, odd == right shift
+      su_SA: rI(prng, 5),
+      su_SVA: rI(prng, 2) + 2,
+      // shift (if any) to apply, moving the horizon up/down
+      // 0 == no shift, even == up shift, odd == down shift
+      hz_SA: rI(prng, 5),
+      // whether or not to stipple-blend the reflections
+      st_TA: rI(prng, 12) == 0,
+      // relative size of the stippling brush (an integer value)
+      st_SA: rI(prng, 4) + 3,
+      // relative density of the stippling strokes
+      st_DA: rI(prng, 2) + 1,
+
+      ////////////////////////////////////////////////////////////
+      // For variant B in double exposures. //////////////////////
+      ////////////////////////////////////////////////////////////
+      // color of the sky
+      sk_CB: rgbC(skyColorsB),
+      // color of the sun
+      su_CB: rgbC(sunColorsB),
+      // color of the water
+      wa_CB: rgbC(waterColorsB),
+      // color of the sun reflection on the water
+      rf_CB: rgbCB(sunColorsB, waterColorsB, s_CR, w_CR),
+      // color of the aura reflection on the water
+      au_CB: rgbCB(waterColorsB, sunColorsB, w_CR, s_CR),
+      // shift (if any) to apply, moving the sun left/right
+      // 0 == no shift, even == left shift, odd == right shift
+      su_SB: rI(prng, 5),
+      su_SVB: rI(prng, 2) + 2,
+      // shift (if any) to apply, moving the horizon up/down
+      // 0 == no shift, even == up shift, odd == down shift
+      hz_SB: rI(prng, 5),
+      // whether or not to stipple-blend the reflections
+      st_TB: rI(prng, 12) == 0,
+      // relative size of the stippling brush (an integer value)
+      st_SB: rI(prng, 4) + 3,
+      // relative density of the stippling strokes
+      st_DB: rI(prng, 2) + 1
+    };
+
+    var features = [];
+    if (featureParams.e_S) {
+      features.push(`Forgotten Sun: true`);
+    }
+    if (featureParams.s_A) {
+      features.push(`Sun Aura: true`);
+    }
+    if (featureParams.s_BSE) {
+      features.push(`Double Print: true`);
+    }
+    if (featureParams.c_B) {
+      let colorSpliceType = featureParams.g_H ? "Homage" : "Blended";
+      features.push(`Color Splice: ${colorSpliceType}`)
+    }
+
+    if (featureParams.s_BSE) {
+      features.push(`Stipple Size A-Side: ${featureParams.st_SA}`);
+      features.push(`Stipple Size B-Side: ${featureParams.st_SB}`);
+
+      features.push(`Stipple Density A-Side: ${featureParams.st_DA}`);
+      features.push(`Stipple Density B-Side: ${featureParams.st_DB}`);
+
+      features.push(`Color Palette A-Side: ${plaetteAName}`);
+      features.push(`Color Palette B-Side: ${plaetteBName}`);
+
+      if (featureParams.st_TA) {
+        features.push(`Blended Reflections A-Side: true`);
+      }
+      if (featureParams.st_TB) {
+        features.push(`Blended Reflections B-Side: true`);
+      }
+    } else {
+      features.push(`Stipple Size: ${featureParams.st_SA}`);
+      features.push(`Stipple Density: ${featureParams.st_DA}`);
+      features.push(`Color Palette: ${plaetteAName}`);
+
+      if (featureParams.st_TA) {
+        features.push(`Blended Reflections: true`);
+      }
+    }
+
+    return features;
+  }
+
+  features = getFeatures();
+  featuresReduced=features;
+
+}
+
+
 
   //////
 

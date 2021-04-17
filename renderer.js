@@ -829,7 +829,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     const imageResizer = Buffer.from(image);
 
     const resizedImage = await sharp(imageResizer)
-      .resize(Math.round(width / 1.5), Math.round(height / 1.5))
+      .resize(Math.round(width), Math.round(height))
       .png()
       .toBuffer();
 
@@ -922,7 +922,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width / 1.5), Math.round(height / 1.5))
+      .resize(Math.round(width), Math.round(height))
       .png();
 
     const params1 = {
