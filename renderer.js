@@ -138,7 +138,7 @@ app.get("/project/:projectId", async (request, response) => {
             ? projectDetails.projectTokenInfo.currencyAddress
             : "N/A",
         invocations: projectDetails.projectTokenInfo.invocations,
-        tokensOfProject: projectDetails.projectTokenInfo.tokens,
+        tokensOfProject: projectDetails.projectTokenInfo.invocations,
         maxInvocations: projectDetails.projectTokenInfo.maxInvocations,
         active: projectDetails.projectTokenInfo.active,
         paused: projectDetails.projectScriptInfo.paused,
@@ -176,12 +176,8 @@ app.get("/token/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
-    // console.log(tokensOfProject);
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
     console.log(`exists? ${exists}`);
     console.log(`token request ${request.params.tokenId}`);
 
@@ -253,11 +249,8 @@ app.get("/generator/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
 
     if (exists) {
       const tokenDetails = await getToken(request.params.tokenId);
@@ -358,11 +351,8 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
     const scriptInfo =
       projectId < 3
         ? await contract.methods.projectScriptInfo(projectId).call()
@@ -568,11 +558,8 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
+    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
     const scriptInfo =
       projectId < 3
         ? await contract.methods.projectScriptInfo(projectId).call()
@@ -1068,9 +1055,9 @@ async function getURIInfo(projectId) {
 
 async function getTokenDetails(projectId) {
   if (projectId < 3) {
-    const tokens = await contract.methods
-      .projectShowAllTokens(projectId)
-      .call();
+    //const tokens = await contract.methods
+      //.projectShowAllTokens(projectId)
+      //.call();
     const result = await contract.methods.projectTokenInfo(projectId).call();
     return {
       artistAddress: result[0],
@@ -1080,10 +1067,10 @@ async function getTokenDetails(projectId) {
       active: result[4],
       additionalPayee: result[5],
       additionalPayeePercentage: result[6],
-      tokens,
+      //tokens,
     };
   }
-  const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
+  //const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
   const result = await contract2.methods.projectTokenInfo(projectId).call();
   return {
     artistAddress: result[0],
@@ -1095,7 +1082,7 @@ async function getTokenDetails(projectId) {
     additionalPayeePercentage: result[6],
     currency: result[7],
     currencyAddress: result[8],
-    tokens,
+    //tokens,
   };
 }
 

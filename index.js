@@ -399,7 +399,7 @@ app.get("/token/:tokenId", async (request, response) => {
         if (projectId === 1 || projectId ===2 ){
           delete responseWithoutToken.animation_url;
         }
-        
+
         response.json(
           responseWithoutToken
         );
@@ -485,6 +485,10 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           response.send(`<script>${data}</script>${script}`);
         } else if (scriptJSON.type === "regl") {
           response.render("generator_regl", { script, data });
+        } else if (scriptJSON.type === "tonejs") {
+          response.render("generator_tonejs", { script, data });
+        } else if (scriptJSON.type === "paperjs") {
+          response.render("generator_paperjs", { script, data });
         } else {
           response.render("generator_threejs", { script, data });
         }

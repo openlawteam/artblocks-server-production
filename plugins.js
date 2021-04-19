@@ -9350,6 +9350,54 @@ else if (projectId===51){
       if (featureParams.st_TB) {
         features.push(`Blended Reflections B-Side: true`);
       }
+
+      let verticalAlignmentA;
+      if (featureParams.hz_SA == 0) {
+        verticalAlignmentA = "Center";
+      } else if (featureParams.hz_SA % 2 == 0) {
+        verticalAlignmentA = "Top";
+      } else {
+        verticalAlignmentA = "Bottom";
+      }
+      let horizontalAlignmentA;
+      if (featureParams.su_SA == 0) {
+        horizontalAlignmentA = "Center";
+      } else if (featureParams.su_SA % 2 == 0) {
+        horizontalAlignmentA = "Left";
+      } else {
+        horizontalAlignmentA = "Right";
+      }
+      let alignmentA;
+      if (verticalAlignmentA == "Center" && horizontalAlignmentA == "Center") {
+        alignmentA = "Perfect Balance";
+      } else {
+        alignmentA = `${verticalAlignmentA}-${horizontalAlignmentA}`;
+      }
+      features.push(`Alignment A-Side: ${alignmentA}`);
+
+      let verticalAlignmentB;
+      if (featureParams.hz_SB == 0) {
+        verticalAlignmentB = "Center";
+      } else if (featureParams.hz_SB % 2 == 0) {
+        verticalAlignmentB = "Top";
+      } else {
+        verticalAlignmentB= "Bottom";
+      }
+      let horizontalAlignmentB;
+      if (featureParams.su_SB == 0) {
+        horizontalAlignmentB = "Center";
+      } else if (featureParams.su_SB % 2 == 0) {
+        horizontalAlignmentB = "Left";
+      } else {
+        horizontalAlignmentB = "Right";
+      }
+      let alignmentB;
+      if (verticalAlignmentB == "Center" && horizontalAlignmentB == "Center") {
+        alignmentB = "Perfect Balance";
+      } else {
+        alignmentB = `${verticalAlignmentB}-${horizontalAlignmentB}`;
+      }
+      features.push(`Alignment B-Side: ${alignmentB}`);
     } else {
       features.push(`Stipple Size: ${featureParams.st_SA}`);
       features.push(`Stipple Density: ${featureParams.st_DA}`);
@@ -9358,6 +9406,30 @@ else if (projectId===51){
       if (featureParams.st_TA) {
         features.push(`Blended Reflections: true`);
       }
+
+      let verticalAlignment;
+      if (featureParams.hz_SA == 0) {
+        verticalAlignment = "Center";
+      } else if (featureParams.hz_SA % 2 == 0) {
+        verticalAlignment = "Top";
+      } else {
+        verticalAlignment = "Bottom";
+      }
+      let horizontalAlignment;
+      if (featureParams.su_SA == 0) {
+        horizontalAlignment = "Center";
+      } else if (featureParams.su_SA % 2 == 0) {
+        horizontalAlignment = "Left";
+      } else {
+        horizontalAlignment = "Right";
+      }
+      let alignment;
+      if (verticalAlignment == "Center" && horizontalAlignment == "Center") {
+        alignment = "Perfect Balance";
+      } else {
+        alignment = `${verticalAlignment}-${horizontalAlignment}`;
+      }
+      features.push(`Alignment: ${alignment}`);
     }
 
     return features;
