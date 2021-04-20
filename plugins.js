@@ -8856,35 +8856,32 @@ else if (projectId===47){
     return y1 * sd + m;
   };
 
-  let size = 1
+  var size = 1
+
   p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
 
-  let traits = [];
+  var traits = [];
 
-  let iniStars = parseInt(p5.prototype.random(size*20, size*200));
-  let minSize = p5.prototype.random(size*0.1, size*1);
-  let maxSize = p5.prototype.random(size*2, size*6);
-  let minSpeed = p5.prototype.random(size*0.05, size*0.08);
-  let maxSpeed = p5.prototype.random(size*0.15, size*0.3);
-  let linkForce = p5.prototype.random(size*50, size*65);
-  let colorLink = p5.prototype.random(12, 240);
-  let lineWeight = p5.prototype.random(size*0.25, size*1.5);
-  let colorR = p5.prototype.random(50, 255);
-  let colorG = p5.prototype.random(50, 255);
-  let colorB = p5.prototype.random(50, 255);
-  let alphaL = p5.prototype.random(200, 255);
-  let backgroundR = p5.prototype.random(0, 20)
-  let backgroundB = p5.prototype.random(0, 20)
-  let backgroundG = p5.prototype.random(0, 20)
-  let fullTrait = p5.prototype.random(10)
+  var iniStars = parseInt(p5.prototype.random(120, 200));
+  var minSize = p5.prototype.random(size*0.1, size*1);
+  var maxSize = p5.prototype.random(size*2, size*6);
+  var minSpeed = p5.prototype.random(size*0.05, size*0.08);
+  var maxSpeed = p5.prototype.random(size*0.15, size*0.3);
+  var linkForce = p5.prototype.random(size*50, size*65);
+  var colorLink = p5.prototype.random(12, 240);
+  var lineWeight = p5.prototype.random(size*0.25, size*1.5);
+  var colorR = p5.prototype.random(50, 255);
+  var colorG = p5.prototype.random(50, 255);
+  var colorB = p5.prototype.random(50, 255);
+  var alphaL = p5.prototype.random(200, 255);
+  var backgroundR = p5.prototype.random(0, 20)
+  var backgroundB = p5.prototype.random(0, 20)
+  var backgroundG = p5.prototype.random(0, 20)
+  var fullTrait = p5.prototype.random(10)
 
 
     //STARS
-    if(iniStars < size*40){
-      // console.log('stars: ' + iniStars)
-      traits.push("Sky type: Dark Night")}
-    else if(iniStars >= size*40 && iniStars <size*80){
-      // console.log('stars: ' + iniStars)
+    if(iniStars < 150){
       traits.push("Sky type: Calm Night")
     }
     else{
@@ -8956,11 +8953,11 @@ else if (projectId===47){
 
     }else{
       traits.push("Lucky Night: Off")
-    	let aldebaranRandom = p5.prototype.random(10)
-    	let marsRandom = p5.prototype.random(10)
-    	let moonRandom = p5.prototype.random(10)
-    	let sirioRandom = p5.prototype.random(10)
-    	let cometProb = p5.prototype.random(10)
+    	var aldebaranRandom = p5.prototype.random(10)
+    	var marsRandom = p5.prototype.random(10)
+    	var moonRandom = p5.prototype.random(10)
+    	var sirioRandom = p5.prototype.random(10)
+    	var cometProb = p5.prototype.random(10)
 
       if(aldebaranRandom > 4){
         // console.log('aldebaranRadius ' + aldebaranRadius)
@@ -9008,7 +9005,6 @@ else if (projectId===47){
 
   features=traits;
   featuresReduced=traits;
-
 
 }
 ////////
