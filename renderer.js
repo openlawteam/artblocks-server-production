@@ -415,6 +415,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         };
         s3.getObject(params, (err) => {
           if (err) {
+            console.log("first get err", err);
             let count = 0;
             if (!queueRef[request.params.tokenId]) {
               console.log("adding to queue");
@@ -486,8 +487,13 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                         });
                         combinedStream.pipe(response);
                       }
+                    })
+                    .catch((errHead) => {
+                      console.log("s3HeadObject err:", errHead);
+                      response.send(errHead);
                     });
                 }
+                console.log("checkForImageErr", err);
               });
               console.log(`interval: ${queue.getLength()}`);
               count += 1;
@@ -498,64 +504,62 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
               }
             }, 5000);
           } else {
+            // Files larger then 5mb must be retreived in chunks
             s3.headObject(params)
               .promise()
-              .then(() => {
-                // Files larger then 5mb must be retreived in chunks
-                s3.headObject(params)
-                  .promise()
-                  .then((res) => {
-                    console.log(`stream size:${res.ContentLength}`);
-                    if (res.ContentLength < 5000000) {
-                      const data = s3
-                        .getObject({
-                          Bucket: currentNetwork,
-                          Key,
-                        })
-                        .createReadStream();
-                      data.on("error", (singleError) => {
-                        console.error(singleError);
-                      });
-
-                      console.log("Returning single stream");
-
-                      response.writeHead(200, { "Content-Type": "image/png" });
-                      data.pipe(response);
-                    } else {
-                      const numStreams = Math.ceil(res.ContentLength / 5000000);
-                      const dataArray = [];
-                      let range;
-                      for (let s = 0; s < numStreams; s += 1) {
-                        if (s === 0) {
-                          range = "bytes=0-5000000";
-                        } else if (s === numStreams - 1) {
-                          range = `bytes=${s * 5000000 + 1}-${
-                            res.ContentLength
-                          }`;
-                        } else {
-                          range = `bytes=${s * 5000000 + 1}-${
-                            s * 5000000 + 5000000
-                          }`;
-                        }
-                        const data = s3
-                          .getObject({
-                            Bucket: currentNetwork,
-                            Key,
-                            Range: range,
-                          })
-                          .createReadStream();
-                        console.log(`Pushing stream ${s} to stream array.`);
-                        dataArray.push(data);
-                      }
-                      const combinedStream = CombinedStream.create();
-                      for (let t = 0; t < numStreams; t += 1) {
-                        combinedStream.append(dataArray[t]);
-                      }
-                      console.log("Returning combined streams");
-                      response.writeHead(200, { "Content-Type": "image/png" });
-                      combinedStream.pipe(response);
-                    }
+              .then((res) => {
+                console.log(`stream size:${res.ContentLength}`);
+                if (res.ContentLength < 5000000) {
+                  const data = s3
+                    .getObject({
+                      Bucket: currentNetwork,
+                      Key,
+                    })
+                    .createReadStream();
+                  data.on("error", (singleError) => {
+                    console.error(singleError);
                   });
+
+                  console.log("Returning single stream");
+
+                  response.writeHead(200, { "Content-Type": "image/png" });
+                  data.pipe(response);
+                } else {
+                  const numStreams = Math.ceil(res.ContentLength / 5000000);
+                  const dataArray = [];
+                  let range;
+                  for (let s = 0; s < numStreams; s += 1) {
+                    if (s === 0) {
+                      range = "bytes=0-5000000";
+                    } else if (s === numStreams - 1) {
+                      range = `bytes=${s * 5000000 + 1}-${res.ContentLength}`;
+                    } else {
+                      range = `bytes=${s * 5000000 + 1}-${
+                        s * 5000000 + 5000000
+                      }`;
+                    }
+                    const data = s3
+                      .getObject({
+                        Bucket: currentNetwork,
+                        Key,
+                        Range: range,
+                      })
+                      .createReadStream();
+                    console.log(`Pushing stream ${s} to stream array.`);
+                    dataArray.push(data);
+                  }
+                  const combinedStream = CombinedStream.create();
+                  for (let t = 0; t < numStreams; t += 1) {
+                    combinedStream.append(dataArray[t]);
+                  }
+                  console.log("Returning combined streams");
+                  response.writeHead(200, { "Content-Type": "image/png" });
+                  combinedStream.pipe(response);
+                }
+              })
+              .catch((errHead) => {
+                console.log("s3HeadObject err:", errHead);
+                response.send(errHead);
               });
           }
         });
