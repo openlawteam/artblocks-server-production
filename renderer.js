@@ -802,8 +802,8 @@ async function uploadToS3(params, maxRetries) {
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
   console.log(`I'm the renderer. We are rendering ${tokenId}`);
-  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
-  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
+  const width = Math.floor(ratio <= 1 ? 800 * ratio : 800);
+  const height = Math.floor(ratio <= 1 ? 800 : 800 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -830,7 +830,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : 500);
+      await timeout(pId === 39 ? 20000 :pId === 52? 4000 : 500);
     }
     console.log(`Renderer: navigated to url`);
 
@@ -896,8 +896,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
   console.log(`Running Puppeteer: ${tokenId}`);
 
   let url;
-  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
-  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
+  const width = Math.floor(ratio <= 1 ? 800 * ratio : 800);
+  const height = Math.floor(ratio <= 1 ? 800 : 800 / ratio);
   const tokenKey = `${tokenId}.png`;
 
   try {
@@ -925,7 +925,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : 500);
+      await timeout(pId === 39 ? 20000 :pId === 52? 4000 : 500);
     }
     const image = await page.screenshot();
 
