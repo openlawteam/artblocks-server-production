@@ -176,8 +176,13 @@ app.get("/token/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
-    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectTokenInfo(projectId).call()
+        : await contract2.methods.projectTokenInfo(projectId).call();
+    const exists =
+      request.params.tokenId <
+      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
     console.log(`exists? ${exists}`);
     console.log(`token request ${request.params.tokenId}`);
 
@@ -249,8 +254,13 @@ app.get("/generator/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
-    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectTokenInfo(projectId).call()
+        : await contract2.methods.projectTokenInfo(projectId).call();
+    const exists =
+      request.params.tokenId <
+      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
 
     if (exists) {
       const tokenDetails = await getToken(request.params.tokenId);
@@ -351,8 +361,13 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
-    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectTokenInfo(projectId).call()
+        : await contract2.methods.projectTokenInfo(projectId).call();
+    const exists =
+      request.params.tokenId <
+      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
     const scriptInfo =
       projectId < 3
         ? await contract.methods.projectScriptInfo(projectId).call()
@@ -400,6 +415,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         };
         s3.getObject(params, (err) => {
           if (err) {
+            console.log("first get err", err);
             let count = 0;
             if (!queueRef[request.params.tokenId]) {
               console.log("adding to queue");
@@ -471,8 +487,13 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                         });
                         combinedStream.pipe(response);
                       }
+                    })
+                    .catch((errHead) => {
+                      console.log("s3HeadObject err:", errHead);
+                      response.send(errHead);
                     });
                 }
+                console.log("checkForImageErr", err);
               });
               console.log(`interval: ${queue.getLength()}`);
               count += 1;
@@ -483,64 +504,62 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
               }
             }, 5000);
           } else {
+            // Files larger then 5mb must be retreived in chunks
             s3.headObject(params)
               .promise()
-              .then(() => {
-                // Files larger then 5mb must be retreived in chunks
-                s3.headObject(params)
-                  .promise()
-                  .then((res) => {
-                    console.log(`stream size:${res.ContentLength}`);
-                    if (res.ContentLength < 5000000) {
-                      const data = s3
-                        .getObject({
-                          Bucket: currentNetwork,
-                          Key,
-                        })
-                        .createReadStream();
-                      data.on("error", (singleError) => {
-                        console.error(singleError);
-                      });
-
-                      console.log("Returning single stream");
-
-                      response.writeHead(200, { "Content-Type": "image/png" });
-                      data.pipe(response);
-                    } else {
-                      const numStreams = Math.ceil(res.ContentLength / 5000000);
-                      const dataArray = [];
-                      let range;
-                      for (let s = 0; s < numStreams; s += 1) {
-                        if (s === 0) {
-                          range = "bytes=0-5000000";
-                        } else if (s === numStreams - 1) {
-                          range = `bytes=${s * 5000000 + 1}-${
-                            res.ContentLength
-                          }`;
-                        } else {
-                          range = `bytes=${s * 5000000 + 1}-${
-                            s * 5000000 + 5000000
-                          }`;
-                        }
-                        const data = s3
-                          .getObject({
-                            Bucket: currentNetwork,
-                            Key,
-                            Range: range,
-                          })
-                          .createReadStream();
-                        console.log(`Pushing stream ${s} to stream array.`);
-                        dataArray.push(data);
-                      }
-                      const combinedStream = CombinedStream.create();
-                      for (let t = 0; t < numStreams; t += 1) {
-                        combinedStream.append(dataArray[t]);
-                      }
-                      console.log("Returning combined streams");
-                      response.writeHead(200, { "Content-Type": "image/png" });
-                      combinedStream.pipe(response);
-                    }
+              .then((res) => {
+                console.log(`stream size:${res.ContentLength}`);
+                if (res.ContentLength < 5000000) {
+                  const data = s3
+                    .getObject({
+                      Bucket: currentNetwork,
+                      Key,
+                    })
+                    .createReadStream();
+                  data.on("error", (singleError) => {
+                    console.error(singleError);
                   });
+
+                  console.log("Returning single stream");
+
+                  response.writeHead(200, { "Content-Type": "image/png" });
+                  data.pipe(response);
+                } else {
+                  const numStreams = Math.ceil(res.ContentLength / 5000000);
+                  const dataArray = [];
+                  let range;
+                  for (let s = 0; s < numStreams; s += 1) {
+                    if (s === 0) {
+                      range = "bytes=0-5000000";
+                    } else if (s === numStreams - 1) {
+                      range = `bytes=${s * 5000000 + 1}-${res.ContentLength}`;
+                    } else {
+                      range = `bytes=${s * 5000000 + 1}-${
+                        s * 5000000 + 5000000
+                      }`;
+                    }
+                    const data = s3
+                      .getObject({
+                        Bucket: currentNetwork,
+                        Key,
+                        Range: range,
+                      })
+                      .createReadStream();
+                    console.log(`Pushing stream ${s} to stream array.`);
+                    dataArray.push(data);
+                  }
+                  const combinedStream = CombinedStream.create();
+                  for (let t = 0; t < numStreams; t += 1) {
+                    combinedStream.append(dataArray[t]);
+                  }
+                  console.log("Returning combined streams");
+                  response.writeHead(200, { "Content-Type": "image/png" });
+                  combinedStream.pipe(response);
+                }
+              })
+              .catch((errHead) => {
+                console.log("s3HeadObject err:", errHead);
+                response.send(errHead);
               });
           }
         });
@@ -558,8 +577,13 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = projectId<3?await contract.methods.projectTokenInfo(projectId).call():await contract2.methods.projectTokenInfo(projectId).call();
-    const exists = request.params.tokenId<Number(projectId)*1000000 + Number(tokensOfProject[2]);
+    const tokensOfProject =
+      projectId < 3
+        ? await contract.methods.projectTokenInfo(projectId).call()
+        : await contract2.methods.projectTokenInfo(projectId).call();
+    const exists =
+      request.params.tokenId <
+      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
     const scriptInfo =
       projectId < 3
         ? await contract.methods.projectScriptInfo(projectId).call()
@@ -804,10 +828,10 @@ async function renderImage(tokenId, tokenKey, ratio) {
 
     let pId = Math.floor(tokenId / 1000000);
     if (currentNetwork === "rinkeby") {
-        await timeout(pId === 36 ? 20000 : 500);
-      } else {
-        await timeout(pId === 39 ? 20000 : 500);
-      }
+      await timeout(pId === 36 ? 20000 : 500);
+    } else {
+      await timeout(pId === 39 ? 20000 : 500);
+    }
     console.log(`Renderer: navigated to url`);
 
     const image = await page.screenshot();
@@ -899,10 +923,10 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     let pId = Math.floor(tokenId / 1000000);
     if (currentNetwork === "rinkeby") {
-        await timeout(pId === 36 ? 20000 : 500);
-      } else {
-        await timeout(pId === 39 ? 20000 : 500);
-      }
+      await timeout(pId === 36 ? 20000 : 500);
+    } else {
+      await timeout(pId === 39 ? 20000 : 500);
+    }
     const image = await page.screenshot();
 
     await browser.close();
@@ -1056,8 +1080,8 @@ async function getURIInfo(projectId) {
 async function getTokenDetails(projectId) {
   if (projectId < 3) {
     //const tokens = await contract.methods
-      //.projectShowAllTokens(projectId)
-      //.call();
+    //.projectShowAllTokens(projectId)
+    //.call();
     const result = await contract.methods.projectTokenInfo(projectId).call();
     return {
       artistAddress: result[0],
@@ -1160,33 +1184,31 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
   const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
   const tokensOfProject =
     projectId < 3
-      ? await contract.methods.projectShowAllTokens(projectId).call()
-      : await contract2.methods.projectShowAllTokens(projectId).call();
+      ? await contract.methods.projectTokenInfo(projectId).call()
+      : await contract2.methods.projectTokenInfo(projectId).call();
+  const maxTokenId = Number(projectId) * 1000000 + Number(tokensOfProject[2]);
+  console.log("hoo", maxTokenId);
   if (request.params.endId) {
     for (
       let i = Number(request.params.startId);
       i < Number(request.params.endId);
       i += 1
     ) {
-      await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log(
-        "RenderImageRange: Run completed for ",
-        tokensOfProject[i],
-        "\n\n"
-      );
+      const tokenId = Number(projectId) * 1000000 + i;
+      console.log(tokenId);
+      await serveScriptResult(tokenId, ratio, refresh);
+      console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
     }
   } else {
     for (
       let i = Number(request.params.startId);
-      i < tokensOfProject.length;
+      i < Number(tokensOfProject[2]);
       i += 1
     ) {
-      await serveScriptResult(tokensOfProject[i], ratio, refresh);
-      console.log(
-        "RenderImageRange: Run completed for ",
-        tokensOfProject[i],
-        "\n\n"
-      );
+      const tokenId = Number(projectId) * 1000000 + i;
+      console.log("ay", tokenId);
+      await serveScriptResult(tokenId, ratio, refresh);
+      console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
     }
   }
 
