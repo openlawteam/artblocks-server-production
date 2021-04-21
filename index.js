@@ -366,6 +366,10 @@ app.get("/token/:tokenId", async (request, response) => {
           license: project.license,
           animation_url: tokenGenerator || "",
           image: tokenImage || "",
+          "interactive_nft": {
+            code_uri: tokenGenerator,
+            version:"0.0.9" // Current Sandbox Version
+            }
         };
 
         if (projectId === 1 || projectId === 2) {
@@ -394,6 +398,10 @@ app.get("/token/:tokenId", async (request, response) => {
           license: project.license,
           animation_url: tokenGenerator || "",
           image: tokenImage || "",
+          "interactive_nft": {
+            code_uri: tokenGenerator,
+            version:"0.0.9" // Current Sandbox Version
+            }
         };
 
         if (projectId === 1 || projectId === 2) {
