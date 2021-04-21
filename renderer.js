@@ -15,9 +15,6 @@ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABI
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 */
-
-require("dotenv").config();
-
 const express = require("express");
 const Web3 = require("web3");
 const favicon = require("serve-favicon");
@@ -29,7 +26,6 @@ const CombinedStream = require("combined-stream");
 const sharp = require("sharp");
 const AWS = require("aws-sdk");
 const fs = require("fs");
-const tempdir = require("tempdir");
 const util = require("util");
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -830,7 +826,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 :pId === 52? 4000 : 500);
+      await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : 500);
     }
     console.log(`Renderer: navigated to url`);
 
@@ -925,7 +921,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 :pId === 52? 4000 : 500);
+      await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : 500);
     }
     const image = await page.screenshot();
 

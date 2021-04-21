@@ -46,7 +46,7 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-const currentNetwork = "mainnet";
+const currentNetwork = process.env.NETWORK || "mainnet";
 const mediaUrl =
   currentNetwork === "mainnet"
     ? "mainnet.oss.nodechef.com"
@@ -99,8 +99,6 @@ const address2 =
     : require("./artifacts/GenArt721Core.json").contractAddressRinkeby;
 
 const contract2 = new web3.eth.Contract(abi2, address2);
-
-console.log(address, address2);
 
 app.set("views", "./views");
 app.set("view engine", "pug");
@@ -179,7 +177,6 @@ app.get("/", async (request, response) => {
 
 app.get("/platform", async (request, response) => {
   const platformInfo = await getPlatformInfo();
-  const { platform } = await getPlatform();
 
   const projects = [];
   for (let i = 0; i < platformInfo.nextProjectId; i += 1) {
@@ -192,7 +189,7 @@ app.get("/platform", async (request, response) => {
     address: [address, address2],
     totalSupply: platformInfo.totalSupply,
     projects,
-    nextProjectId: platform.nextProjectId,
+    nextProjectId: getPlatformInfo.nextProjectId,
   });
 });
 
@@ -201,7 +198,10 @@ app.get("/token/:tokenId", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const existsData = await checkTokenExists(request.params.tokenId);
+    const existsData = await checkTokenExists(
+      request.params.tokenId,
+      currentNetwork
+    );
     if (existsData.exists) {
       const projectId = await getProjectId(request.params.tokenId);
       let project = null;
@@ -209,9 +209,7 @@ app.get("/token/:tokenId", async (request, response) => {
       let scriptJSON = null;
 
       if (existsData.source === "graph") {
-        const tokenProjectData = await getTokenAndProject(
-          request.params.tokenId
-        );
+        const tokenProjectData = existsData.data;
         const { token } = tokenProjectData;
         project = token.project;
         hash = token.hash;
@@ -328,6 +326,7 @@ app.get("/token/:tokenId", async (request, response) => {
       const tokenGenerator =
         project.baseUri &&
         `${project.baseUri.slice(0, -6)}generator/${request.params.tokenId}`;
+
       try {
         const tokenKey = `${request.params.tokenId}.png`;
         const checkImageExistsParams = {
@@ -336,7 +335,7 @@ app.get("/token/:tokenId", async (request, response) => {
         };
         await s3.getObject(checkImageExistsParams).promise();
 
-        let responseWithToken = {
+        const responseWithToken = {
           platform,
           name: tokenName,
           curation_status: tokenType.toLowerCase(),
@@ -366,10 +365,10 @@ app.get("/token/:tokenId", async (request, response) => {
           license: project.license,
           animation_url: tokenGenerator || "",
           image: tokenImage || "",
-          "interactive_nft": {
+          interactive_nft: {
             code_uri: tokenGenerator,
-            version:"0.0.9" // Current Sandbox Version
-            }
+            version: "0.0.9", // Current Sandbox Version
+          },
         };
 
         if (projectId === 1 || projectId === 2) {
@@ -378,7 +377,7 @@ app.get("/token/:tokenId", async (request, response) => {
 
         response.json(responseWithToken);
       } catch (err) {
-        let responseWithoutToken = {
+        const responseWithoutToken = {
           platform,
           name: tokenName,
           curation_status: tokenType.toLowerCase(),
@@ -398,10 +397,10 @@ app.get("/token/:tokenId", async (request, response) => {
           license: project.license,
           animation_url: tokenGenerator || "",
           image: tokenImage || "",
-          "interactive_nft": {
+          interactive_nft: {
             code_uri: tokenGenerator,
-            version:"0.0.9" // Current Sandbox Version
-            }
+            version: "0.0.9", // Current Sandbox Version
+          },
         };
 
         if (projectId === 1 || projectId === 2) {
@@ -421,7 +420,10 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const existsData = await checkTokenExists(request.params.tokenId);
+    const existsData = await checkTokenExists(
+      request.params.tokenId,
+      currentNetwork
+    );
     if (existsData.exists) {
       const projectId = await getProjectId(request.params.tokenId);
       let project = null;
@@ -430,9 +432,7 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       let scriptJSON = null;
 
       if (existsData.source === "graph") {
-        const tokenProjectData = await getTokenAndProject(
-          request.params.tokenId
-        );
+        const tokenProjectData = existsData.data;
         const { token } = tokenProjectData;
         project = token.project;
         hash = token.hash;
@@ -553,7 +553,10 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const existsData = await checkTokenExists(request.params.tokenId);
+    const existsData = await checkTokenExists(
+      request.params.tokenId,
+      currentNetwork
+    );
 
     console.log(`exists? ${Boolean(existsData.exists)}`);
     console.log(`token request ${request.params.tokenId}`);
@@ -663,26 +666,41 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
 //   return { tokenId, projectId, hashes };
 // }
 
-async function checkTokenExists(tokenId) {
-  const tokenAndProjectData = await getTokenAndProject(tokenId);
+async function checkTokenExists(tokenId, network) {
+  if (network === "mainnet") {
+    const tokenAndProjectData = await getTokenAndProject(tokenId);
 
-  const existsGraph = tokenAndProjectData.token;
+    const existsGraph = tokenAndProjectData.token;
 
-  if (existsGraph) {
-    return { exists: true, source: "graph", data: tokenAndProjectData };
-  }
+    if (existsGraph) {
+      return { exists: true, source: "graph", data: tokenAndProjectData };
+    }
 
-  let providerHash = await getTokenHashes(tokenId);
-  // extract if is array
-  providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
+    let providerHash = await getTokenHashes(tokenId);
+    // extract if is array
+    providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
 
-  const existsInfura =
-    providerHash !==
-      "0x0000000000000000000000000000000000000000000000000000000000000000" &&
-    providerHash;
+    const existsInfura =
+      providerHash !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+      providerHash;
 
-  if (existsInfura) {
-    return { exists: true, source: "provider", data: { hash: providerHash } };
+    if (existsInfura) {
+      return { exists: true, source: "provider", data: { hash: providerHash } };
+    }
+  } else {
+    let providerHash = await getTokenHashes(tokenId);
+    // extract if is array
+    providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
+
+    const existsInfura =
+      providerHash !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+      providerHash;
+
+    if (existsInfura) {
+      return { exists: true, source: "provider", data: { hash: providerHash } };
+    }
   }
 
   return { exists: false, source: "both", data: null };
