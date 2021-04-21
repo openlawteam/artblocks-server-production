@@ -122,49 +122,103 @@ app.get("/project/:projectId", async (request, response) => {
 
     const exists = Number(request.params.projectId) < Number(nextProjectId);
     if (exists) {
-      const { project } = await getProject(request.params.projectId);
-      project.scriptJSON = JSON.parse(project.scriptJSON);
-      const { script } = project;
-      const beautifulScript = beautify(script, {
-        indent_size: 5,
-        space_in_empty_paren: true,
-      });
-      response.render("projectInfo", {
-        name: project.name,
-        artist: project.artistName,
-        description: project.description,
-        website: project.website,
-        license: project.license,
-        scriptJSON: JSON.stringify(project.scriptJSON),
-        scriptType: project.scriptJSON ? project.scriptJSON.type : "",
-        scriptVersion: project.scriptJSON ? project.scriptJSON.version : "",
-        scriptRatio: project.scriptJSON ? project.scriptJSON.aspectRatio : "",
-        instructions: project.scriptJSON ? project.scriptJSON.instructions : "",
-        script: beautifulScript,
-        /// IS THIS RIGHT?
-        hashesGen: project.useHashString,
-        isDynamic: project.dynamic,
-        artistAddress: project.artistAddress,
-        additionalPayee:
-          project.additionalPayee ||
-          "0x0000000000000000000000000000000000000000",
-        additionalPayeePercentage: project.additionalPayeePercentage || "0",
-        price: web3.utils.fromWei(project.pricePerTokenInWei, "ether"),
-        currency: project.currencySymbol ? project.currencySymbol : "ETH",
-        currencyAddress:
-          project.currencyAddress &&
-          project.currencyAddress !==
-            "0x0000000000000000000000000000000000000000"
-            ? project.currencyAddress
-            : "N/A",
-        invocations: project.invocations,
-        tokensOfProject: project.tokens.map((token) => {
-          return token.id;
-        }),
-        maxInvocations: project.maxInvocations,
-        active: !project.paused,
-        paused: Boolean(project.paused),
-      });
+      if (currentNetwork === "mainnet") {
+        const { project } = await getProject(request.params.projectId);
+        project.scriptJSON = JSON.parse(project.scriptJSON);
+        const { script } = project;
+        const beautifulScript = beautify(script, {
+          indent_size: 5,
+          space_in_empty_paren: true,
+        });
+        response.render("projectInfo", {
+          name: project.name,
+          artist: project.artistName,
+          description: project.description,
+          website: project.website,
+          license: project.license,
+          scriptJSON: JSON.stringify(project.scriptJSON),
+          scriptType: project.scriptJSON ? project.scriptJSON.type : "",
+          scriptVersion: project.scriptJSON ? project.scriptJSON.version : "",
+          scriptRatio: project.scriptJSON ? project.scriptJSON.aspectRatio : "",
+          instructions: project.scriptJSON
+            ? project.scriptJSON.instructions
+            : "",
+          script: beautifulScript,
+          /// IS THIS RIGHT?
+          hashesGen: project.useHashString,
+          isDynamic: project.dynamic,
+          artistAddress: project.artistAddress,
+          additionalPayee:
+            project.additionalPayee ||
+            "0x0000000000000000000000000000000000000000",
+          additionalPayeePercentage: project.additionalPayeePercentage || "0",
+          price: web3.utils.fromWei(project.pricePerTokenInWei, "ether"),
+          currency: project.currencySymbol ? project.currencySymbol : "ETH",
+          currencyAddress:
+            project.currencyAddress &&
+            project.currencyAddress !==
+              "0x0000000000000000000000000000000000000000"
+              ? project.currencyAddress
+              : "N/A",
+          invocations: project.invocations,
+          tokensOfProject: project.tokens.map((token) => {
+            return token.id;
+          }),
+          maxInvocations: project.maxInvocations,
+          active: !project.paused,
+          paused: Boolean(project.paused),
+        });
+      } else {
+        const projectDetails = await getDetails(request.params.projectId);
+        const script = await getScript(
+          request.params.projectId,
+          projectDetails.projectScriptInfo.scriptCount
+        );
+        const beautifulScript = beautify(script, {
+          indent_size: 5,
+          space_in_empty_paren: true,
+        });
+        response.render("projectInfo", {
+          name: projectDetails.projectDescription.projectName,
+          artist: projectDetails.projectDescription.artistName,
+          description: projectDetails.projectDescription.description,
+          website: projectDetails.projectDescription.artistWebsite,
+          license: projectDetails.projectDescription.license,
+          scriptJSON: JSON.stringify(
+            projectDetails.projectScriptInfo.scriptJSON
+          ),
+          scriptType: projectDetails.projectScriptInfo.scriptJSON.type,
+          scriptVersion: projectDetails.projectScriptInfo.scriptJSON.version,
+          scriptRatio: projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
+          instructions:
+            projectDetails.projectScriptInfo.scriptJSON.instructions,
+          script: beautifulScript,
+          hashesGen: projectDetails.projectScriptInfo.hashesPerToken,
+          isDynamic: projectDetails.projectDescription.dynamic,
+          artistAddress: projectDetails.projectTokenInfo.artistAddress,
+          additionalPayee: projectDetails.projectTokenInfo.additionalPayee,
+          additionalPayeePercentage:
+            projectDetails.projectTokenInfo.additionalPayeePercentage,
+          price: web3.utils.fromWei(
+            projectDetails.projectTokenInfo.pricePerTokenInWei,
+            "ether"
+          ),
+          currency: projectDetails.projectTokenInfo.currency
+            ? projectDetails.projectTokenInfo.currency
+            : "ETH",
+          currencyAddress:
+            projectDetails.projectTokenInfo.currencyAddress &&
+            projectDetails.projectTokenInfo.currencyAddress !==
+              "0x0000000000000000000000000000000000000000"
+              ? projectDetails.projectTokenInfo.currencyAddress
+              : "N/A",
+          invocations: projectDetails.projectTokenInfo.invocations,
+          tokensOfProject: projectDetails.projectTokenInfo.tokens,
+          maxInvocations: projectDetails.projectTokenInfo.maxInvocations,
+          active: projectDetails.projectTokenInfo.active,
+          paused: projectDetails.projectScriptInfo.paused,
+        });
+      }
     } else {
       response.send("project does not exist");
     }
