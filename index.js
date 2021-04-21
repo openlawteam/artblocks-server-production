@@ -117,8 +117,9 @@ app.get("/project/:projectId", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const { platform } = await getPlatform();
-    const { nextProjectId } = platform;
+    const platformInfo = await getPlatformInfo();
+
+    const { nextProjectId } = platformInfo;
 
     const exists = Number(request.params.projectId) < Number(nextProjectId);
     if (exists) {
@@ -243,7 +244,7 @@ app.get("/platform", async (request, response) => {
     address: [address, address2],
     totalSupply: platformInfo.totalSupply,
     projects,
-    nextProjectId: getPlatformInfo.nextProjectId,
+    nextProjectId: platformInfo.nextProjectId,
   });
 });
 

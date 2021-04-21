@@ -48,7 +48,7 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-const currentNetwork = "mainnet";
+const currentNetwork = process.env.NETWORK || "mainnet";
 const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
@@ -489,7 +489,6 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                       response.send(errHead);
                     });
                 }
-                console.log("checkForImageErr", err);
               });
               console.log(`interval: ${queue.getLength()}`);
               count += 1;
