@@ -21,12 +21,13 @@ const favicon = require("serve-favicon");
 const puppeteer = require("puppeteer");
 const cors = require("cors");
 const path = require("path");
-const beautify = require("js-beautify").js;
 const CombinedStream = require("combined-stream");
 const sharp = require("sharp");
 const AWS = require("aws-sdk");
 const fs = require("fs");
 const util = require("util");
+const { getTokenAndProject } = require("./lib/queries");
+
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
 
@@ -74,8 +75,6 @@ const address2 =
 
 const contract2 = new web3.eth.Contract(abi2, address2);
 
-console.log(address, address2);
-
 app.set("views", "./views");
 app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "./")));
@@ -84,306 +83,59 @@ app.use(express.static("src"));
 app.use(cors());
 app.use(favicon(path.join(__dirname, "/favicon.ico")));
 
-app.get("/project/:projectId", async (request, response) => {
-  if (!Number.isInteger(Number(request.params.projectId))) {
-    console.log("not integer");
-    response.send("invalid request");
-  } else {
-    const nextProjectId = await contract2.methods.nextProjectId().call();
-    const exists = request.params.projectId < nextProjectId;
-    if (exists) {
-      const projectDetails = await getDetails(request.params.projectId);
-      const script = await getScript(
-        request.params.projectId,
-        projectDetails.projectScriptInfo.scriptCount
-      );
-      const beautifulScript = beautify(script, {
-        indent_size: 5,
-        space_in_empty_paren: true,
-      });
-
-      response.render("projectInfo", {
-        name: projectDetails.projectDescription.projectName,
-        artist: projectDetails.projectDescription.artistName,
-        description: projectDetails.projectDescription.description,
-        website: projectDetails.projectDescription.artistWebsite,
-        license: projectDetails.projectDescription.license,
-        scriptJSON: JSON.stringify(projectDetails.projectScriptInfo.scriptJSON),
-        scriptType: projectDetails.projectScriptInfo.scriptJSON.type,
-        scriptVersion: projectDetails.projectScriptInfo.scriptJSON.version,
-        scriptRatio: projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
-        instructions: projectDetails.projectScriptInfo.scriptJSON.instructions,
-        script: beautifulScript,
-        hashesGen: projectDetails.projectScriptInfo.hashesPerToken,
-        isDynamic: projectDetails.projectDescription.dynamic,
-        artistAddress: projectDetails.projectTokenInfo.artistAddress,
-        additionalPayee: projectDetails.projectTokenInfo.additionalPayee,
-        additionalPayeePercentage:
-          projectDetails.projectTokenInfo.additionalPayeePercentage,
-        price: web3.utils.fromWei(
-          projectDetails.projectTokenInfo.pricePerTokenInWei,
-          "ether"
-        ),
-        currency: projectDetails.projectTokenInfo.currency
-          ? projectDetails.projectTokenInfo.currency
-          : "ETH",
-        currencyAddress:
-          projectDetails.projectTokenInfo.currencyAddress &&
-          projectDetails.projectTokenInfo.currencyAddress !==
-            "0x0000000000000000000000000000000000000000"
-            ? projectDetails.projectTokenInfo.currencyAddress
-            : "N/A",
-        invocations: projectDetails.projectTokenInfo.invocations,
-        tokensOfProject: projectDetails.projectTokenInfo.invocations,
-        maxInvocations: projectDetails.projectTokenInfo.maxInvocations,
-        active: projectDetails.projectTokenInfo.active,
-        paused: projectDetails.projectScriptInfo.paused,
-      });
-    } else {
-      response.send("project does not exist");
-    }
-  }
-});
-
 app.get("/", async (request, response) => {
   response.render("home");
 });
 
-app.get("/platform", async (request, response) => {
-  const platformInfo = await getPlatformInfo();
-  const projects = [];
-  for (let i = 0; i < platformInfo.nextProjectId; i += 1) {
-    projects.push(i);
-  }
-
-  response.render("platformInfo", {
-    name: platformInfo.name,
-    symbol: platformInfo.symbol,
-    address: [address, address2],
-    totalSupply: platformInfo.totalSupply,
-    projects,
-    nextProjectId: platformInfo.nextProjectId,
-  });
-});
-
-app.get("/token/:tokenId", async (request, response) => {
-  if (!Number.isInteger(Number(request.params.tokenId))) {
-    console.log("not integer");
-    response.send("invalid request");
-  } else {
-    const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectTokenInfo(projectId).call()
-        : await contract2.methods.projectTokenInfo(projectId).call();
-    const exists =
-      request.params.tokenId <
-      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
-    console.log(`exists? ${exists}`);
-    console.log(`token request ${request.params.tokenId}`);
-
-    if (exists) {
-      const tokenDetails = await getToken(request.params.tokenId);
-      const projectDetails = await getDetails(tokenDetails.projectId);
-      const tokenHashes = await getTokenHashes(request.params.tokenId);
-      const royalties = await getTokenRoyaltyInfo(request.params.tokenId);
-
-      const projectName = `${projectDetails.projectDescription.projectName} #${
-        request.params.tokenId - tokenDetails.projectId * 1000000
-      }`;
-      const projectExternalUrl = `${projectDetails.projectURIInfo.projectBaseURI.slice(
-        0,
-        -6
-      )}generator/${request.params.tokenId}`;
-      const projectTraitValue = `${projectDetails.projectDescription.projectName} by ${projectDetails.projectDescription.artistName}`;
-      const imageURI = `${projectDetails.projectURIInfo.projectBaseURI.slice(
-        0,
-        -6
-      )}image/${request.params.tokenId}`;
-      const videoURI = `${projectDetails.projectURIInfo.projectBaseURI.slice(
-        0,
-        -6
-      )}video/${request.params.tokenId}`;
-
-      response.json({
-        platform: "Art Blocks",
-        name: projectName,
-        description: projectDetails.projectDescription.description,
-        external_url: projectExternalUrl,
-        artist: projectDetails.projectDescription.artistName,
-        royaltyInfo: {
-          artistAddress: royalties.artistAddress,
-          additionalPayee: royalties.additionalPayee,
-          additionalPayeePercentage: royalties.additionalPayeePercentage,
-          royaltyFeeByID: royalties.royaltyFeeByID,
-        },
-        traits: [
-          {
-            trait_type: "Project",
-            value: projectTraitValue,
-          },
-        ],
-
-        website: projectDetails.projectDescription.artistWebsite,
-        "is dynamic": projectDetails.projectDescription.dynamic,
-        "script type": projectDetails.projectScriptInfo.scriptJSON.type,
-        "aspect ratio (w/h)":
-          projectDetails.projectScriptInfo.scriptJSON.aspectRatio,
-        "uses hash":
-          projectDetails.projectScriptInfo.hashesPerToken === true ||
-          projectDetails.projectScriptInfo.hashesPerToken === 1,
-        tokenID: request.params.tokenId,
-        "token hash": tokenHashes,
-        license: projectDetails.projectDescription.license,
-        image: imageURI,
-        animation_url: videoURI,
-      });
-    } else {
-      response.send("token does not exist");
-    }
-  }
-});
-
-app.get("/generator/:tokenId", async (request, response) => {
-  if (!Number.isInteger(Number(request.params.tokenId))) {
-    console.log("not integer");
-    response.send("invalid request");
-  } else {
-    const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectTokenInfo(projectId).call()
-        : await contract2.methods.projectTokenInfo(projectId).call();
-    const exists =
-      request.params.tokenId <
-      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
-
-    if (exists) {
-      const tokenDetails = await getToken(request.params.tokenId);
-      const projectDetails = await getDetails(tokenDetails.projectId);
-      const script = await getScript(
-        tokenDetails.projectId,
-        projectDetails.projectScriptInfo.scriptCount
-      );
-      const data = buildData(tokenDetails.hashes, request.params.tokenId);
-
-      console.log(
-        "Generator running for token " +
-          request.params.tokenId +
-          " using hash: " +
-          tokenDetails.hashes
-      );
-
-      if (projectDetails.projectScriptInfo.scriptJSON.type === "p5js") {
-        response.render("generator_p5js", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "processing"
-      ) {
-        response.render("generator_processing", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "a-frame"
-      ) {
-        response.render("generator_aframe", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "megavox"
-      ) {
-        response.render("generator_megavox", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "vox") {
-        response.render("generator_vox", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "js") {
-        response.render("generator_js", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "svg") {
-        response.render("generator_svg", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "custom"
-      ) {
-        response.render("generator_js", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "regl") {
-        response.render("generator_regl", { script, data });
-      } else {
-        response.render("generator_threejs", { script, data });
-      }
-    } else {
-      response.send("token does not exist");
-    }
-  }
-});
-
-// app.get("/vox/:tokenId", async (request, response) => {
-//   if (!Number.isInteger(Number(request.params.tokenId))) {
-//     console.log("not integer");
-//     response.send("invalid request");
-//   } else {
-//     const projectId = await getProjectId(request.params.tokenId);
-//     const tokensOfProject =
-//       projectId < 3
-//         ? await contract.methods.projectShowAllTokens(projectId).call()
-//         : await contract2.methods.projectShowAllTokens(projectId).call();
-//     const exists = tokensOfProject.includes(request.params.tokenId);
-//     console.log("exists? " + exists);
-//     console.log("vox request for token: " + request.params.tokenId);
-
-//     if (exists) {
-//       let tokenDetails = await getToken(request.params.tokenId);
-//       let projectDetails = await getDetails(tokenDetails.projectId);
-//       if (
-//         projectDetails.projectScriptInfo.scriptJSON.type === "vox" ||
-//         projectDetails.projectScriptInfo.scriptJSON.type === "megavox"
-//       ) {
-//         let script = await getScript(
-//           tokenDetails.projectId,
-//           projectDetails.projectScriptInfo.scriptCount
-//         );
-//         let data = buildData(tokenDetails.hashes, request.params.tokenId);
-//         let scriptAndData = `${data}${script}`;
-//         var evalScript = eval(scriptAndData);
-//         let array = voxx.export();
-//         response.send(toBuffer(array));
-//       } else {
-//         response.send("token not a vox file");
-//       }
-//     } else {
-//       response.send("token does not exist");
-//     }
-//   }
-// });
-
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
-  let blockNumber = await web3.eth.getBlockNumber();
+  const blockNumber = await web3.eth.getBlockNumber();
   console.log(blockNumber);
   const file = path.resolve(__dirname, "./src/rendering.png");
   if (!Number.isInteger(Number(request.params.tokenId))) {
     console.log("not integer");
     response.send("invalid request");
   } else {
+    const existsData = await checkTokenExists(
+      request.params.tokenId,
+      currentNetwork
+    );
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectTokenInfo(projectId).call()
-        : await contract2.methods.projectTokenInfo(projectId).call();
-    const exists =
-      request.params.tokenId <
-      Number(projectId) * 1000000 + Number(tokensOfProject[2]);
-    const scriptInfo =
-      projectId < 3
-        ? await contract.methods.projectScriptInfo(projectId).call()
-        : await contract2.methods.projectScriptInfo(projectId).call();
-    const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
-    // eslint-disable-next-line
-    const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
-
-    // const delay = eval(scriptJSON.delay);
-    console.log(`exists? ${exists}`);
+    console.log(`exists? ${existsData.exists}`);
     console.log(`token request ${request.params.tokenId}`);
     const Key = `${request.params.tokenId}.png`;
 
-    if (exists) {
-      const tokenDetails = await getToken(request.params.tokenId);
+    if (existsData.exists) {
+      let scriptJSON = null;
+      let hash = null;
+      if (existsData.source === "graph") {
+        const tokenProjectData = existsData.data;
+        const { token } = tokenProjectData;
+        const { project } = token;
+        hash = token.hash;
+
+        scriptJSON = JSON.parse(project.scriptJSON);
+        console.log("graph");
+      } else {
+        console.log("infura");
+        const tokenDetails = await getToken(request.params.tokenId);
+
+        hash = Array.isArray(tokenDetails.hashes)
+          ? tokenDetails.hashes[0]
+          : tokenDetails.hashes;
+        const scriptInfo =
+          projectId < 3
+            ? await contract.methods.projectScriptInfo(projectId).call()
+            : await contract2.methods.projectScriptInfo(projectId).call();
+        scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+      }
+
+      const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+
       console.log(
         "I'm the renderer and the hash from Infura for tokenId: " +
           request.params.tokenId +
           " is: " +
-          tokenDetails.hashes
+          hash
       );
 
       if (request.params.refresh) {
@@ -644,7 +396,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
 });
 
 setInterval(async () => {
-  let qBlockNumber = await web3.eth.getBlockNumber();
+  const qBlockNumber = await web3.eth.getBlockNumber();
   console.log("Running Render Interval");
   console.log(`queue length: ${queue.getLength()}`);
   console.log(`queue obj:  ${JSON.stringify(queueRef)}`);
@@ -714,6 +466,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
     return puppeteerErr;
   }
 }
+
 async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
   const tokenKey = `${tokenId}.mp4`;
@@ -977,153 +730,6 @@ async function getToken(tokenId) {
   return { tokenId, projectId, hashes };
 }
 
-async function getDetails(projectId) {
-  const projectDescription = await getProjectDescription(projectId);
-  const projectScriptInfo = await getScriptInfo(projectId);
-  const projectTokenInfo = await getTokenDetails(projectId);
-  const projectURIInfo = await getURIInfo(projectId);
-  return {
-    projectDescription,
-    projectScriptInfo,
-    projectTokenInfo,
-    projectURIInfo,
-  };
-}
-
-async function getScript(projectId, scriptCount) {
-  let scripts = [];
-  for (let i = 0; i < scriptCount; i += 1) {
-    if (projectId < 3) {
-      const newScript = contract.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    } else {
-      const newScript = contract2.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    }
-  }
-  scripts = await Promise.all(scripts);
-  return scripts.join(" ");
-}
-
-async function getScriptInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectScriptInfo(projectId).call();
-    return {
-      scriptJSON: result[0] && JSON.parse(result[0]),
-      scriptCount: result[1],
-      hashesPerToken: result[2],
-      ipfsHash: result[3],
-      locked: result[4],
-      paused: result[5],
-    };
-  }
-  const result = await contract2.methods.projectScriptInfo(projectId).call();
-  return {
-    scriptJSON: result[0] && JSON.parse(result[0]),
-    scriptCount: result[1],
-    hashesPerToken: result[2],
-    ipfsHash: result[3],
-    locked: result[4],
-    paused: result[5],
-  };
-}
-
-async function getProjectDescription(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectDetails(projectId).call();
-    return {
-      projectName: result[0],
-      artistName: result[1],
-      description: result[2],
-      artistWebsite: result[3],
-      license: result[4],
-      dynamic: result[5],
-    };
-  }
-  const result = await contract2.methods.projectDetails(projectId).call();
-  return {
-    projectName: result[0],
-    artistName: result[1],
-    description: result[2],
-    artistWebsite: result[3],
-    license: result[4],
-    dynamic: result[5],
-  };
-}
-
-async function getURIInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectURIInfo(projectId).call();
-    return {
-      projectBaseURI: result[0],
-      projectBaseIpfsURI: result[1],
-      useIpfs: result[2],
-    };
-  }
-  const result = await contract2.methods.projectURIInfo(projectId).call();
-  return {
-    projectBaseURI: result[0],
-    projectBaseIpfsURI: result[1],
-    useIpfs: result[2],
-  };
-}
-
-async function getTokenDetails(projectId) {
-  if (projectId < 3) {
-    //const tokens = await contract.methods
-    //.projectShowAllTokens(projectId)
-    //.call();
-    const result = await contract.methods.projectTokenInfo(projectId).call();
-    return {
-      artistAddress: result[0],
-      pricePerTokenInWei: result[1],
-      invocations: result[2],
-      maxInvocations: result[3],
-      active: result[4],
-      additionalPayee: result[5],
-      additionalPayeePercentage: result[6],
-      //tokens,
-    };
-  }
-  //const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
-  const result = await contract2.methods.projectTokenInfo(projectId).call();
-  return {
-    artistAddress: result[0],
-    pricePerTokenInWei: result[1],
-    invocations: result[2],
-    maxInvocations: result[3],
-    active: result[4],
-    additionalPayee: result[5],
-    additionalPayeePercentage: result[6],
-    currency: result[7],
-    currencyAddress: result[8],
-    //tokens,
-  };
-}
-
-async function getTokenRoyaltyInfo(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.getRoyaltyData(tokenId).call();
-    return {
-      artistAddress: result[0],
-      additionalPayee: result[1],
-      additionalPayeePercentage: result[2],
-      royaltyFeeByID: result[3],
-    };
-  }
-  const result = await contract2.methods.getRoyaltyData(tokenId).call();
-  return {
-    artistAddress: result[0],
-    additionalPayee: result[1],
-    additionalPayeePercentage: result[2],
-    royaltyFeeByID: result[3],
-  };
-}
-
 async function getTokenHashes(tokenId) {
   if (tokenId < 3000000) {
     const result = await contract.methods.showTokenHashes(tokenId).call();
@@ -1133,34 +739,50 @@ async function getTokenHashes(tokenId) {
   return result;
 }
 
-async function getPlatformInfo() {
-  const totalSupply =
-    (await contract.methods.totalSupply().call()) +
-    (await contract2.methods.totalSupply().call());
-  const nextProjectId = await contract2.methods.nextProjectId().call();
-  const name = await contract.methods.name().call();
-  const symbol = await contract.methods.symbol().call();
-  return { totalSupply, nextProjectId, name, symbol };
-}
-
 async function getProjectId(tokenId) {
   // console.log(`projectId is: ${Math.floor(tokenId / 1000000)}`);
   return Math.floor(tokenId / 1000000);
 }
 
-function buildData(hashes, tokenId) {
-  // to expose token hashes use let hashes = tokenData.hashes[0] (example if only one hash is minted)
-  const data = {};
-  if (tokenId < 3000000) {
-    data.hashes = hashes;
-    data.tokenId = tokenId;
-  } else {
-    data.hash = hashes;
-    data.tokenId = tokenId;
-  }
-  return `let tokenData = ${JSON.stringify(data)}`;
-}
+async function checkTokenExists(tokenId, network) {
+  if (network === "mainnet") {
+    const tokenAndProjectData = await getTokenAndProject(tokenId);
 
+    const existsGraph = tokenAndProjectData.token;
+
+    if (existsGraph) {
+      return { exists: true, source: "graph", data: tokenAndProjectData };
+    }
+
+    let providerHash = await getTokenHashes(tokenId);
+    // extract if is array
+    providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
+
+    const existsInfura =
+      providerHash !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+      providerHash;
+
+    if (existsInfura) {
+      return { exists: true, source: "provider", data: { hash: providerHash } };
+    }
+  } else {
+    let providerHash = await getTokenHashes(tokenId);
+    // extract if is array
+    providerHash = Array.isArray(providerHash) ? providerHash[0] : providerHash;
+
+    const existsInfura =
+      providerHash !==
+        "0x0000000000000000000000000000000000000000000000000000000000000000" &&
+      providerHash;
+
+    if (existsInfura) {
+      return { exists: true, source: "provider", data: { hash: providerHash } };
+    }
+  }
+
+  return { exists: false, source: "both", data: null };
+}
 /* eslint-disable */
 // prettier-ignore
 function Queue(){var a=[],b=0;this.getLength=function(){return a.length-b};this.isEmpty=function(){return 0==a.length};this.enqueue=function(b){a.push(b)};this.dequeue=function(){if(0!=a.length){var c=a[b];2*++b>=a.length&&(a=a.slice(b),b=0);return c}};this.peek=function(){return 0<a.length?a[b]:void 0}}

@@ -29,11 +29,7 @@ require("dotenv").config();
 
 const AWS = require("aws-sdk");
 const plugins = require("./plugins.js");
-const {
-  getTokenAndProject,
-  getProject,
-  getPlatform,
-} = require("./lib/queries");
+const { getTokenAndProject, getProject } = require("./lib/queries");
 
 const app = express();
 
