@@ -6870,6 +6870,10 @@ if (projectId===39){
     //}
     // END Comment this out before minifying
 
+    // let tokenData = {"hash":"0x0c5bc96cf2b1cba8bab689f8caff9482c3402874d039b8987a102b94bcfaef3d","tokenId":"41000004"}
+    //let tokenData = {"hash":"0x0559aa28f62cfa991ec451e02360c4e747a95079f9b6ce35f764dc4aac4fca39","tokenId":"41000012"}
+    //let tokenData = {"hash":"0x146264f13c1e71c240d15018704c00bb29219b46d22e99d6e2a4c3bf347b18e0","tokenId":"41000575"}
+
     let hashPairs = [];
     for (let j = 0; j < 32; j++) {
         hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
@@ -6978,8 +6982,6 @@ if (projectId===39){
 
     let R = new Random(seed);
 
-    let val = R.random_between(0, 1);
-    					console.log(val);
 
     console.log(R);
 
@@ -7114,25 +7116,33 @@ if (projectId===39){
 
 
                     if (rectY) {
-                        if (R.random_between(0, 1) <= 0.9) {
-                        } else if (R.random_between(0, 1) > 0.9 && R.random_between(0, 1) <= 0.99) {
+    					let val2 = R.random_between(0, 1);
+
+                        if (val2 <= 0.9) {
+
+                        } else if (val2 > 0.9 && val2 <= 0.99) {
                         } else {
-    //                        parallelCount.push("yes")
-    //                        if (decPairs[9] <= 127.5) {
-    //                           parallelColour.push("Black");
-    //                        } else {
-    //                            parallelColour.push("White");
-    //                        }
+                            parallelCount.push("yes")
+    						console.log(val2)
+
+                            if (decPairs[9] <= 127.5) {
+                               parallelColour.push("Black");
+                            } else {
+                                parallelColour.push("White");
+                            }
                         }
                     }
 
                     if (smlRect) {}
 
                     if (ellipseY) {
-                        if (R.random_between(0, 1) < 0.9) {
+    					let val = R.random_between(0, 1);
+                        if (val < 0.9) {
 
                         } else {
-                        //    dotCount.push("yes")
+    											console.log(val)
+
+                            dotCount.push("yes")
                         }
                     }
 
@@ -7347,21 +7357,11 @@ if (projectId===39){
     }
 
 
-
-    if (dotCount.length != 0) {
-        features.push("White Dot: " + dotCount.length);
+    if (decPairs[11] <= 229.5) {
+        features.push("Heading: East");
+    } else {
+        features.push("Heading: West");
     }
-
-
-    if (headingCount.length != 0) {
-    	features.push("Heading: " + headingCount[0]);
-    }
-
-    //if (decPairs[11] <= 229.5) {
-    //    features.push("Heading: East");
-    //} else {
-    //    features.push("Heading: West");
-    //}
 
 
 
@@ -7373,8 +7373,6 @@ if (projectId===39){
     if (parallelCount.length != 0) {
         features.push("Blinds: " + parallelCount.length + " " + parallelColour[0]);
     }
-
-
 
     featuresReduced=features;
     console.log(features);

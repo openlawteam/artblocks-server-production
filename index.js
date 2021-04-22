@@ -76,11 +76,12 @@ const curatedProjects =
         39,
         40,
         41,
+        53
       ]
     : [];
 const playgroundProjects =
   currentNetwork === "mainnet"
-    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37, 42, 48]
+    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37, 42, 48, 56]
     : [];
 const testing = false;
 
