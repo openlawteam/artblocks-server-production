@@ -46,9 +46,8 @@ const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
-  endpoint: process.env.OSS_ENDPOINT,
+  // endpoint: process.env.OSS_ENDPOINT,
 });
-
 
 const currentNetwork = process.env.NETWORK || "mainnet";
 
@@ -595,15 +594,17 @@ async function renderImage(tokenId, tokenKey, ratio) {
       .toBuffer();
 
     const params1 = {
-      Bucket: currentNetwork,
+      Bucket: "artblocks-mainnet",
       Key: tokenKey,
       ContentType: "image/png",
+      ACL: "public-read",
       Body: image,
     };
     const params2 = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: "artblocks-mainthumb",
       Key: tokenKey,
       ContentType: "image/png",
+      ACL: "public-read",
       Body: resizedImage,
     };
     await uploadToS3(params1, 10);
@@ -620,7 +621,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
 async function serveScriptResult(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}, refresh: ${refresh}`);
   const tokenKey = `${tokenId}.png`;
-  const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  const checkImageExistsParams = { Bucket: "artblocks-mainnet", Key: tokenKey };
   if (refresh) {
     console.log("Refreshed Render Image Running....");
     await renderImage(tokenId, tokenKey, ratio);
@@ -806,7 +807,6 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
       ? await contract.methods.projectTokenInfo(projectId).call()
       : await contract2.methods.projectTokenInfo(projectId).call();
   const maxTokenId = Number(projectId) * 1000000 + Number(tokensOfProject[2]);
-  console.log("hoo", maxTokenId);
   if (request.params.endId) {
     for (
       let i = Number(request.params.startId);
@@ -825,7 +825,6 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
       i += 1
     ) {
       const tokenId = Number(projectId) * 1000000 + i;
-      console.log("ay", tokenId);
       await serveScriptResult(tokenId, ratio, refresh);
       console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
     }
