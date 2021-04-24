@@ -159,7 +159,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         );
       } else {
         const params = {
-          Bucket: currentNetwork,
+          Bucket: "artblocks-mainnet",
           Key,
         };
         s3.getObject(params, (err) => {
@@ -183,7 +183,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                       if (res.ContentLength < 5000000) {
                         const data = s3
                           .getObject({
-                            Bucket: currentNetwork,
+                            Bucket: "artblocks-mainnet",
                             Key,
                           })
                           .createReadStream();
@@ -218,7 +218,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                           const KeyMultiple = `${request.params.tokenId}.png`;
                           const data = s3
                             .getObject({
-                              Bucket: currentNetwork,
+                              Bucket: "artblocks-mainnet",
                               Key: KeyMultiple,
                               Range: range,
                             })
@@ -260,7 +260,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                 if (res.ContentLength < 5000000) {
                   const data = s3
                     .getObject({
-                      Bucket: currentNetwork,
+                      Bucket: "artblocks-mainnet",
                       Key,
                     })
                     .createReadStream();
@@ -288,7 +288,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                     }
                     const data = s3
                       .getObject({
-                        Bucket: currentNetwork,
+                        Bucket: "artblocks-mainnet",
                         Key,
                         Range: range,
                       })
@@ -355,7 +355,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
       // });
     } else {
       const checkVideoExistsParams = {
-        Bucket: currentNetwork,
+        Bucket: "artblocks-mainnet",
         Key: videoTokenKey,
       };
       try {
@@ -448,9 +448,10 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
     const video = await renderVideo(url, 10, width, height);
     const videoFileContent = await readFile(video);
     const uploadVideoParams = {
-      Bucket: currentNetwork,
+      Bucket: "artblocks-mainnet",
       Key: tokenKey,
       Body: videoFileContent,
+      ACL: "public-read",
       ContentType: "video/mp4",
     };
 
@@ -471,7 +472,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
 async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
   const tokenKey = `${tokenId}.mp4`;
-  const checkVideoExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  const checkVideoExistsParams = { Bucket: "artblocks-mainnet", Key: tokenKey };
   if (refresh) {
     await renderAndUploadVideo(tokenId, tokenKey, ratio);
     return true;
@@ -688,16 +689,18 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       .png();
 
     const params1 = {
-      Bucket: currentNetwork,
+      Bucket: "artblocks-mainnet",
       Key: tokenKey,
       ContentType: "image/png",
+      ACL: "public-read",
       Body: image,
     };
 
     const params2 = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: "artblocks-mainthumb",
       Key: tokenKey,
       ContentType: "image/png",
+      ACL: "public-read",
       Body: resizedImage,
     };
 
