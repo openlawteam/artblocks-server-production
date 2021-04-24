@@ -44,8 +44,8 @@ const PORT = process.env.PORT || 1234;
 const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 
 const s3 = new AWS.S3({
-  accessKeyId: process.env.OSS_ACCESS_KEY,
-  secretAccessKey: process.env.OSS_SECRET_KEY,
+  accessKeyId: process.env.OSS1_ACCESS_KEY,
+  secretAccessKey: process.env.OSS1_SECRET_KEY,
   // endpoint: process.env.OSS_ENDPOINT,
 });
 
@@ -552,8 +552,8 @@ async function uploadToS3(params, maxRetries) {
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
   console.log(`I'm the renderer. We are rendering ${tokenId}`);
-  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
-  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
+  const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
+  const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -590,7 +590,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     const imageResizer = Buffer.from(image);
 
     const resizedImage = await sharp(imageResizer)
-      .resize(Math.round(width), Math.round(height))
+      .resize(Math.round(width/2), Math.round(height/2))
       .png()
       .toBuffer();
 
@@ -635,7 +635,7 @@ async function serveScriptResult(tokenId, ratio, refresh) {
     queue.dequeue();
     return true;
   } catch (err) {
-    console.log(err);
+    console.log("Token does not exist");
     await renderImage(tokenId, tokenKey, ratio);
     queue.dequeue();
     return true;
@@ -648,8 +648,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
   console.log(`Running Puppeteer: ${tokenId}`);
 
   let url;
-  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
-  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
+  const width = Math.floor(ratio <= 1 ? 1200 * ratio : 1200);
+  const height = Math.floor(ratio <= 1 ? 1200 : 1200 / ratio);
   const tokenKey = `${tokenId}.png`;
 
   try {
@@ -685,7 +685,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width), Math.round(height))
+      .resize(Math.round(width/2), Math.round(height/2))
       .png();
 
     const params1 = {
