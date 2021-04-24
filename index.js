@@ -425,6 +425,7 @@ app.get("/token/:tokenId", async (request, response) => {
 
         if (projectId === 1 || projectId === 2) {
           delete responseWithToken.animation_url;
+          //delete responseWithToken.interactive_nft;
         }
 
         response.json(responseWithToken);
@@ -457,6 +458,7 @@ app.get("/token/:tokenId", async (request, response) => {
 
         if (projectId === 1 || projectId === 2) {
           delete responseWithoutToken.animation_url;
+          //delete responseWithoutToken.interactive_nft;
         }
 
         response.json(responseWithoutToken);

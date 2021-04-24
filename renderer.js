@@ -552,8 +552,8 @@ async function uploadToS3(params, maxRetries) {
 async function renderImage(tokenId, tokenKey, ratio) {
   let url;
   console.log(`I'm the renderer. We are rendering ${tokenId}`);
-  const width = Math.floor(ratio <= 1 ? 600 * ratio : 600);
-  const height = Math.floor(ratio <= 1 ? 600 : 600 / ratio);
+  const width = Math.floor(ratio <= 1 ? 800 * ratio : 800);
+  const height = Math.floor(ratio <= 1 ? 800 : 800 / ratio);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -567,7 +567,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
       deviceScaleFactor: 2,
     });
     if (testing) {
-      await page.goto(`http://localhost:1234/generator/${tokenId}`);
+      await page.goto(`http://localhost:8080/generator/${tokenId}`);
     } else {
       url =
         currentNetwork === "rinkeby"
