@@ -8682,6 +8682,249 @@ else if (projectId===44){
 
   /////////////
 
+  else if (projectId===47){
+    function p5() {
+        this._lcg_random_state = null;
+        this._gaussian_previous = false;
+    }
+
+    // variables used for random number generators
+    const randomStateProp = '_lcg_random_state';
+    // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+    // m is basically chosen to be large (as it is the max period)
+    // and for its relationships to a and c
+    const m = 4294967296;
+    // a - 1 should be divisible by m's prime factors
+    const a = 1664525;
+    // c and m should be co-prime
+    const c = 1013904223;
+    let y2 = 0;
+
+    // Linear Congruential Generator that stores its state at instance[stateProperty]
+    p5.prototype._lcg = function(stateProperty) {
+      // define the recurrence relationship
+      this[stateProperty] = (a * this[stateProperty] + c) % m;
+      // return a float in [0, 1)
+      // we've just used % m, so / m is always < 1
+      return this[stateProperty] / m;
+    };
+
+    p5.prototype._lcgSetSeed = function(stateProperty, val) {
+      // pick a random seed if val is undefined or null
+      // the >>> 0 casts the seed to an unsigned 32-bit integer
+      this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+    };
+
+    p5.prototype.randomSeed = function(seed) {
+      this._lcgSetSeed(randomStateProp, seed);
+      this._gaussian_previous = false;
+    };
+
+    p5.prototype.random = function(min, max) {
+      let rand;
+
+      if (this[randomStateProp] != null) {
+        rand = this._lcg(randomStateProp);
+      } else {
+        rand = Math.random();
+      }
+      if (typeof min === 'undefined') {
+        return rand;
+      } else if (typeof max === 'undefined') {
+        if (min instanceof Array) {
+          return min[Math.floor(rand * min.length)];
+        } else {
+          return rand * min;
+        }
+      } else {
+        if (min > max) {
+          const tmp = min;
+          min = max;
+          max = tmp;
+        }
+
+        return rand * (max - min) + min;
+      }
+    };
+
+    p5.prototype.randomGaussian = function(mean, sd = 1) {
+      let y1, x1, x2, w;
+      if (this._gaussian_previous) {
+        y1 = y2;
+        this._gaussian_previous = false;
+      } else {
+        do {
+          x1 = this.random(2) - 1;
+          x2 = this.random(2) - 1;
+          w = x1 * x1 + x2 * x2;
+        } while (w >= 1);
+        w = Math.sqrt(-2 * Math.log(w) / w);
+        y1 = x1 * w;
+        y2 = x2 * w;
+        this._gaussian_previous = true;
+      }
+
+      const m = mean || 0;
+      return y1 * sd + m;
+    };
+
+    var size = 1
+
+    p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
+
+    var traits = [];
+
+    var iniStars = parseInt(p5.prototype.random(120, 200));
+    var minSize = p5.prototype.random(size*0.1, size*1);
+    var maxSize = p5.prototype.random(size*2, size*6);
+    var minSpeed = p5.prototype.random(size*0.05, size*0.08);
+    var maxSpeed = p5.prototype.random(size*0.15, size*0.3);
+    var linkForce = p5.prototype.random(size*50, size*65);
+    var colorLink = p5.prototype.random(12, 240);
+    var lineWeight = p5.prototype.random(size*0.25, size*1.5);
+    var colorR = p5.prototype.random(50, 255);
+    var colorG = p5.prototype.random(50, 255);
+    var colorB = p5.prototype.random(50, 255);
+    var alphaL = p5.prototype.random(200, 255);
+    var backgroundR = p5.prototype.random(0, 20)
+    var backgroundB = p5.prototype.random(0, 20)
+    var backgroundG = p5.prototype.random(0, 20)
+    var fullTrait = p5.prototype.random(10)
+
+
+      //STARS
+      if(iniStars < 150){
+        traits.push("Sky type: Calm Night")
+      }
+      else{
+        // console.log('stars: ' + iniStars)
+        traits.push("Sky type: Starry Night")
+      }
+
+      if(maxSize >= size*0 && maxSize <=size*3.2) {
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Dwarf Star")
+        }
+      else if(maxSize > size*3.2 && maxSize <= size*4.5){
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Giant Star")
+        }
+      else {
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Super Giant Star")
+        }
+      if(maxSpeed < size*0.2){
+        // console.log("Speed: " + maxSpeed)
+        traits.push("Speed: Low")
+      } else {
+        // console.log("Speed: " + maxSpeed)
+        traits.push("Speed: Fast")
+      }
+
+      if(lineWeight >= size*0.25 && lineWeight < size*0.4){
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Low")
+        }
+      else if(lineWeight >= size*0.4 && lineWeight < size*1.2){
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Regular")
+        }
+      else if(lineWeight >= size*1.2) {
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Bold")
+        }
+
+      //BACKGROUND
+      if(backgroundR < 6 && backgroundG < 6 && backgroundB < 6){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Low")
+        }
+      else if(backgroundR > 15 || backgroundG > 15 || backgroundB > 15){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Hard")
+        }
+      else if(backgroundR > 6 && backgroundR < 15 || backgroundG > 6 && backgroundG < 15 || backgroundB > 6 && backgroundB < 15){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Regular")
+        }
+
+      //PLANETS
+      if(fullTrait < 0.1){
+        traits.push("Lucky Night: On")
+        traits.push("Aldebaran: Visible")
+        traits.push("Mars: Visible")
+        traits.push("Moon: Visible")
+        traits.push("Sirio: Visible")
+        traits.push("Comet: Visible")
+
+      }else{
+        traits.push("Lucky Night: Off")
+      	var aldebaranRandom = p5.prototype.random(10)
+      	var marsRandom = p5.prototype.random(10)
+      	var moonRandom = p5.prototype.random(10)
+      	var sirioRandom = p5.prototype.random(10)
+      	var cometProb = p5.prototype.random(10)
+
+        if(aldebaranRandom > 4){
+          // console.log('aldebaranRadius ' + aldebaranRadius)
+          traits.push("Aldebaran: Visible")
+        }else{
+          // console.log('aldebaranRadius ' + aldebaranRadius)
+          traits.push("Aldebaran: Hidden" )
+        }
+
+        if(marsRandom > 6){
+          // console.log('marsRadius ' + marsRadius)
+          traits.push("Mars: Visible")
+        }else{
+          // console.log('marsRadius ' + marsRadius)
+          traits.push("Mars: Hidden")
+        }
+
+        if(moonRandom > 2){
+          // console.log('moonRadius ' + moonRadius)
+          traits.push("Moon: Visible")
+        } else {
+          // console.log('moonRadius ' + moonRadius)
+          traits.push("Moon: Hidden")
+        }
+
+        if(sirioRandom > 8){
+          // console.log('sirioRadius ' + sirioRadius)
+          traits.push("Sirio: Visible")
+        } else {
+          // console.log('sirioRadius ' + sirioRadius)
+          traits.push("Sirio: Hidden")
+        }
+
+        //COMETS
+        if(cometProb < 0.5){
+          // console.log("Comet: Visible")
+          traits.push("Comet: Visible")
+        } else {
+          // console.log("Comet: Hidden")
+          traits.push("Comet: Hidden")
+        }
+      }
+
+    console.log(traits);
+
+    features=traits;
+    featuresReduced=traits;
+
+  }
+
+
+
+
+  ////////
+
 
   else if (projectId === 48){
 
@@ -9439,7 +9682,151 @@ else if (projectId===53){
   (()=>{"use strict";function e(e){var f=o(~~e[0],0,255),t=o(~~e[1],0,255);return"#"+(o(~~e[2],0,255)|t<<8|f<<16|16777216).toString(16).slice(1)}function f(f,t,a){var c=Math.sin,r=Math.cos;const n=a/180*s;return e((([e,f,t])=>{let a=d(e+.3963377774*f+.2158037573*t,3),c=d(e-.1055613458*f-.0638541728*t,3),r=d(e-.0894841775*f-1.291485548*t,3);return[o(~~(255*p(4.0767245293*a-3.3072168827*c+.2307590544*r)),0,255),o(~~(255*p(-1.2681437731*a+2.6093323231*c-.341134429*r)),0,255),o(~~(255*p(-.0041119885*a-.7034763098*c+1.7068625689*r)),0,255)]})([f/=100,(t/=100)?t*r(n):0,t?t*c(n):0]))}function t(e,f){return 0>f?"Procedural":e?["Campgrounds","Bauhaus","Pop","Disco","Midnight","Holographic","Spring","Siren","PeachPlum","BloodOrange","Highlighter","Chalk"][f]:["Ballpoint","Memphis","Lime","Acid","Peppermint"][f]}function a(e){return 0===e?"Minimal":1===e?"Invert":2===e?"Screenprint":3===e?"Lino":6===e?"Acrylic":7===e?"Pencil":8===e?"Metallic":15===e?"Starfall":9===e?"Drift":12===e?"Warhol":13===e?"Riso":14===e?"Neon":"Unknown"}var c=Math.floor,r=Math.max,n=Math.min,s=Math.PI,d=Math.pow;const o=(e,f,t)=>r(n(e,t),f),i=e=>d((e+.055)/1.055,2.4),l=(f,t=~~(f/100*255))=>e([t,t,t]),b=e=>{"string"==typeof e&&(e=u(e));var f=e[0]/255,t=e[1]/255,a=e[2]/255;return.2126*(.03928>=f?f*(1/12.92):i(f))+.7152*(.03928>=t?t*(1/12.92):i(t))+.0722*(.03928>=a?a*(1/12.92):i(a))},h=(e,f)=>{var t=b(e),a=b(f);return(r(t,a)+.05)/(n(t,a)+.05)},u=e=>{var f=e.replace("#",""),t=parseInt(f,16);return[t>>16,255&t>>8,255&t]},p=e=>.0031308<e?1.055*d(e,1/2.4)-.055:12.92*e,g=(e,f,t=1,a=[3,2.5,2])=>{for(let c=0;c<a.length;c++){const r=e.filter(e=>f.every(f=>h(e,f)>=a[c]));if(r.length>=t)return r}},m=d(2,-32),v=32557,M=new Uint16Array(4),y=new DataView(M.buffer),S=()=>{const e=M[0],f=M[1],t=M[2],a=M[3],c=0|33103+v*e,r=0|63335+v*f+(19605*e+(c>>>16)),n=0|31614+v*t+19605*f+(62509*e+(r>>>16));M[0]=c,M[1]=r,M[2]=n,M[3]=5125+v*a+(19605*t+62509*f)+(22609*e+(n>>>16));const s=(a<<21)+((a>>2^t)<<5)+((t>>2^f)>>11);return m*((s>>>(a>>11)|s<<(31&-(a>>11)))>>>0)},w=(e,f=0)=>{const t=16;for(var a,c=1540483477,r=e.length,n=f^r,s=0;4<=r;)a=(65535&(a=255&e[s]|(255&e[++s])<<8|(255&e[++s])<<16|(255&e[++s])<<24))*c+(((a>>>t)*c&65535)<<t),n=(65535&n)*c+(((n>>>t)*c&65535)<<t)^(a=(65535&(a^=a>>>24))*c+(((a>>>t)*c&65535)<<t)),r-=4,++s;switch(r){case 3:n^=(255&e[s+2])<<t;case 2:n^=(255&e[s+1])<<8;case 1:n=(65535&(n^=255&e[s]))*c+(((n>>>t)*c&65535)<<t)}return n=(65535&(n^=n>>>13))*c+(((n>>>16)*c&65535)<<16),(n^=n>>>15)>>>0},P=()=>.5<S(),D=(e=.5)=>S()<e,k=(e,f)=>(void 0===f&&(f=e,e=0),S()*(f-e)+e),U=(e,f)=>c(k(e,f)),A=e=>e.length?e[U(e.length)]:void 0,B=e=>{for(var f,t,a=e.length,c=[...e];a;)f=~~(S()*a--),t=c[a],c[a]=c[f],c[f]=t;return c},L="#000000",C=e=>e.match(/.{6}/g).map(e=>"#"+e),E=e=>e.split`:`.map(C),I=C("f2c5d2e5bb579c96cdf5eeeb76b99570a7c5f8e6d1dfbcabf1e7e1efedf6e1dce9f0ded5cdcad5f2f2f2"),R=C("914e720078bf00a95c3255a4f150603d5588765ba700838abb8b41407060ff665e925f52ffe800d2515eff6c2fff48b0ac936ee45d50ff747762a8e54982cf0074a2235ba8484d7a435060d5e4c0a5aaa870747c5f8289375e775e695e00aa9319975d397e58516e5a4a635d68724d62c2b167b346009da5169b62237e742f61659d7ad2aa60bf775d7a6c5d80f65058d1517a9e4c6ea75154e3ed55ffb511ffae3bf6a04dee7f4bff6f4cba8032bd64398e595af2cdcff984cae6b5c9bd8ca682d8d5ffe900ff4c65"),j=E("455097db6a4568876bf5be2f:224816e85d13f5b2bc90c6cbf9b807:fc4626fddc3f0971d900bb70:ff5500f4c1451447142f04fce276af:21a48ff9ced08ab2dfef7a62"),H=E("344e49ebb133f7ebd0f9e9d3f8ead3a28a7d:224816e85d13f5b2bc90c6cbf9b807fcfdfe:272b239de6d7d4dd38e1e2db29b09de17072:290915f7ac32e8cec59c1debe37440eb8ae1:180d0643372fa79f98f66257d3978f0c4b37:222518ca684301853f4b97c206783b00833f:144714c58e46455097db6a4558765b:312fc882fcfcfbaff5d551ee1c1d67d85598:5f3746808cc5f293823c757e:282634bd928ba1a6aade7571ff4e44:3a3d7e6aaadefddf48:455097ffffffdb6a4568876bf5be2f"),O=[[0,50],[1,15],[2,50],[3,30],[7,160],[12,80],[6,160],[13,50],[14,50],[8,25],[9,25]],W=new Set;R.forEach((e,f)=>{R.forEach((t,a)=>{if(f!=a&&3<=h(e,t)){const e=[f,a];e.sort((e,f)=>e-f),W.add(e.join(":"))}})});const q=[...W].map(e=>e.split(":").map(e=>R[e]));(()=>{let c="undefined"!=typeof tokenData&&("string"==typeof tokenData?tokenData:tokenData.hash);if(c){const r=((c,r=42)=>{(e=>{const f=~~((e.length-2)/2),t=[];for(let a=0;a<f;a++){const f=2+2*a;t.push(parseInt(e.slice(f,f+2),16))}const a=w(t,1690382925),c=w(t,72970470);y.setUint32(0,a),y.setUint32(4,c)})(c),(e=>{const f=Math.sqrt(3);var t=(3-f)/6,a=[..."221021201001212012210010122102120100"].map(e=>e-1),c=0;const r=new Uint8Array(512);for(var n=r.slice(0,256);256>c;c++)n[c]=c;for(c=0;255>c;c++){var s=c+~~(e()*(256-c)),d=n[c];n[c]=n[s],n[s]=d}const o=r.slice();for(c=0;512>c;c++)r[c]=n[255&c],o[c]=r[c]%12})(S);let n=D(.01),d=!n&&D(.25),[o,i,b,h,p,m,v,M,C]=((t,a)=>{const c=a?15:O[(e=>{var f,t=0;for(f=0;f<e.length;f++)t+=e[f];var a=S()*t;for(f=0;f<e.length;f++){if(a<e[f])return f;a-=e[f]}return 0})(O.map(e=>e[1]))][0];let r,n,s=0,d=L,o="source-over",i=1,b=-1;const h=8==c;if(0==c)r=l(98),n=[l(5)];else if(1==c)r=l(5),n=[l(98)];else if(15===c)r=L,n=["#ffea00","#878787","#ffffff"];else if(9==c)r=L,n=["#ffffff"],s=0,i=.25,o="screen";else if(2==c||3==c){const e=2==c;r=e?f(50,k(5,20),k(360)):f(92,k(5,5),k(360)),n=[e?"#ffffff":L]}else if(12===c)r=(n=[...(()=>B(A(q)))()]).shift();else if(7==c)r=l(95),b=U(j.length),n=[...j[b]],o="multiply",s=.25,d="#ffffff";else if(13==c||14==c)r=(n=[...(e=>{const t=14==c?f(30,A([2,5,10]),k(100,300)):A(I),a=[t,A(g(R,[t],2)||[L])];let r=g(R,a);return P()&&r&&a.push(A(r.filter(e=>!a.includes(e)))),a})()]).shift();else if(6==c)b=U(H.length),r=(n=[...H[b]]).shift();else if(h){const e=A(g(R,[r=L],2.5,[5,4,3]));n=[L,l(40),e]}const p="source-over"===o;let m=p?1:i,v=d,M=p?0:s;if(!h&&15!=c&&(n=B(n),t)){const e=g(n,[r]);e&&(n=e)}return 0<M&&(n=n.map(f=>((f,t,a)=>{f=u(f),t=u(t);for(var c=0;3>c;c++)t[c]=t[c]*a+f[c]*(1-a);return e(t)})(f,v,M))),[n,r,m,o,"source-over"==o,h,9==c,c,b]})(d,n);o.map(e=>u(e)),A([[.5,.5],[1,.25],[.5,0],[0,1]]);let E=D(.1);d||A([4,5,6]);let W=D(.05);P();const x=!W&&D(.075),G=D(.2)&&x;P(),G||W||k(.02,.25),x||D(.1),!P()&&A([0,s/2]);let N=!v&&!m&&D(.1),T=n||m||2<=o.length&&D(.3);const V=!n&&!m&&D(.1);V&&U(10,21),P();let $=[[0,1,1,4.5,1],[0,.5,1,5,1.75],[0,.75,1,4,1],[0,1,.5,3,2]];W||m||!D(1)||$.push([0,.75,1,7.5,1],[0,.5,.75,5,4],[0,.5,.75,4,3]),G||W||m||!D(.25)||$.push([1,.4,.5,.5,1],[1,.2,1,1,1],[1,.4,1,1,1],[1,.25,.85,2,2]),W&&($=[[0,.5,1,2,2]]);let[z,F,J,K,Q]=A($),X=!x&&!V&&p&&!m&&!d&&D(.05),Y=!V&&!N&&!v&&!("multiply"==h)&&D(.33),Z=[N?.33:.15];N?Z.push(.5,.7):Y?Z.push(.5,1.1):Z.push(...A([[.66],[.5],[.33,.7],[.25,.5,.75]])),A([2,5,10,15]),N||P(),G||v||!(m||W||D(.1))||(m?o[2]:o[0]);const _=!x&&p&&!N&&!v&&!W&&!X&&!V&&D(.1);let ee;d?ee=[[.0125],[.01]]:(ee=[[.0085,.01],[.0125,.0085],[.015,.01,.0085]],!N&&ee.push([.01])),A(ee),k(-10,10),k(-10,10);{let e=!1;return d||(N?2<=o.length&&!T&&(e=!0):e=!0),((e={})=>()=>e)({Style:a(M),Palette:t(p,C),River:_,Stippled:N,Brushed:Y,Wireframe:X,Lattice:V,Blended:T&&!m,Patchwork:e,Grid:E,Landscape:W?"Summit":x?G?"Waterfall":"Coast":["Mountains","Hills"][z]})}})(c)();Object.entries(r).forEach(([e,f])=>{const t=[e,(f+"").charAt(0).toUpperCase()+(f+"").slice(1)].join(": ");features.push(t),featuresReduced.push(t)})}})()})();
 }
 
+////////
 
+else if (projectId===56){
+
+  const auroraIVFeatures = (hash) => {
+  	const features = [];
+  	const RandomGenerator = function (s) {
+  		let seedA = s;
+  		return function () {
+  			seedA ^= seedA << 13;
+  			seedA ^= seedA >> 17;
+  			seedA ^= seedA << 5;
+  			return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+  		};
+  	};
+  	const random = RandomGenerator(parseInt(tokenData.slice(0, 16), 16));
+  	const randpos = (a) => {
+  		return a[Math.floor(random() * a.length)];
+  	}
+  	random();
+  	random();
+  	const day = random() > 0.15 ? 1 : 0;
+  	const model = randpos([1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4]);
+  	random();
+  	let hue = "hue " + randpos([0,15,15,15,15,15,15,100,200,220,250,300]);
+  	const inchue = random() >= 0.98 ? 0.02 : 0;
+  	const sr = random() > 0.95 ? 0.05 : -0.05;
+  	const bw = (day && random() > 0.98) ? 1 : 0;
+  	const sp = (day && random() > 0.98) ? 1 : 0;
+  	features.push("mode:" + ['night','day'][day]);
+  	features.push("model:" + ["megalopolis","city","station","outpost"][model-1]);
+  	if (bw || sp) {
+  		if (bw) hue = "black and white";
+  		if (sp) hue = "sepia";
+  	} else {
+  		if (inchue > 0) hue = "multicolors";
+  	}
+  	features.push("color:" + hue);
+  	features.push("rotation:" + (sr > 0 ? "counter-clockwise" : "clockwise"));
+  	return features;
+  };
+
+
+  /////////////////////////////////////////////////////////////////////
+
+
+  features = auroraIVFeatures(tokenData);
+  featuresReduced=features;
+  console.log(features)
+}
+
+/////
+
+
+else if (projectId === 57) {
+	let hashPairs = [];
+	for (let i = 0; i < 32; i++) {
+		let hex = tokenData.slice((2 * i) + 2, (2 * i) + 4);
+		hashPairs[i] = parseInt(hex, 16);
+	}
+	let seed = parseInt(tokenData.slice(30, 46), 16);
+	let r, orientation, w;
+	let single, bw, transparency, outlines, anglelock, nonudge, darkmode, rev, linear = false;
+	let g = 0;
+	r = Math.floor(hashPairs[31].map(0, 255, 6, 12.9999999999));
+	if (hashPairs[0] == 2 || hashPairs[0] == 20 || hashPairs[0] == 200) {
+		r = 20;
+	}
+	w = ((Math.floor(hashPairs[1].map( 0, 255, 0, 5.9999999999))) * .25) + .25;
+	orientation = Math.floor(hashPairs[30].map(0, 255, 0, 1.9999999999));
+	if (hashPairs[29] > 224) {
+		anglelock = true;
+	}
+	if (hashPairs[28] > 192) {
+		nonudge = true;
+	}
+	if (hashPairs[27] < 112) {
+		darkmode = true;
+	}
+	if (hashPairs[26] < 128 && (w > .75 && !anglelock) && !darkmode) {
+		transparency = true;
+	}
+	if (hashPairs[26] > 224) {
+		outlines = true;
+	}
+	if (hashPairs[25] < 36 && (w < 1.25 || transparency || outlines)) {
+		single = true;
+	}
+	if (hashPairs[25] > 232 && (w < 1.25 || transparency || outlines)) {
+		bw = true;
+	}
+	if (hashPairs[24] > 224) {
+		rev = true;
+	} else if (hashPairs[24] < 64 || w > .75 && !transparency && !outlines && !single && !bw) {
+		linear = true;
+	}
+
+	if (darkmode) {
+		features.push('Mode: Dark');
+	} else {
+		features.push('Mode: Light');
+	}
+	features.push('Bars: ' + (r - g));
+	features.push('Gaps: ' + g);
+	features.push('Width: ' + Math.floor(100 * w) + '%');
+	if (orientation == 0) {
+		features.push('Orientation: Vertical');
+	}
+	if (orientation == 1) {
+		features.push('Orientation: Horizontal');
+	}
+	if (anglelock) {
+		features.push('Rotation: Locked');
+	} else {
+		features.push('Rotation: Variable');
+	}
+	if (nonudge) {
+		features.push('Bounce: No');
+	} else {
+		features.push('Bounce: Yes');
+	}
+	if (single) {
+		features.push('Color: Single');
+	} else if (bw) {
+		features.push('Color: Black & White');
+	} else {
+		features.push('Color: Sequence');
+	}
+	if (rev) {
+		features.push('Arrangement: Reverse');
+	} else if (linear) {
+		features.push('Arrangement: Linear');
+	} else {
+		features.push('Arrangement: Shuffle');
+	}
+	if (transparency) {
+		features.push('Style: Transparent');
+	} else if (outlines) {
+		features.push('Style: Outlines');
+	} else {
+		features.push('Style: Solid');
+	}
+
+  featuresReduced=features;
+}
 
   //////
 
