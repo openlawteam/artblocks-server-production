@@ -50,6 +50,10 @@ const s3 = new AWS.S3({
 });
 
 const currentNetwork = process.env.NETWORK || "mainnet";
+const imageBucket =
+  currentNetwork === "mainnet" ? "artblocks-mainnet" : "artblocks-rinkeby";
+const thumbBucket =
+  currentNetwork === "mainnet" ? "artblocks-mainthumb" : "artblocks-rinkthumb";
 
 const testing = false;
 const mediaUrl =
@@ -159,7 +163,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         );
       } else {
         const params = {
-          Bucket: "artblocks-mainnet",
+          Bucket: imageBucket,
           Key,
         };
         s3.getObject(params, (err) => {
@@ -183,7 +187,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                       if (res.ContentLength < 5000000) {
                         const data = s3
                           .getObject({
-                            Bucket: "artblocks-mainnet",
+                            Bucket: imageBucket,
                             Key,
                           })
                           .createReadStream();
@@ -218,7 +222,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                           const KeyMultiple = `${request.params.tokenId}.png`;
                           const data = s3
                             .getObject({
-                              Bucket: "artblocks-mainnet",
+                              Bucket: imageBucket,
                               Key: KeyMultiple,
                               Range: range,
                             })
@@ -260,7 +264,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                 if (res.ContentLength < 5000000) {
                   const data = s3
                     .getObject({
-                      Bucket: "artblocks-mainnet",
+                      Bucket: imageBucket,
                       Key,
                     })
                     .createReadStream();
@@ -288,7 +292,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                     }
                     const data = s3
                       .getObject({
-                        Bucket: "artblocks-mainnet",
+                        Bucket: imageBucket,
                         Key,
                         Range: range,
                       })
@@ -355,7 +359,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
       // });
     } else {
       const checkVideoExistsParams = {
-        Bucket: "artblocks-mainnet",
+        Bucket: imageBucket,
         Key: videoTokenKey,
       };
       try {
@@ -448,7 +452,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
     const video = await renderVideo(url, 10, width, height);
     const videoFileContent = await readFile(video);
     const uploadVideoParams = {
-      Bucket: "artblocks-mainnet",
+      Bucket: imageBucket,
       Key: tokenKey,
       Body: videoFileContent,
       ACL: "public-read",
@@ -472,7 +476,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
 async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
   const tokenKey = `${tokenId}.mp4`;
-  const checkVideoExistsParams = { Bucket: "artblocks-mainnet", Key: tokenKey };
+  const checkVideoExistsParams = { Bucket: imageBucket, Key: tokenKey };
   if (refresh) {
     await renderAndUploadVideo(tokenId, tokenKey, ratio);
     return true;
@@ -595,14 +599,14 @@ async function renderImage(tokenId, tokenKey, ratio) {
       .toBuffer();
 
     const params1 = {
-      Bucket: "artblocks-mainnet",
+      Bucket: imageBucket,
       Key: tokenKey,
       ContentType: "image/png",
       ACL: "public-read",
       Body: image,
     };
     const params2 = {
-      Bucket: "artblocks-mainthumb",
+      Bucket: thumbBucket,
       Key: tokenKey,
       ContentType: "image/png",
       ACL: "public-read",
@@ -622,7 +626,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
 async function serveScriptResult(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}, refresh: ${refresh}`);
   const tokenKey = `${tokenId}.png`;
-  const checkImageExistsParams = { Bucket: "artblocks-mainnet", Key: tokenKey };
+  const checkImageExistsParams = { Bucket: imageBucket, Key: tokenKey };
   if (refresh) {
     console.log("Refreshed Render Image Running....");
     await renderImage(tokenId, tokenKey, ratio);
@@ -689,7 +693,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       .png();
 
     const params1 = {
-      Bucket: "artblocks-mainnet",
+      Bucket: imageBucket,
       Key: tokenKey,
       ContentType: "image/png",
       ACL: "public-read",
@@ -697,7 +701,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     };
 
     const params2 = {
-      Bucket: "artblocks-mainthumb",
+      Bucket: thumbBucket,
       Key: tokenKey,
       ContentType: "image/png",
       ACL: "public-read",

@@ -39,14 +39,25 @@ const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
   secretAccessKey: process.env.OSS_SECRET_KEY,
-  endpoint: process.env.OSS_ENDPOINT,
+  // endpoint: process.env.OSS_ENDPOINT,
 });
 
 const currentNetwork = process.env.NETWORK || "mainnet";
+const imageBucket =
+  currentNetwork === "mainnet" ? "artblocks-mainnet" : "artblocks-rinkeby";
+const thumbBucket =
+  currentNetwork === "mainnet" ? "artblocks-mainthumb" : "artblocks-rinkthumb";
+
 const mediaUrl =
   currentNetwork === "mainnet"
-    ? "mainnet.oss.nodechef.com"
-    : "rinkeby.oss.nodechef.com";
+    ? "artblocks-mainnet.s3.amazonaws.com"
+    : "artblocks-rinkeby.s3.amazonaws.com";
+
+const medialThumbUrl =
+  currentNetwork === "mainnet"
+    ? "artblocks-mainthumb.s3.amazonaws.com"
+    : "artblocks-rinkthumb.s3.amazonaws.com";
+
 const curatedProjects =
   currentNetwork === "mainnet"
     ? [
@@ -382,7 +393,7 @@ app.get("/token/:tokenId", async (request, response) => {
       try {
         const tokenKey = `${request.params.tokenId}.png`;
         const checkImageExistsParams = {
-          Bucket: currentNetwork,
+          Bucket: imageBucket,
           Key: tokenKey,
         };
         await s3.getObject(checkImageExistsParams).promise();
@@ -617,7 +628,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       const tokenKey = `${request.params.tokenId}.png`;
 
       const params = {
-        Bucket: currentNetwork,
+        Bucket: imageBucket,
         Key: tokenKey,
       };
       s3.getObject(params, (err) => {
@@ -678,7 +689,7 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
   } else {
     const tokenKey = `${request.params.tokenId}.png`;
     const params = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: thumbBucket,
       Key: tokenKey,
     };
     s3.getObject(params, (err) => {
@@ -697,7 +708,7 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
       } else {
         const data = s3
           .getObject({
-            Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+            Bucket: thumbBucket,
             Key: tokenKey,
           })
           .createReadStream();
