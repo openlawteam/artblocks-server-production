@@ -56,10 +56,16 @@ const thumbBucket =
   currentNetwork === "mainnet" ? "artblocks-mainthumb" : "artblocks-rinkthumb";
 
 const testing = false;
+
 const mediaUrl =
   currentNetwork === "mainnet"
-    ? "mainnet.oss.nodechef.com"
-    : "rinkeby.oss.nodechef.com";
+    ? "artblocks-mainnet.s3.amazonaws.com"
+    : "artblocks-rinkeby.s3.amazonaws.com";
+
+const medialThumbUrl =
+  currentNetwork === "mainnet"
+    ? "artblocks-mainthumb.s3.amazonaws.com"
+    : "artblocks-rinkthumb.s3.amazonaws.com";
 
 const queue = new Queue();
 let queueRef = {};
