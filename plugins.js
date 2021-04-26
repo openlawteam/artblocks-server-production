@@ -9736,7 +9736,80 @@ else if (projectId===56){
 /////
 
 
+
+else if (projectId===55){
+  (function calcFeatures () {
+
+    // extracted p5 funcs
+    const pfuncs = {
+      constrain: (n, low, high) => {
+        return Math.max(Math.min(n, high), low);
+      },
+      remap: (n, start1, stop1, start2, stop2, withinBounds) => {
+        const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+        if (!withinBounds) {
+          return newval;
+        }
+        if (start2 < stop2) {
+          return pfuncs.constrain(newval, start2, stop2);
+        } else {
+          return pfuncs.constrain(newval, stop2, start2);
+        }
+      }
+    }
+
+    const calcDecPairs = () => {
+      // assumes tokenData is set globally
+      hashPairs = [];
+      for (let j = 0; j < 32; j++) {
+        hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+      }
+      // Parse the hash pairs into ints. Hash pairs are base 16 so "ec" becomes 236.
+      // Each pair will become a value ranging from 0 - 255
+      const decPairs = hashPairs.map(x => {
+        return parseInt(x, 16);
+      });
+      return decPairs
+    }
+
+    const dcp = calcDecPairs()
+    const opts = {}
+    const traits = []
+
+    const baseConfig = {
+      shardSteps: 8,
+      shardWidth: 3,     // how much shards overlap / gaps
+    }
+
+    opts.initAngle = pfuncs.remap(dcp[0], 0, 256, 0, 100)
+    opts.stepAngle = (2 * Math.PI) / baseConfig.shardSteps
+
+    opts.hueRange = pfuncs.remap(dcp[5], 0, 256, 50, 200)
+    opts.startHue = pfuncs.remap(dcp[10], 0, 256, 0, 80) // not close to the end
+    const hue = opts.startHue
+    opts.endHue = (hue + opts.hueRange) // might be more than 360
+    opts.hueStep = opts.hueRange / dcp.length
+
+    const startGlitch = pfuncs.remap(dcp[10], 0, 256, 0, 100)
+    opts.glitch = (startGlitch < 5)
+
+    for (const [key, value] of Object.entries(opts)) {
+      const v = Math.round(value)
+      traits.push(`${key}: ${v}`)
+    }
+
+    features = traits // overwrite globals
+    featuresReduced = traits;
+    console.log('set features:', features)
+  })()
+
+}
+
+
+/////////
+
 else if (projectId === 57) {
+
 	let hashPairs = [];
 	for (let i = 0; i < 32; i++) {
 		let hex = tokenData.slice((2 * i) + 2, (2 * i) + 4);
@@ -9744,16 +9817,18 @@ else if (projectId === 57) {
 	}
 	let seed = parseInt(tokenData.slice(30, 46), 16);
 	let r, orientation, w;
+	let order = [];
 	let single, bw, transparency, outlines, anglelock, nonudge, darkmode, rev, linear = false;
 	let g = 0;
 	r = Math.floor(hashPairs[31].map(0, 255, 6, 12.9999999999));
 	if (hashPairs[0] == 2 || hashPairs[0] == 20 || hashPairs[0] == 200) {
 		r = 20;
 	}
-	w = ((Math.floor(hashPairs[1].map( 0, 255, 0, 5.9999999999))) * .25) + .25;
-	orientation = Math.floor(hashPairs[30].map(0, 255, 0, 1.9999999999));
+	w = ((Math.floor(hashPairs[1].map(0, 255, 0, 5.9999999999))) * .25) + .25;
+	orientation = Math.floor(hashPairs[30].map( 0, 255, 0, 1.9999999999));
 	if (hashPairs[29] > 224) {
 		anglelock = true;
+		rnd();
 	}
 	if (hashPairs[28] > 192) {
 		nonudge = true;
@@ -9773,10 +9848,25 @@ else if (projectId === 57) {
 	if (hashPairs[25] > 232 && (w < 1.25 || transparency || outlines)) {
 		bw = true;
 	}
+
+	for (let i = 1; i < r + 1; i++) {
+		order.push(i);
+	}
+
 	if (hashPairs[24] > 224) {
 		rev = true;
+		order = order.reverse();
 	} else if (hashPairs[24] < 64 || w > .75 && !transparency && !outlines && !single && !bw) {
 		linear = true;
+	} else {
+		order = scramble(order);
+	}
+	for (let i = 0; i < r; i++) {
+		rnd();
+		rnd();
+		if (Math.floor(rnd().map( 0, 1, 0, 255)) < 1 && order[i] != 1 && order[i] != r) {
+			g++;
+		}
 	}
 
 	if (darkmode) {
@@ -9825,6 +9915,24 @@ else if (projectId === 57) {
 		features.push('Style: Solid');
 	}
 
+
+function scramble(arr) {
+	let newarr = [];
+	let length = arr.length;
+	for (let i = 0; i < length; i++) {
+		let choice = Math.floor(rnd().map(0, 1, 0, arr.length));
+		newarr.push(arr[choice]);
+		arr.splice(choice, 1);
+	}
+	return(newarr);
+}
+
+function rnd() {
+	seed ^= seed << 13;
+	seed ^= seed >> 17;
+	seed ^= seed << 5;
+	return (((seed < 0) ? ~seed + 1 : seed) % 1000) / 1000;
+}
   featuresReduced=features;
 }
 
