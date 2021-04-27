@@ -9684,58 +9684,9 @@ else if (projectId===53){
 
 ////////
 
-else if (projectId===56){
+else if (projectId===54){
 
-  const auroraIVFeatures = (hash) => {
-  	const features = [];
-  	const RandomGenerator = function (s) {
-  		let seedA = s;
-  		return function () {
-  			seedA ^= seedA << 13;
-  			seedA ^= seedA >> 17;
-  			seedA ^= seedA << 5;
-  			return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
-  		};
-  	};
-  	const random = RandomGenerator(parseInt(tokenData.slice(0, 16), 16));
-  	const randpos = (a) => {
-  		return a[Math.floor(random() * a.length)];
-  	}
-  	random();
-  	random();
-  	const day = random() > 0.15 ? 1 : 0;
-  	const model = randpos([1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4]);
-  	random();
-  	let hue = "hue " + randpos([0,15,15,15,15,15,15,100,200,220,250,300]);
-  	const inchue = random() >= 0.98 ? 0.02 : 0;
-  	const sr = random() > 0.95 ? 0.05 : -0.05;
-  	const bw = (day && random() > 0.98) ? 1 : 0;
-  	const sp = (day && random() > 0.98) ? 1 : 0;
-  	features.push("mode:" + ['night','day'][day]);
-  	features.push("model:" + ["megalopolis","city","station","outpost"][model-1]);
-  	if (bw || sp) {
-  		if (bw) hue = "black and white";
-  		if (sp) hue = "sepia";
-  	} else {
-  		if (inchue > 0) hue = "multicolors";
-  	}
-  	features.push("color:" + hue);
-  	features.push("rotation:" + (sr > 0 ? "counter-clockwise" : "clockwise"));
-  	return features;
-  };
-
-
-  /////////////////////////////////////////////////////////////////////
-
-
-  features = auroraIVFeatures(tokenData);
-  featuresReduced=features;
-  console.log(features)
 }
-
-/////
-
-
 
 else if (projectId===55){
   (function calcFeatures () {
@@ -9804,6 +9755,61 @@ else if (projectId===55){
   })()
 
 }
+
+
+
+
+//////
+
+else if (projectId===56){
+
+  const auroraIVFeatures = (hash) => {
+  	const features = [];
+  	const RandomGenerator = function (s) {
+  		let seedA = s;
+  		return function () {
+  			seedA ^= seedA << 13;
+  			seedA ^= seedA >> 17;
+  			seedA ^= seedA << 5;
+  			return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+  		};
+  	};
+  	const random = RandomGenerator(parseInt(tokenData.slice(0, 16), 16));
+  	const randpos = (a) => {
+  		return a[Math.floor(random() * a.length)];
+  	}
+  	random();
+  	random();
+  	const day = random() > 0.15 ? 1 : 0;
+  	const model = randpos([1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4]);
+  	random();
+  	let hue = "hue " + randpos([0,15,15,15,15,15,15,100,200,220,250,300]);
+  	const inchue = random() >= 0.98 ? 0.02 : 0;
+  	const sr = random() > 0.95 ? 0.05 : -0.05;
+  	const bw = (day && random() > 0.98) ? 1 : 0;
+  	const sp = (day && random() > 0.98) ? 1 : 0;
+  	features.push("mode:" + ['night','day'][day]);
+  	features.push("model:" + ["megalopolis","city","station","outpost"][model-1]);
+  	if (bw || sp) {
+  		if (bw) hue = "black and white";
+  		if (sp) hue = "sepia";
+  	} else {
+  		if (inchue > 0) hue = "multicolors";
+  	}
+  	features.push("color:" + hue);
+  	features.push("rotation:" + (sr > 0 ? "counter-clockwise" : "clockwise"));
+  	return features;
+  };
+
+
+  /////////////////////////////////////////////////////////////////////
+
+
+  features = auroraIVFeatures(tokenData);
+  featuresReduced=features;
+  console.log(features)
+}
+
 
 
 /////////
@@ -9883,7 +9889,7 @@ else if (projectId === 57) {
 	if (orientation == 1) {
 		features.push('Orientation: Horizontal');
 	}
-	if (anglelock) {
+	if (anglelock && (w < 1.25 || transparency)) {
 		features.push('Rotation: Locked');
 	} else {
 		features.push('Rotation: Variable');
@@ -9935,6 +9941,176 @@ function rnd() {
 }
   featuresReduced=features;
 }
+
+  //////
+else if (projectId===58){
+
+let hashIndex = 0
+let hashData;
+
+var planets = 0;
+var ufos = 0;
+var ovals = 0;
+var circles = 0;
+var rectangles = 0;
+var arcs = 0;
+var triangles = 0;
+
+function setup() {
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+  let R = new Random(seed);
+  let extraHash = [...Array(225)].map(() => parseInt(R.random_between(0,255)));
+  hashData = setupParametersFromTokenData(tokenData).concat(extraHash);
+  let bcolor = hashData[inc()];
+  if (bcolor < 25) {
+    feature = "background: Gold";
+  } else if (bcolor < 50){
+    feature = "background: Old Lace";
+  } else if (bcolor < 75) {
+    feature = "background: Goldenrod Yellow"
+  } else if (bcolor < 100) {
+    feature = "background: Light Pink"
+  } else if (bcolor < 125) {
+    feature = "background: Antique White"
+  } else if (bcolor < 150) {
+    feature = "background: Ghost White"
+  } else if (bcolor < 170) {
+    feature = "background: Black"
+  } else if (bcolor < 195) {
+    feature = "background: Lavender"
+  } else if (bcolor < 218) {
+    feature = "background: Papaya Whip";
+  } else {
+    feature = "background: White"
+  }
+  features.push(feature);
+  featuresReduced.push(feature);
+}
+class Random {
+  constructor(seed) {
+    this.seed = seed
+  }
+  random_dec() {
+    this.seed ^= this.seed << 13
+    this.seed ^= this.seed >> 17
+    this.seed ^= this.seed << 5
+    return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+  }
+  random_between(a, b) {
+    return a + (b - a) * this.random_dec()
+  }
+}
+
+
+function draw() {
+
+  for (var x = 0; x < 400; x = x + 110) {
+    for (var y = 0; y < 400; y = y + 110) {
+      let colorChoice = hashData[inc()];
+      if ( colorChoice >= 170) {
+
+        circles = circles + 1;
+      } else {
+        pickShape(hashData[inc()]);
+      }
+      if (colorChoice < 86) {
+        circles = circles + 1;
+      } else {
+        pickShape(hashData[inc()]);
+      }
+      if (colorChoice < 170 && colorChoice >= 86) {
+        circles = circles + 1;
+      }
+      pickShape(hashData[inc()]);
+    }
+  }
+  features.push("Ovals: "+ ovals);
+  features.push("Circles: " + circles)
+  features.push("Arc: "+ arcs);
+  features.push("Rectangles: "+ rectangles);
+  features.push("Triangles: "+ triangles);
+  features.push("Planets: "+ planets);
+  featuresReduced.push("Planets: "+ planets);
+  features.push("UFO: "+ ufos);
+  featuresReduced.push("UFO: "+ ufos);
+  console.log(features);
+}
+function pickShape(value) {
+  let circleIndex = inc();
+  if (value <= 51) { // circle or oval
+    circles = circles + 1;
+  } else if (value <= 102) {
+    let circleTwo = inc();
+    ovals = ovals + 1;
+  } else if (value <= 154) {
+    arcs = arcs + 1;
+  } else if (value <= 208) {
+    let one = rangeConv(hashData[inc()], 60);
+    let two = rangeConv(hashData[inc()], 60);
+    let three = rangeConv(hashData[inc()], 60);
+    if (Math.abs(one - three) < 10) {
+      three = three + 10;
+    }
+    let four = rangeConv(hashData[inc()], 60);
+    if (Math.abs(two - four) < 10) {
+      four = four + 10;
+    }
+    let five = rangeConv(hashData[inc()], 60);
+    if (Math.abs(three - five) < 10) {
+      five = five + 10;
+    }
+    let six = rangeConv(hashData[inc()], 60);
+    if (Math.abs(four - six) < 10) {
+      six = six + 10;
+    }
+    triangles = triangles + 1;
+  } else {
+    let height = rangeConv(hashData[inc()], 30)+ 10;
+    let width = rangeConv(hashData[inc()], 30) + 10;
+    rectangles = rectangles + 1;
+  }
+  if ((value-inc()) == 42) {
+    // planet
+    let planetX = (rangeConv(hashData[inc()], 30)-10);
+    let planetY = (rangeConv(hashData[inc()], 30)-10);
+    ovals = ovals + 1;
+
+    if (value==119 || value==164 || value==95) {
+      arcs = arcs + 1;
+      ufos = ufos + 1;
+    } else {
+      circles = circles + 1;
+      planets = planets + 1;
+    }
+  }
+}
+function rangeConv(value, conv) {
+  return value * conv / 255;
+}
+function setupParametersFromTokenData(token) {
+  let hashPairs = []
+  //parse hash
+  for (let j = 0; j < 32; j++) {
+    hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)))
+  }
+  return hashPairs.map(x => {
+    return parseInt(x, 16)
+  })
+}
+function generateSeedFromTokenData(token) {
+  return parseInt(tokenData.slice(0, 16), 16)
+}
+function inc() {
+  return hashIndex = (hashIndex + 1) % hashData.length;
+}
+
+setup();
+draw();
+
+}
+
+
+
 
   //////
 
