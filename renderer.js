@@ -49,7 +49,6 @@ const s3 = new AWS.S3({
   endpoint: process.env.OSS_ENDPOINT,
 });
 
-
 const currentNetwork = process.env.NETWORK || "mainnet";
 
 const testing = false;
@@ -131,7 +130,12 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
       }
 
-      const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+      let ratio = 1;
+      try {
+        ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+      } catch (evalErr) {
+        console.log("evalErr, defaulting to ratio of 1", evalErr);
+      }
 
       console.log(
         "I'm the renderer and the hash from Infura for tokenId: " +
