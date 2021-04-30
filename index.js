@@ -536,6 +536,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           response.render(
             request.params.svg === "obj" && Number(projectId) === 9
               ? "generator_js_obj"
+              : request.params.svg === "ship" && Number(projectId) === 37
+              ? "generator_js_ship"
               : "generator_js",
             { script, data }
           );

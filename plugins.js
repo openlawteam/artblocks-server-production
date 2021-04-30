@@ -8925,91 +8925,6 @@ else if (projectId===44){
 
   ////////
 
-
-  else if (projectId === 48){
-
-    let hp = [];
-    let hashstring = "";
-
-
-
-
-
-    //take everything after the 0x and get the hash pairs
-    hashstring = tokenData.substring(2)
-    for (let i = 0; i < hashstring.length / 2; i++) {
-      hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
-    }
-
-    //begin features collection
-
-
-     if (hp[2]>128) features.push("Layer: color disk");
-      if (hp[3] >128) {
-       if(hp[15] > 25){
-         features.push("Layer: hash string loop")
-       } else {
-         features.push("Layer: hash string runners")
-       }
-      }
-      if (hp[4] >128) features.push("Layer: electrons");
-      if (hp[5] >128) features.push("Layer: hash grid");
-      if (hp[6] >128) features.push("Layer: floor grid");
-      if (hp[7] >128) features.push("Layer: orb");
-      if (hp[8] >128) features.push("Layer: gradient");
-      if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
-      if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
-      if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
-    console.log(Math.floor(mapperz(hp[4], 0, 255, 0, 3.999)));
-    console.log(hp[4]);
-      switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
-        case 0:
-          features.push("Words: color");
-          break;
-        case 1:
-          features.push("Words: color");
-          break;
-        case 2:
-          features.push("Words: b/w");
-          break;
-        case 3:
-          features.push("Words: b/w");
-          break;
-      }
-
-    featuresReduced = features
-
-    //print features to console
-    for (let i = 0; i < features.length; i++) {
-      console.log(features[i]);
-    }
-
-
-    // maps the hp to a value between 0 and 32
-    function R(_num) {
-      return Math.floor(mapperz(_num, 0, 255, 0, 32));
-    }
-
-    //vanilla js replacement for the p5.js map function
-    function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
-      const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
-      if (!withinBounds) {
-        return newval;
-      }
-      if (start2 < stop2) {
-        return this.constrain(newval, start2, stop2);
-      } else {
-        return this.constrain(newval, stop2, start2);
-      }
-    }
-
-    function unhex(n) {
-      return parseInt(`0x${n}`, 16);
-    }
-  }
-
-  //////
-
 else if (projectId===47){
 
   function p5() {
@@ -9250,6 +9165,91 @@ else if (projectId===47){
 }
 ////////
 
+
+else if (projectId === 48){
+
+  let hp = [];
+  let hashstring = "";
+
+
+
+
+
+  //take everything after the 0x and get the hash pairs
+  hashstring = tokenData.substring(2)
+  for (let i = 0; i < hashstring.length / 2; i++) {
+    hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
+  }
+
+  //begin features collection
+
+
+   if (hp[2]>128) features.push("Layer: color disk");
+    if (hp[3] >128) {
+     if(hp[15] > 25){
+       features.push("Layer: hash string loop")
+     } else {
+       features.push("Layer: hash string runners")
+     }
+    }
+    if (hp[4] >128) features.push("Layer: electrons");
+    if (hp[5] >128) features.push("Layer: hash grid");
+    if (hp[6] >128) features.push("Layer: floor grid");
+    if (hp[7] >128) features.push("Layer: orb");
+    if (hp[8] >128) features.push("Layer: gradient");
+    if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
+    if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
+    if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
+  console.log(Math.floor(mapperz(hp[4], 0, 255, 0, 3.999)));
+  console.log(hp[4]);
+    switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
+      case 0:
+        features.push("Words: color");
+        break;
+      case 1:
+        features.push("Words: color");
+        break;
+      case 2:
+        features.push("Words: b/w");
+        break;
+      case 3:
+        features.push("Words: b/w");
+        break;
+    }
+
+  featuresReduced = features
+
+  //print features to console
+  for (let i = 0; i < features.length; i++) {
+    console.log(features[i]);
+  }
+
+
+  // maps the hp to a value between 0 and 32
+  function R(_num) {
+    return Math.floor(mapperz(_num, 0, 255, 0, 32));
+  }
+
+  //vanilla js replacement for the p5.js map function
+  function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
+    const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+    if (!withinBounds) {
+      return newval;
+    }
+    if (start2 < stop2) {
+      return this.constrain(newval, start2, stop2);
+    } else {
+      return this.constrain(newval, stop2, start2);
+    }
+  }
+
+  function unhex(n) {
+    return parseInt(`0x${n}`, 16);
+  }
+}
+
+///////////////////
+
 else if (projectId===49){
 
 var DEFAULT_SIZE_R=800,WIDTH_R=600,HEIGHT_R=600,DIM_R=Math.min(WIDTH_R,HEIGHT_R),M_2=DIM_R/DEFAULT_SIZE_R;let cols_R,rows_R,oX_R,oY_R,canvas_R=DEFAULT_SIZE_R*M_2,ttlPnts_R=5,grdSprSz_R=100*M_2,grdGap_R=170*M_2;cols=4,rows=4,oX_R=80,oY_R=80;let rectCoors_R={x:[],y:[]};function setGridType_R(e){switch(e){case 0:ttlPnts=Math.round(R_R.random_between(10,80)),cols=2,rows=2,grdSprSz_R=250*M_2,grdGap_R=400*M_2,oX_R=80*M_2,oY_R=80*M_2,fontsize_R=200*M_2,yOff_R=175*M_2,triSz_R=48*M_2,sqrSz_R=80*M_2,cirSz_R=80*M_2;break;case 1:ttlPnts=5,cols=4,rows=4,grdSprSz_R=100*M_2,grdGap_R=170*M_2,oX_R=88*M_2,oY_R=88*M_2,fontsize_R=72*M_2,yOff_R=80*M_2,triSz_R=28*M_2,sqrSz_R=40*M_2,cirSz_R=40*M_2;break;case 2:ttlPnts=5,cols=8,rows=8,grdSprSz_R=70*M_2,grdGap_R=95*M_2,oX_R=32*M_2,oY_R=32*M_2,fontsize_R=16*M_2,yOff_R=0,triSz_R=14*M_2,sqrSz_R=20*M_2,cirSz_R=20*M_2}}function mapRange_R(e,_,r,t,R){return Math.round(t+(R-t)*(e-_)/(r-_))}var hashPairs_R=[],gridHashPairs_R=[],decPairs_R=[];let myHash_R;function splitHash_R(e){let _=myHash_R.length;for(let e=0;e<_;e++)for(let _=0;_<32;_++)hashPairs_R.push(myHash_R[e].slice(2+2*_,4+2*_))}function getDecPairs_R(){return decPairs_R=hashPairs_R.map(e=>parseInt(e,16))}myHash_R=[tokenData];class Random_R{constructor(e){this.seed=e}random_dec(){return this.seed^=this.seed<<13,this.seed^=this.seed>>17,this.seed^=this.seed<<5,(this.seed<0?1+~this.seed:this.seed)%1e3/1e3}random_between(e,_){return e+(_-e)*this.random_dec()}random_int(e,_){return Math.floor(this.random_between(e,_+1))}random_choice(e){return e[Math.floor(this.random_between(0,.99*e.length))]}}splitHash_R(),getDecPairs_R();let mySeed_R=parseInt(tokenData.slice(0,16),16),R_R=new Random_R(mySeed_R);function getOccurrence_R(e,_){var r=0;return e.forEach(e=>e===_&&r++),r}var gl={tf:!1,txt:155,lines:0,bg:200};function setHashTxt_R(e,_){switch(_){case 0:gridHashPairs_R.push("0x","..","..",myHash_R[0][64]+myHash_R[0][65]);break;case 1:gridHashPairs_R=["0x"].concat(hashPairs_R.slice(0,e).concat(["..."]).concat(hashPairs_R.slice(e+18,32)));break;case 2:for(var r=0;r<myHash_R[0].length;r++)0==r||1==r||64==r||65==r||gridHashPairs_R.push(myHash_R[0][r]);(gridHashPairs_R=["0x"].concat(gridHashPairs_R)).push(myHash_R[0][64]+myHash_R[0][65])}}function createGrid_R(){for(let r=0;r<rows;r++)for(let t=0;t<cols;t++){var e=r*grdGap_R,_=t*grdGap_R;rectCoors_R.x.push(_+oX_R),rectCoors_R.y.push(e+oY_R)}hashTxtCreate_R()}let font_R,fontsize_R=72,yOff_R=80;function hashTxtCreate_R(){for(let e=0;e<gridHashPairs_R.length;e++)drawHashTxt_R(gridHashPairs_R[e],rectCoors_R.x[e],rectCoors_R.y[e])}function drawHashTxt_R(e,_,r){}function getPoints_R(e,_){let r={x:[],y:[]};for(let t=0;t<ttlPnts;t++)r.x.push(R_R.random_between(e,e+grdSprSz_R)),r.y.push(R_R.random_between(_,_+grdSprSz_R));return r}let triSz_R=28,sqrSz_R=40,cirSz_R=40;var msgN_R=!0,msgNarr_R=[];function createShape_R(e,_,r){let t;1==gl.tf?t=Math.round(R_R.random_between(3,6)):(t=Math.round(R_R.random_between(0,6)),msgNarr_R.push(t))}let clrs_R,c0_R,c1_R,c2_R,c3_R,c4_R,c5_R,c6_R;function pkClrs_R(e){c0=[0,1,2],c1=[3,4,5],c2=[6,7,8],c3=[9,10,11],c4=[12,13,14],c5=[15,16,17],c6=[18,19,20],clrs=[c0,c1,c2,c3,c4,c5,c6];var _=Math.round(R_R.random_between(0,2));return clrs[e][_]}var cP_R=Math.round(R_R.random_between(0,6));function drawLine_R(){for(let e=0;e<rectCoors_R.x.length;e++){let _=getPoints_R(rectCoors_R.x[e],rectCoors_R.y[e]);for(let e=0;e<_.x.length;e++);createShape_R(pkClrs_R(cP_R),_.x[0],_.y[0])}(getOccurrence_R(msgNarr_R,0)>=1||getOccurrence_R(msgNarr_R,1)>=1||getOccurrence_R(msgNarr_R,2)>=1)&&(msgN_R=!1)}var glClr_R=Math.round(R_R.random_between(0,2)),gl7_R=getOccurrence_R(decPairs_R,7);let vType_R=mapRange_R(decPairs_R[31],0,255,0,2);function setup_R(){if(gl7_R>=3)switch(glClr_R){case 0:case 1:case 2:gl.tf=!0}setGridType_R(vType_R),setHashTxt_R(mapRange_R(decPairs_R[30],0,255,0,13),vType_R),createGrid_R(),drawLine_R(),results_R(myHash_R)};function results_R(e){var _,r;_={gridSize:["2x2","4x4","8x8"],palette:["Playful","Growth","Calm","Naughty","Dark","Excited","Ambiguous","Neutral"],sPalette:["Love","Encrypted","Happy"]},r=1==msgN_R?7:cP_R,gl7_R>=3?features.push("Length: "+_.gridSize[vType_R],"Message: "+_.sPalette[glClr_R],"To: "+e):features.push("Length: "+_.gridSize[vType_R],"Message: "+_.palette[r],"To: "+e)}setup_R(vType_R);
@@ -9258,7 +9258,108 @@ featuresReduced.push(features[0]);
 featuresReduced.push(features[1]);
 
 }
+////////
+else if (projectId===50){
+  // let hash = '0x103852204e04aeac910e889832595712348fe4ed051accba3986da895e319685';
+  // let features = [];
 
+  let rw = su(tokenData),
+    s = gs(tokenData);
+
+  let d = {
+    type: wP(["Moon", "Crowd", "Stage"], [1, 2, 17], rw[2]),
+    colors: wP([
+      'Browns', //["#aa9387", "#fdf1d3", "#f7bfb1", "#f19d54", "#a16f5c"],
+      'Primaries', //["#fac901", "#225095", "#dd0100", "#ffffff"],
+      'Purples', //["#d8e0bb", "#b6cec7", "#86a3c3", "#7268a6", "#6b3074"],
+      'Tertiaries', //["#173F5F", "#20639B", "#3CAEA3", "#f6d55c", "#ed553b"],
+      'Retro', //["#5f0f40", "#9a031e", "#fb8b24", "#e36414", "#0f4c5c"],
+      'Bubblegum', //["#f18c8e", "#f0b7a4", "#f1d1b5", "#568ea6", "#305f72"],
+      'Industrial', //["#fffcf2", "#ccc5b9", "#403d39", "#252422", "#eb5e28"],
+      'Refuge', //["#322c4d", "#cfc4ff", "#f5b649", "#19211e", "#303757"],
+      'Matrix' //["#0e0e1b", "#204829", "#22b455", "#80ce87", "#92e5a1"]
+    ], [3, 3, 3, 3, 2, 1, 1, 1, 1], rw[3]),
+    hyperspeed: rw[1] < 0.03,
+    paper: wP([
+      'Jet', //"#363333",
+      'Old Lace', //"#FAF5E8",
+      'Eggshell', //"#F3EEDF",
+      'Cornsilk', //"#F2EAD0",
+      'Bone', //"#D0CBBA",
+      'Papaya Whip', //"#FAEDCD"
+    ], [1, 1, 1, 1, 1, 1], rw[4]),
+    people: wP([3, 2, 1], [1, 3, 21], rw[5])
+  };
+
+  addPeople();
+  stringFeatures();
+
+  function addPeople() {
+    for (let p = 0; p < d.people; p++) {
+      let pers = 'Person '+p;
+      Object.defineProperty(d, pers, {value : makeP(p*7),
+                                 writable : true,
+                                 enumerable : true,
+                                 configurable : true});
+    }
+  }
+
+  function stringFeatures() {
+    features.push('Location: '+d.type);
+    features.push('People: '+d.people);
+    features.push('Hyper: '+d.hyperspeed);
+    features.push('Palette: '+d.colors);
+    features.push('Paper: '+d.paper);
+    let h=0, xe=0, m=0, a=0;
+    for (let i = 0; i<d.people; i++) {
+      let p = d['Person '+i];
+      h += p.lA & p.lAH;
+      h += p.rA & p.rAH;
+      xe += 1 ^ p.lE;
+      xe += 1 ^ p.rE;
+      m += p.m;
+      a += p.lA;
+      a += p.rA;
+    }
+    features.push('Missing Eyes: '+xe)
+    features.push('Holding: '+h);
+    features.push('Singing: '+m);
+    features.push('Arms: '+a);
+  }
+
+
+  function makeP(t) {
+    return {
+      lE: rw[6 + t] < 0.9,
+      rE: rw[7 + t] < 0.9,
+      m: rw[8 + t] < 0.6,
+      lA: rw[9 + t] < 0.7,
+      rA: rw[10 + t] < 0.7,
+      lAH: rw[11 + t] < 0.2,
+      rAH: rw[12 + t] < 0.2
+    }
+  }
+
+  function su(t) {
+    let s = [];
+    for (let r = 0; r < 32; r++) s.push(t.slice(2 + 2 * r, 4 + 2 * r));
+    return s.map(t => parseInt(t, 16) / 255)
+  }
+
+  function gs(t) {
+    return parseInt(t.slice(0, 16), 16)
+  }
+
+  function wP(t, s, r) {
+    let i;
+    for (i = 0; i < s.length; i++) s[i] += s[i - 1] || 0;
+    var e = r * s[s.length - 1];
+    for (i = 0; i < s.length && !(s[i] >= e); i++);
+    return t[i]
+  }
+
+  featuresReduced=features;
+}
 
 
   //////
@@ -9686,6 +9787,396 @@ else if (projectId===53){
 
 else if (projectId===54){
 
+  let seedA = parseInt(tokenData.slice(0, 16), 16);
+
+let azonosito = parseInt(tokenId);
+
+let propKey = [];
+let propValue = [];
+
+let isPaused = false;
+let cFrameCount = 0;
+
+let itsStage = 0;
+
+let A = [0];
+
+let aX, aY, aR, aXp, aYp, aRp;
+let bX, bY, bR, bXp, bYp, bRp;
+let cX, cY, cR, cXp, cYp, cRp;
+let dX, dY, dR, dXp, dYp, dRp;
+let eX, eY, eR, eXp, eYp, eRp;
+let fX, fY, fR, fXp, fYp, fRp;
+
+let bRad, cRad, dRad, bRadp, cRadp, dRadp;
+
+let pdotColR, pdotColG, pdotColB, pdotColA;
+let dpdotColR, dpdotColG, dpdotColB, dpdotColA;
+
+let pdotMul;
+let dpdotMul;
+
+let pulses = 0;
+let pulseInterval;
+
+let thecols = [[35, 43, 43, 255], [248, 248, 255, 255], [255, 223, 0, 255], [255, 5, 5, 255], [46, 255, 83, 255], [254, 125, 5, 255], [215, 25, 144, 255], [0, 184, 200, 255], [9, 120, 255, 255], [0, 0, 0, 255]];
+let colnames = ["Ghost Black" /* 0 */, "Ghost White" /* 1 */, "Yellow" /* 2 */, "Red" /* 3 */, "Green" /* 4 */, "Orange" /* 5 */, "Pink" /* 6 */, "Cyan" /* 7 */, "Blue" /* 8 */, "Black" /* 9 */];
+let bgcol = [255, 255, 255, 255];
+let fgcol = [0, 0, 0, 255];
+
+let thecolsalt = [[70, 60, 254, 255], [84, 200, 100, 255], [230, 0, 154, 255], [255, 100, 29, 255]];
+
+let interval = 120;
+
+let stageAdvance;
+
+let size = 1200;
+let HALF_PI = 3.16/2.00;
+
+let which = -1;
+
+which = azonosito;
+
+if (which > 999999) {
+which = which - (Math.floor(which / 1000000) * 1000000);
+}
+
+interval = Math.floor(rnd().map( 0, 1, 75, 125));
+if (which == 2 || which == 61 || which == 173 || which == 313 || which == 11 || which == 89 || which == 211 || which == 349 || which == 29 || which == 107 || which == 233 || which == 367 || which == 43 || which == 149 || which == 277 || which == 383) {
+interval = Math.floor(rnd().map( 0, 1, 115, 125));
+}
+
+propKey.push("Speed");
+propValue.push((50 - (interval - 75)) + 75);
+
+if (Math.floor(rnd().map( 0, 1, 0, 100)) < 80) {
+pulseInterval = Math.floor(rnd().map( 0, 1, 3, 5));
+} else {
+pulseInterval = Math.floor(rnd().map( 0, 1, 2, 7));
+}
+propKey.push("Transition Interval");
+propValue.push(pulseInterval);
+
+colrnum = Math.floor(rnd().map( 0, 1, 0, 384));
+
+let cidx;
+if (colrnum < 6) {
+cidx = 5;
+} else if (colrnum < 12) {
+cidx = 6;
+} else if (colrnum < 18) {
+cidx = 8;
+} else if (colrnum < 36) {
+cidx = 4;
+} else if (colrnum < 60) {
+cidx = 7;
+} else if (colrnum < 90) {
+cidx = 0;
+} else if (colrnum < 126) {
+cidx = 1;
+} else if (colrnum < 168) {
+cidx = 2;
+} else if (colrnum < 216) {
+cidx = 3;
+} else {
+cidx = 9;
+}
+
+pdotColR = thecols[cidx][0];
+pdotColG = thecols[cidx][1];
+pdotColB = thecols[cidx][2];
+pdotColA = thecols[cidx][3];
+
+isRandom = true;
+if (which > 0) {
+oldcidx = cidx;
+cidx = -1;
+if (which == 2 || which == 61 || which == 173 || which == 313) {
+cidx = 0;
+}
+if (which == 11 || which == 89 || which == 211 || which == 349) {
+cidx = 1;
+}
+if (which == 29 || which == 107 || which == 233 || which == 367) {
+cidx = 2;
+}
+if (which == 43 || which == 149 || which == 277 || which == 383) {
+cidx = 3;
+}
+
+if (cidx >= 0) {
+isRandom = false;
+pdotColR = thecolsalt[cidx][0];
+pdotColG = thecolsalt[cidx][1];
+pdotColB = thecolsalt[cidx][2];
+pdotColA = thecolsalt[cidx][3];
+
+bgcol = [0, 0, 0, 255];
+fgcol = [255, 255, 255, 255];
+}
+cidx = oldcidx;
+}
+
+propKey.push("Type");
+if (isRandom) {
+propValue.push("Generated");
+} else {
+propValue.push("Curated");
+}
+
+propKey.push("Color");
+if (which == 383) {
+propValue.push("Rainbow");
+} else {
+propValue.push(colnames[cidx]);
+}
+
+dpdotColR = (pdotColR - fgcol[0]) / interval;
+dpdotColG = (pdotColG - fgcol[1]) / interval;
+dpdotColB = (pdotColB - fgcol[2]) / interval;
+dpdotColA = (pdotColA - 255) / interval;
+
+pdotUndulates = Math.floor(rnd().map( 0, 1, 0, 100));
+pdotMul = 1.00 + rnd().map( 0, 1, 0.3, 0.8);
+dpdotMul = (pdotMul-1.00) / interval;
+
+// Base coordinates
+
+aX = size*0.2;
+aY = size/2;
+aR = 0.00;
+
+bX = size*0.3;
+bY = size*0.4;
+bR = 0.00;
+bRad = size/7;
+
+cX = size*0.5;
+cY = size*0.4;
+cR = 0.00;
+cRad = size/18;
+
+dX = size*0.5;
+dY = size*0.6;
+dR = 0.00;
+dRad = size/18;
+
+eX = size*0.75;
+eY = size/2;
+eR = HALF_PI/3;
+
+fX = size*0.75;
+fY = size/2;
+fR = -1.0*(HALF_PI/3);
+
+// Prime coordinates
+
+aXp = size*rnd().map( 0, 1, 0.20, 0.80);
+aYp = size*rnd().map( 0, 1, 0.20, 0.80);
+aRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+aRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+bXp = size*rnd().map( 0, 1, 0.20, 0.80);
+bYp = size*rnd().map( 0, 1, 0.20, 0.80);
+bRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+bRadp = rnd().map( 0, 1, size/18, size/5);
+
+cXp = size*rnd().map( 0, 1, 0.20, 0.80);
+cYp = size*rnd().map( 0, 1, 0.20, 0.80);
+cRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+cRadp = rnd().map( 0, 1, size/18, size/5);
+
+dXp = size*rnd().map( 0, 1, 0.20, 0.80);
+dYp = size*rnd().map( 0, 1, 0.20, 0.80);
+dRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+dRadp = rnd().map( 0, 1, size/18, size/5);
+
+eXp = size*rnd().map( 0, 1, 0.20, 0.80);
+eYp = size*rnd().map( 0, 1, 0.20, 0.80);
+eRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+eRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+fXp = size*rnd().map( 0, 1, 0.20, 0.80);
+fYp = size*rnd().map( 0, 1, 0.20, 0.80);
+fRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+fRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+configNum = rnd().map( 0, 1, 0, 100);
+configNumB = rnd().map( 0, 1, 0, 100);
+
+if (isRandom) {
+
+if ( configNum >= 0 && configNum < 2) {
+propKey.push("Composition");
+propValue.push("Pclipse");
+}
+
+if ( configNum >= 2 && configNum < 6) {
+propKey.push("Composition");
+propValue.push("Pclipse");
+}
+
+if ( configNum >= 6 && configNum < 13) {
+propKey.push("Composition");
+propValue.push("Xclipse");
+}
+
+if ( configNum >= 13 && configNum < 23) {
+propKey.push("Composition");
+propValue.push("Crossover");
+}
+
+if ( configNum >= 23 && configNum < 33) {
+propKey.push("Composition");
+propValue.push("Crossover");
+}
+
+if ( configNum >= 33 && configNum < 43) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if ( configNum >= 43 && configNum < 53) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if ( configNum >= 53 && configNum < 63) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if ( configNum >= 63 && configNum < 73) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if ( configNumB >= 0 && configNumB <= 9) {
+bXp = cXp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bYp = cYp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bRadp = cRadp * 0.8;
+propKey.push("Composition");
+propValue.push("Hostile Takeover");
+}
+
+if ( configNumB >= 10 && configNumB <= 33) {
+bXp = dXp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bYp = dYp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bRadp = dRadp * 0.8;
+propKey.push("Composition");
+propValue.push("Preferential Treatment");
+}
+
+}
+
+if (which == 2) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 11) {
+}
+
+if (which == 29) {
+propKey.push("Composition");
+propValue.push("Hostile Takeover");
+
+propKey.push("Composition");
+propValue.push("Isolated");
+}
+
+if (which == 43) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 61) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 89) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+if (which == 107) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 149) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 173) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 211) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 233) {
+propKey.push("Composition");
+propValue.push("At Attention");
+}
+
+if (which == 277) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 313) {
+}
+
+if (which == 349) {
+}
+
+if (which == 367) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if (which == 383) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+propKey.push("Composition");
+propValue.push("Rebound");
+}
+
+curhue = 15;
+
+if (pdotMul >= 1.00) {
+propKey.push("Pulse Direction");
+propValue.push("Contractive");
+} else {
+propKey.push("Pulse Direction");
+propValue.push("Expansive");
+}
+
+if (which % 7 == 0) {
+propKey.push("Composition");
+propValue.push("b:x");
+}
+
+for (let i = 0; i < propKey.length; i++) {
+features.push(propKey[i] + ": " + propValue[i]);
+featuresReduced=features;
+}
+
+function rnd() {
+  seedA ^= seedA << 13;
+  seedA ^= seedA >> 17;
+  seedA ^= seedA << 5;
+
+  return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+}
+//console.log(features);
+//console.log(featuresReduced);
+
 }
 
 else if (projectId===55){
@@ -10109,7 +10600,39 @@ draw();
 
 }
 
+else if (projectId===60){
 
+  let hash = tokenData // .hash
+let seed = parseInt(hash.slice(0, 16), 16);
+
+let spins = 750 + 2750 * drand(seed);
+features = [
+  "proximity: " + (drand(seed) > 0.95 ? "closeup" : "faraway"),
+  "gravity: " + spinsToText(spins),
+];
+
+// deterministic random function
+function drand(seed) {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000
+}
+
+function spinsToText(spins) {
+  let gravity = ["moon", "jupiter", "quasar", "galaxy"];
+  for (let i = 0; i < 4; i++) {
+    if (spins < 850 * (i + 1)) {
+      return gravity[i];
+    }
+  }
+}
+
+featuresReduced = features;
+
+console.log(features)
+
+}
 
 
   //////
