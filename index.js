@@ -37,8 +37,8 @@ const PORT = process.env.PORT || 8080;
 const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 
 const s3 = new AWS.S3({
-  accessKeyId: process.env.OSS_ACCESS_KEY,
-  secretAccessKey: process.env.OSS_SECRET_KEY,
+  accessKeyId: process.env.OSS1_ACCESS_KEY,
+  secretAccessKey: process.env.OSS1_SECRET_KEY,
   // endpoint: process.env.OSS_ENDPOINT,
 });
 
