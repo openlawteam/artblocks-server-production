@@ -6858,521 +6858,117 @@ if (projectId===39){
   /////////
 
   else if (projectId ===41 ){
-    // START Comment this out before minifying
-    //function random_hash() {
-    //    let chars = "0123456789abcdef";
-    //    let result = '0x';
-    //    for (let i = 64; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-    //    return result;
-    //}
-    //tokenData = {
-    //    "hash": random_hash()
-    //}
-    // END Comment this out before minifying
-
-    // let tokenData = {"hash":"0x0c5bc96cf2b1cba8bab689f8caff9482c3402874d039b8987a102b94bcfaef3d","tokenId":"41000004"}
-    //let tokenData = {"hash":"0x0559aa28f62cfa991ec451e02360c4e747a95079f9b6ce35f764dc4aac4fca39","tokenId":"41000012"}
-    //let tokenData = {"hash":"0x146264f13c1e71c240d15018704c00bb29219b46d22e99d6e2a4c3bf347b18e0","tokenId":"41000575"}
-
     let hashPairs = [];
     for (let j = 0; j < 32; j++) {
-        hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
+    	hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
     }
 
     const decPairs = hashPairs.map((x) => {
-        return parseInt(x, 16);
+    	return parseInt(x, 16);
     });
 
     let seed = parseInt(tokenData.slice(0, 16), 16);
 
-    let gridLoops1 = [];
-    let gridLoops2 = [];
-    let gridLoops_stroke = [];
-
     let unit, unit2, unit3, count, count2, count3;
     let offset, offsetH, offsetB, offsetHB, styleMaster, countX, countX2, strokeThick;
-    let rectY = true;
-    let ellipseY = false;
-    let tri1Y = false;
-    let tri2Y = false;
-    let gradY = false;
-    let space1Y = false;
-    let space2Y = false;
-    let smlRect = false;
-    let smlEllipse = false;
-    let rectGradY = false;
-    const Y_AXIS = 1;
-    const X_AXIS = 2;
-    let b1, b2, c1, c2;
-    let myColRnd1, myColRnd2, myColRnd3, palSwitch;
+    let palSwitch;
 
     var palette;
 
     // let features = [];
-    let parallelCount = [];
-    let parallelColour = [];
     let strokeColour = [];
-    let dotCount = [];
-    let headingCount = [];
-
-    if (decPairs[1] <= 85) {
-        features.push("Offset: Goldilocks")
-    } else if (decPairs[1] > 85 && decPairs[1] <= 170) {
-        features.push("Offset: Biggie")
-    } else {
-        features.push("Offset: Smalls")
-    }
-
-    if (decPairs[2] <= 85) {
-        countX = 0;
-        features.push("Base: None")
-    } else if (decPairs[2] > 85 && decPairs[2] < 170) {
-        countX = 1;
-        features.push("Base: Single")
-    } else {
-        countX = 2;
-        features.push("Base: Double")
-    }
-
-    if (decPairs[3] <= 85) {
-        countX2 = 0;
-    } else {
-        countX2 = 1;
-    }
 
     unit = Math.floor(map_range(decPairs[4], 0, 255, 2, 6));
     unit2 = Math.floor(map_range(decPairs[5], 0, 255, 3, 6));
     unit3 = Math.floor(map_range(decPairs[6], 0, 255, 2, 7));
 
-    if (decPairs[2] > 85) {
+    palSwitch = map_range(decPairs[10], 0, 255, 0, 1);
 
-        features.push("Base Grid: " + unit + "x" + unit)
+    if (decPairs[1] <= 85) {
+    	features.push("Offset: Goldilocks")
+    } else if (decPairs[1] > 85 && decPairs[1] <= 170) {
+    	features.push("Offset: Biggie")
+    } else {
+    	features.push("Offset: Smalls")
+    }
+
+    if (decPairs[2] <= 85) {
+    	features.push("Base: None")
+    } else if (decPairs[2] > 85 && decPairs[2] < 170) {
+    	features.push("Base: Single")
+    } else {
+    	features.push("Base: Double")
+    }
+
+    if (decPairs[2] > 85) {
+    	features.push("Base Grid: " + unit + "x" + unit)
     }
 
     features.push("Top Grid: " + unit2 + "x" + unit2)
 
-    palSwitch = map_range(decPairs[10], 0, 255, 0, 1);
 
     if (palSwitch <= 0.5) {
-        features.push("Palette: Mid-century")
+    	features.push("Palette: Mid-century")
     } else {
-        features.push("Palette: Candy")
+    	features.push("Palette: Candy")
     }
 
     class Random {
-        constructor(seed) {
-            this.seed = seed
-        }
-        random_dec() {
-            this.seed ^= this.seed << 13
-            this.seed ^= this.seed >> 17
-            this.seed ^= this.seed << 5
-            return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
-        }
-        random_between(a, b) {
-            return a + (b - a) * this.random_dec()
-        }
-        random_int(a, b) {
-            return Math.floor(this.random_between(a, b + 1))
-        }
-        random_choice(x) {
-            return x[Math.floor(this.random_between(0, x.length * 0.99))]
-        }
+    	constructor(seed) {
+    		this.seed = seed
+    	}
+    	random_dec() {
+    		this.seed ^= this.seed << 13
+    		this.seed ^= this.seed >> 17
+    		this.seed ^= this.seed << 5
+    		return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+    	}
+    	random_between(a, b) {
+    		return a + (b - a) * this.random_dec()
+    	}
+    	random_int(a, b) {
+    		return Math.floor(this.random_between(a, b + 1))
+    	}
+    	random_choice(x) {
+    		return x[Math.floor(this.random_between(0, x.length * 0.99))]
+    	}
     }
 
     let R = new Random(seed);
 
-
-    console.log(R);
-
-    class GridLooper {
-        constructor(k, l, c, rnd1, rnd2) {
-            this.k = k;
-            this.l = l;
-            this.c = c;
-            this.rnd1 = rnd1;
-            this.rnd2 = rnd2;
-        }
-
-        display() {
-
-            for (let i = 0; i < this.k; i++) {
-                for (let j = 0; j < this.l; j++) {
-
-                    styleMaster = Math.floor(R.random_between(0, 9));
-
-                    if (styleMaster == 0) {
-                        rectY = true;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 1) {
-                        rectY = false;
-                        ellipseY = true;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 2) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = true;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 3) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = true;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 4) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = true;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 5) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = true;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 6) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = true;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 7) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = true;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 8) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = true;
-                        rectGradY = false;
-                    } else if (styleMaster == 9) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = true;
-                    }
-
-
-
-                    if (rectY) {
-    					let val2 = R.random_between(0, 1);
-
-                        if (val2 <= 0.9) {
-
-                        } else if (val2 > 0.9 && val2 <= 0.99) {
-                        } else {
-                            parallelCount.push("yes")
-    						console.log(val2)
-
-                            if (decPairs[9] <= 127.5) {
-                               parallelColour.push("Black");
-                            } else {
-                                parallelColour.push("White");
-                            }
-                        }
-                    }
-
-                    if (smlRect) {}
-
-                    if (ellipseY) {
-    					let val = R.random_between(0, 1);
-                        if (val < 0.9) {
-
-                        } else {
-    											console.log(val)
-
-                            dotCount.push("yes")
-                        }
-                    }
-
-                    if (smlEllipse) {
-
-                    }
-
-                    if (tri1Y) {
-                        if (decPairs[11] <= 229.5) {
-
-                            headingCount.push("East")
-
-
-                        } else {
-
-
-                            headingCount.push("West")
-
-
-                        }
-
-
-                    }
-
-                    if (tri2Y) {
-
-                        if (decPairs[11] <= 229.5) {
-
-                            headingCount.push("East")
-                        } else {
-
-                            headingCount.push("West")
-
-                        }
-                    }
-
-                    if (gradY) {
-                        if (R.random_between(0, 1) < 0.5) {
-
-                        } else {
-
-                        }
-                    }
-                    if (rectGradY) {
-
-                    }
-                    if (space1Y) {}
-                    if (space2Y) {}
-                }
-            }
-
-
-        }
-
-    }
-
-    class GridLooper_stroke {
-        constructor(k, l, c, sw) {
-            this.k = k;
-            this.l = l;
-            this.c = c;
-            this.sw = sw;
-        }
-
-        display() {
-
-            if (decPairs[8] <= 127.5) {
-                strokeColour.push("White")
-            } else {
-                strokeColour.push("Black")
-            }
-
-            for (let i = 0; i < this.k; i++) {
-                for (let j = 0; j < this.l; j++) {
-
-                    styleMaster = Math.floor(R.random_between(0, 6));
-
-                    if (styleMaster == 0) {
-                        rectY = true;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 1) {
-                        rectY = false;
-                        ellipseY = true;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 2) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = true;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 3) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = true;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 4) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = true;
-                        space2Y = false;
-                    } else if (styleMaster == 5) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = true;
-                    }
-
-
-
-                    if (decPairs[8] <= 127.5) {
-
-                    } else {}
-
-                    if (rectY) {
-
-                    }
-
-                    if (ellipseY) {
-
-                    }
-
-                    if (tri1Y) {
-                        if (decPairs[11] <= 229.5) {
-
-
-                        } else {
-
-
-
-                        }
-                    }
-
-                    if (tri2Y) {
-                        if (decPairs[11] <= 229.5) {
-
-
-                        } else {
-
-
-                        }
-                    }
-
-                    if (space1Y) {}
-                    if (space2Y) {}
-                }
-            }
-        }
-    }
-
-
-
-    for (let i = 0; i < countX; i++) {
-        gridLoops1.push(new GridLooper(unit, unit, count, 0, 0));
-    }
-
-    for (let i = 0; i < 1; i++) {
-        gridLoops2.push(new GridLooper(unit2, unit2, count2, 0, 0));
-    }
-
-    for (let i = 0; i < countX2; i++) {
-        gridLoops_stroke.push(new GridLooper_stroke(unit3, unit3, count3, 0));
+    if (decPairs[8] <= 127.5) {
+    	strokeColour.push("White")
+    } else {
+    	strokeColour.push("Black")
     }
 
     if (decPairs[7] <= 85) {
-
-        features.push("Background: Gray")
+    	features.push("Background: Gray")
 
     } else if (decPairs[7] > 85 && decPairs[7] < 170) {
-
-
-        features.push("Background: Tint")
-
+    	features.push("Background: Tint")
     } else {
-        features.push("Background: Full")
-
+    	features.push("Background: Full")
     }
-
-    for (let i = 0; i < gridLoops1.length; i++) {
-        gridLoops1[i].display();
-    }
-
-    for (let i = 0; i < gridLoops2.length; i++) {
-        gridLoops2[i].display();
-    }
-
-    for (let i = 0; i < gridLoops_stroke.length; i++) {
-        gridLoops_stroke[i].display();
-    }
-
 
     if (decPairs[3] <= 85) {
-        features.push("Stroke: None")
+    	features.push("Stroke: None")
 
     } else {
-        features.push("Stroke: " + strokeColour)
-        features.push("Stroke Grid: " + unit3 + "x" + unit3)
-
+    	features.push("Stroke: " + strokeColour)
+    	features.push("Stroke Grid: " + unit3 + "x" + unit3)
     }
-
 
     if (decPairs[11] <= 229.5) {
-        features.push("Heading: East");
+    	features.push("Heading: East");
     } else {
-        features.push("Heading: West");
+    	features.push("Heading: West");
     }
-
-
-
 
     function map_range(value, low1, high1, low2, high2) {
-        return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+    	return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
     }
 
-    if (parallelCount.length != 0) {
-        features.push("Blinds: " + parallelCount.length + " " + parallelColour[0]);
-    }
 
     featuresReduced=features;
     console.log(features);
@@ -8682,90 +8278,248 @@ else if (projectId===44){
 
   /////////////
 
-
-  else if (projectId === 48){
-
-    let hp = [];
-    let hashstring = "";
-
-
-
-
-
-    //take everything after the 0x and get the hash pairs
-    hashstring = tokenData.substring(2)
-    for (let i = 0; i < hashstring.length / 2; i++) {
-      hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
+  else if (projectId===47){
+    function p5() {
+        this._lcg_random_state = null;
+        this._gaussian_previous = false;
     }
 
-    //begin features collection
+    // variables used for random number generators
+    const randomStateProp = '_lcg_random_state';
+    // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+    // m is basically chosen to be large (as it is the max period)
+    // and for its relationships to a and c
+    const m = 4294967296;
+    // a - 1 should be divisible by m's prime factors
+    const a = 1664525;
+    // c and m should be co-prime
+    const c = 1013904223;
+    let y2 = 0;
 
+    // Linear Congruential Generator that stores its state at instance[stateProperty]
+    p5.prototype._lcg = function(stateProperty) {
+      // define the recurrence relationship
+      this[stateProperty] = (a * this[stateProperty] + c) % m;
+      // return a float in [0, 1)
+      // we've just used % m, so / m is always < 1
+      return this[stateProperty] / m;
+    };
 
-     if (hp[2]>128) features.push("Layer: color disk");
-      if (hp[3] >128) {
-       if(hp[15] > 25){
-         features.push("Layer: hash string loop")
-       } else {
-         features.push("Layer: hash string runners")
-       }
-      }
-      if (hp[4] >128) features.push("Layer: electrons");
-      if (hp[5] >128) features.push("Layer: hash grid");
-      if (hp[6] >128) features.push("Layer: floor grid");
-      if (hp[7] >128) features.push("Layer: orb");
-      if (hp[8] >128) features.push("Layer: gradient");
-      if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
-      if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
-      if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
-    console.log(Math.floor(mapperz(hp[4], 0, 255, 0, 3.999)));
-    console.log(hp[4]);
-      switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
-        case 0:
-          features.push("Words: color");
-          break;
-        case 1:
-          features.push("Words: color");
-          break;
-        case 2:
-          features.push("Words: b/w");
-          break;
-        case 3:
-          features.push("Words: b/w");
-          break;
-      }
+    p5.prototype._lcgSetSeed = function(stateProperty, val) {
+      // pick a random seed if val is undefined or null
+      // the >>> 0 casts the seed to an unsigned 32-bit integer
+      this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+    };
 
-    featuresReduced = features
+    p5.prototype.randomSeed = function(seed) {
+      this._lcgSetSeed(randomStateProp, seed);
+      this._gaussian_previous = false;
+    };
 
-    //print features to console
-    for (let i = 0; i < features.length; i++) {
-      console.log(features[i]);
-    }
+    p5.prototype.random = function(min, max) {
+      let rand;
 
-
-    // maps the hp to a value between 0 and 32
-    function R(_num) {
-      return Math.floor(mapperz(_num, 0, 255, 0, 32));
-    }
-
-    //vanilla js replacement for the p5.js map function
-    function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
-      const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
-      if (!withinBounds) {
-        return newval;
-      }
-      if (start2 < stop2) {
-        return this.constrain(newval, start2, stop2);
+      if (this[randomStateProp] != null) {
+        rand = this._lcg(randomStateProp);
       } else {
-        return this.constrain(newval, stop2, start2);
+        rand = Math.random();
       }
-    }
+      if (typeof min === 'undefined') {
+        return rand;
+      } else if (typeof max === 'undefined') {
+        if (min instanceof Array) {
+          return min[Math.floor(rand * min.length)];
+        } else {
+          return rand * min;
+        }
+      } else {
+        if (min > max) {
+          const tmp = min;
+          min = max;
+          max = tmp;
+        }
 
-    function unhex(n) {
-      return parseInt(`0x${n}`, 16);
-    }
+        return rand * (max - min) + min;
+      }
+    };
+
+    p5.prototype.randomGaussian = function(mean, sd = 1) {
+      let y1, x1, x2, w;
+      if (this._gaussian_previous) {
+        y1 = y2;
+        this._gaussian_previous = false;
+      } else {
+        do {
+          x1 = this.random(2) - 1;
+          x2 = this.random(2) - 1;
+          w = x1 * x1 + x2 * x2;
+        } while (w >= 1);
+        w = Math.sqrt(-2 * Math.log(w) / w);
+        y1 = x1 * w;
+        y2 = x2 * w;
+        this._gaussian_previous = true;
+      }
+
+      const m = mean || 0;
+      return y1 * sd + m;
+    };
+
+    var size = 1
+
+    p5.prototype.randomSeed(parseInt(tokenData.slice(0, 16), 16));
+
+    var traits = [];
+
+    var iniStars = parseInt(p5.prototype.random(120, 200));
+    var minSize = p5.prototype.random(size*0.1, size*1);
+    var maxSize = p5.prototype.random(size*2, size*6);
+    var minSpeed = p5.prototype.random(size*0.05, size*0.08);
+    var maxSpeed = p5.prototype.random(size*0.15, size*0.3);
+    var linkForce = p5.prototype.random(size*50, size*65);
+    var colorLink = p5.prototype.random(12, 240);
+    var lineWeight = p5.prototype.random(size*0.25, size*1.5);
+    var colorR = p5.prototype.random(50, 255);
+    var colorG = p5.prototype.random(50, 255);
+    var colorB = p5.prototype.random(50, 255);
+    var alphaL = p5.prototype.random(200, 255);
+    var backgroundR = p5.prototype.random(0, 20)
+    var backgroundB = p5.prototype.random(0, 20)
+    var backgroundG = p5.prototype.random(0, 20)
+    var fullTrait = p5.prototype.random(10)
+
+
+      //STARS
+      if(iniStars < 150){
+        traits.push("Sky type: Calm Night")
+      }
+      else{
+        // console.log('stars: ' + iniStars)
+        traits.push("Sky type: Starry Night")
+      }
+
+      if(maxSize >= size*0 && maxSize <=size*3.2) {
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Dwarf Star")
+        }
+      else if(maxSize > size*3.2 && maxSize <= size*4.5){
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Giant Star")
+        }
+      else {
+        // console.log('maxSize ' + maxSize)
+        traits.push("Star size: Super Giant Star")
+        }
+      if(maxSpeed < size*0.2){
+        // console.log("Speed: " + maxSpeed)
+        traits.push("Speed: Low")
+      } else {
+        // console.log("Speed: " + maxSpeed)
+        traits.push("Speed: Fast")
+      }
+
+      if(lineWeight >= size*0.25 && lineWeight < size*0.4){
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Low")
+        }
+      else if(lineWeight >= size*0.4 && lineWeight < size*1.2){
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Regular")
+        }
+      else if(lineWeight >= size*1.2) {
+        // console.log('lineWeight ' + lineWeight)
+        traits.push("Stroke: Bold")
+        }
+
+      //BACKGROUND
+      if(backgroundR < 6 && backgroundG < 6 && backgroundB < 6){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Low")
+        }
+      else if(backgroundR > 15 || backgroundG > 15 || backgroundB > 15){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Hard")
+        }
+      else if(backgroundR > 6 && backgroundR < 15 || backgroundG > 6 && backgroundG < 15 || backgroundB > 6 && backgroundB < 15){
+        // console.log("red " + backgroundR);
+        // console.log("green " + backgroundG);
+        // console.log("blue " + backgroundB);
+        traits.push("Light pollution: Regular")
+        }
+
+      //PLANETS
+      if(fullTrait < 0.1){
+        traits.push("Lucky Night: On")
+        traits.push("Aldebaran: Visible")
+        traits.push("Mars: Visible")
+        traits.push("Moon: Visible")
+        traits.push("Sirio: Visible")
+        traits.push("Comet: Visible")
+
+      }else{
+        traits.push("Lucky Night: Off")
+      	var aldebaranRandom = p5.prototype.random(10)
+      	var marsRandom = p5.prototype.random(10)
+      	var moonRandom = p5.prototype.random(10)
+      	var sirioRandom = p5.prototype.random(10)
+      	var cometProb = p5.prototype.random(10)
+
+        if(aldebaranRandom > 4){
+          // console.log('aldebaranRadius ' + aldebaranRadius)
+          traits.push("Aldebaran: Visible")
+        }else{
+          // console.log('aldebaranRadius ' + aldebaranRadius)
+          traits.push("Aldebaran: Hidden" )
+        }
+
+        if(marsRandom > 6){
+          // console.log('marsRadius ' + marsRadius)
+          traits.push("Mars: Visible")
+        }else{
+          // console.log('marsRadius ' + marsRadius)
+          traits.push("Mars: Hidden")
+        }
+
+        if(moonRandom > 2){
+          // console.log('moonRadius ' + moonRadius)
+          traits.push("Moon: Visible")
+        } else {
+          // console.log('moonRadius ' + moonRadius)
+          traits.push("Moon: Hidden")
+        }
+
+        if(sirioRandom > 8){
+          // console.log('sirioRadius ' + sirioRadius)
+          traits.push("Sirio: Visible")
+        } else {
+          // console.log('sirioRadius ' + sirioRadius)
+          traits.push("Sirio: Hidden")
+        }
+
+        //COMETS
+        if(cometProb < 0.5){
+          // console.log("Comet: Visible")
+          traits.push("Comet: Visible")
+        } else {
+          // console.log("Comet: Hidden")
+          traits.push("Comet: Hidden")
+        }
+      }
+
+    console.log(traits);
+
+    features=traits;
+    featuresReduced=traits;
+
   }
 
-  //////
+
+
+
+  ////////
 
 else if (projectId===47){
 
@@ -9007,6 +8761,91 @@ else if (projectId===47){
 }
 ////////
 
+
+else if (projectId === 48){
+
+  let hp = [];
+  let hashstring = "";
+
+
+
+
+
+  //take everything after the 0x and get the hash pairs
+  hashstring = tokenData.substring(2)
+  for (let i = 0; i < hashstring.length / 2; i++) {
+    hp.push(unhex(hashstring.substring(i + i, i + i + 2)));
+  }
+
+  //begin features collection
+
+
+   if (hp[2]>128) features.push("Layer: color disk");
+    if (hp[3] >128) {
+     if(hp[15] > 25){
+       features.push("Layer: hash string loop")
+     } else {
+       features.push("Layer: hash string runners")
+     }
+    }
+    if (hp[4] >128) features.push("Layer: electrons");
+    if (hp[5] >128) features.push("Layer: hash grid");
+    if (hp[6] >128) features.push("Layer: floor grid");
+    if (hp[7] >128) features.push("Layer: orb");
+    if (hp[8] >128) features.push("Layer: gradient");
+    if(hp[23]>128 && hp[11]>=128 && hp[10]>=128) features.push("Frame: color");
+    if(hp[23]>128 && hp[11]<128 && hp[10]>=128) features.push("Frame: white");
+    if(hp[23]>128 && hp[11]>=128 && hp[10]<128) features.push("Frame: black");
+  console.log(Math.floor(mapperz(hp[4], 0, 255, 0, 3.999)));
+  console.log(hp[4]);
+    switch (Math.floor(mapperz(hp[4], 0, 255, 0, 3.999))) {
+      case 0:
+        features.push("Words: color");
+        break;
+      case 1:
+        features.push("Words: color");
+        break;
+      case 2:
+        features.push("Words: b/w");
+        break;
+      case 3:
+        features.push("Words: b/w");
+        break;
+    }
+
+  featuresReduced = features
+
+  //print features to console
+  for (let i = 0; i < features.length; i++) {
+    console.log(features[i]);
+  }
+
+
+  // maps the hp to a value between 0 and 32
+  function R(_num) {
+    return Math.floor(mapperz(_num, 0, 255, 0, 32));
+  }
+
+  //vanilla js replacement for the p5.js map function
+  function mapperz(n, start1, stop1, start2, stop2, withinBounds) {
+    const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+    if (!withinBounds) {
+      return newval;
+    }
+    if (start2 < stop2) {
+      return this.constrain(newval, start2, stop2);
+    } else {
+      return this.constrain(newval, stop2, start2);
+    }
+  }
+
+  function unhex(n) {
+    return parseInt(`0x${n}`, 16);
+  }
+}
+
+///////////////////
+
 else if (projectId===49){
 
 var DEFAULT_SIZE_R=800,WIDTH_R=600,HEIGHT_R=600,DIM_R=Math.min(WIDTH_R,HEIGHT_R),M_2=DIM_R/DEFAULT_SIZE_R;let cols_R,rows_R,oX_R,oY_R,canvas_R=DEFAULT_SIZE_R*M_2,ttlPnts_R=5,grdSprSz_R=100*M_2,grdGap_R=170*M_2;cols=4,rows=4,oX_R=80,oY_R=80;let rectCoors_R={x:[],y:[]};function setGridType_R(e){switch(e){case 0:ttlPnts=Math.round(R_R.random_between(10,80)),cols=2,rows=2,grdSprSz_R=250*M_2,grdGap_R=400*M_2,oX_R=80*M_2,oY_R=80*M_2,fontsize_R=200*M_2,yOff_R=175*M_2,triSz_R=48*M_2,sqrSz_R=80*M_2,cirSz_R=80*M_2;break;case 1:ttlPnts=5,cols=4,rows=4,grdSprSz_R=100*M_2,grdGap_R=170*M_2,oX_R=88*M_2,oY_R=88*M_2,fontsize_R=72*M_2,yOff_R=80*M_2,triSz_R=28*M_2,sqrSz_R=40*M_2,cirSz_R=40*M_2;break;case 2:ttlPnts=5,cols=8,rows=8,grdSprSz_R=70*M_2,grdGap_R=95*M_2,oX_R=32*M_2,oY_R=32*M_2,fontsize_R=16*M_2,yOff_R=0,triSz_R=14*M_2,sqrSz_R=20*M_2,cirSz_R=20*M_2}}function mapRange_R(e,_,r,t,R){return Math.round(t+(R-t)*(e-_)/(r-_))}var hashPairs_R=[],gridHashPairs_R=[],decPairs_R=[];let myHash_R;function splitHash_R(e){let _=myHash_R.length;for(let e=0;e<_;e++)for(let _=0;_<32;_++)hashPairs_R.push(myHash_R[e].slice(2+2*_,4+2*_))}function getDecPairs_R(){return decPairs_R=hashPairs_R.map(e=>parseInt(e,16))}myHash_R=[tokenData];class Random_R{constructor(e){this.seed=e}random_dec(){return this.seed^=this.seed<<13,this.seed^=this.seed>>17,this.seed^=this.seed<<5,(this.seed<0?1+~this.seed:this.seed)%1e3/1e3}random_between(e,_){return e+(_-e)*this.random_dec()}random_int(e,_){return Math.floor(this.random_between(e,_+1))}random_choice(e){return e[Math.floor(this.random_between(0,.99*e.length))]}}splitHash_R(),getDecPairs_R();let mySeed_R=parseInt(tokenData.slice(0,16),16),R_R=new Random_R(mySeed_R);function getOccurrence_R(e,_){var r=0;return e.forEach(e=>e===_&&r++),r}var gl={tf:!1,txt:155,lines:0,bg:200};function setHashTxt_R(e,_){switch(_){case 0:gridHashPairs_R.push("0x","..","..",myHash_R[0][64]+myHash_R[0][65]);break;case 1:gridHashPairs_R=["0x"].concat(hashPairs_R.slice(0,e).concat(["..."]).concat(hashPairs_R.slice(e+18,32)));break;case 2:for(var r=0;r<myHash_R[0].length;r++)0==r||1==r||64==r||65==r||gridHashPairs_R.push(myHash_R[0][r]);(gridHashPairs_R=["0x"].concat(gridHashPairs_R)).push(myHash_R[0][64]+myHash_R[0][65])}}function createGrid_R(){for(let r=0;r<rows;r++)for(let t=0;t<cols;t++){var e=r*grdGap_R,_=t*grdGap_R;rectCoors_R.x.push(_+oX_R),rectCoors_R.y.push(e+oY_R)}hashTxtCreate_R()}let font_R,fontsize_R=72,yOff_R=80;function hashTxtCreate_R(){for(let e=0;e<gridHashPairs_R.length;e++)drawHashTxt_R(gridHashPairs_R[e],rectCoors_R.x[e],rectCoors_R.y[e])}function drawHashTxt_R(e,_,r){}function getPoints_R(e,_){let r={x:[],y:[]};for(let t=0;t<ttlPnts;t++)r.x.push(R_R.random_between(e,e+grdSprSz_R)),r.y.push(R_R.random_between(_,_+grdSprSz_R));return r}let triSz_R=28,sqrSz_R=40,cirSz_R=40;var msgN_R=!0,msgNarr_R=[];function createShape_R(e,_,r){let t;1==gl.tf?t=Math.round(R_R.random_between(3,6)):(t=Math.round(R_R.random_between(0,6)),msgNarr_R.push(t))}let clrs_R,c0_R,c1_R,c2_R,c3_R,c4_R,c5_R,c6_R;function pkClrs_R(e){c0=[0,1,2],c1=[3,4,5],c2=[6,7,8],c3=[9,10,11],c4=[12,13,14],c5=[15,16,17],c6=[18,19,20],clrs=[c0,c1,c2,c3,c4,c5,c6];var _=Math.round(R_R.random_between(0,2));return clrs[e][_]}var cP_R=Math.round(R_R.random_between(0,6));function drawLine_R(){for(let e=0;e<rectCoors_R.x.length;e++){let _=getPoints_R(rectCoors_R.x[e],rectCoors_R.y[e]);for(let e=0;e<_.x.length;e++);createShape_R(pkClrs_R(cP_R),_.x[0],_.y[0])}(getOccurrence_R(msgNarr_R,0)>=1||getOccurrence_R(msgNarr_R,1)>=1||getOccurrence_R(msgNarr_R,2)>=1)&&(msgN_R=!1)}var glClr_R=Math.round(R_R.random_between(0,2)),gl7_R=getOccurrence_R(decPairs_R,7);let vType_R=mapRange_R(decPairs_R[31],0,255,0,2);function setup_R(){if(gl7_R>=3)switch(glClr_R){case 0:case 1:case 2:gl.tf=!0}setGridType_R(vType_R),setHashTxt_R(mapRange_R(decPairs_R[30],0,255,0,13),vType_R),createGrid_R(),drawLine_R(),results_R(myHash_R)};function results_R(e){var _,r;_={gridSize:["2x2","4x4","8x8"],palette:["Playful","Growth","Calm","Naughty","Dark","Excited","Ambiguous","Neutral"],sPalette:["Love","Encrypted","Happy"]},r=1==msgN_R?7:cP_R,gl7_R>=3?features.push("Length: "+_.gridSize[vType_R],"Message: "+_.sPalette[glClr_R],"To: "+e):features.push("Length: "+_.gridSize[vType_R],"Message: "+_.palette[r],"To: "+e)}setup_R(vType_R);
@@ -9015,7 +8854,108 @@ featuresReduced.push(features[0]);
 featuresReduced.push(features[1]);
 
 }
+////////
+else if (projectId===50){
+  // let hash = '0x103852204e04aeac910e889832595712348fe4ed051accba3986da895e319685';
+  // let features = [];
 
+  let rw = su(tokenData),
+    s = gs(tokenData);
+
+  let d = {
+    type: wP(["Moon", "Crowd", "Stage"], [1, 2, 17], rw[2]),
+    colors: wP([
+      'Browns', //["#aa9387", "#fdf1d3", "#f7bfb1", "#f19d54", "#a16f5c"],
+      'Primaries', //["#fac901", "#225095", "#dd0100", "#ffffff"],
+      'Purples', //["#d8e0bb", "#b6cec7", "#86a3c3", "#7268a6", "#6b3074"],
+      'Tertiaries', //["#173F5F", "#20639B", "#3CAEA3", "#f6d55c", "#ed553b"],
+      'Retro', //["#5f0f40", "#9a031e", "#fb8b24", "#e36414", "#0f4c5c"],
+      'Bubblegum', //["#f18c8e", "#f0b7a4", "#f1d1b5", "#568ea6", "#305f72"],
+      'Industrial', //["#fffcf2", "#ccc5b9", "#403d39", "#252422", "#eb5e28"],
+      'Refuge', //["#322c4d", "#cfc4ff", "#f5b649", "#19211e", "#303757"],
+      'Matrix' //["#0e0e1b", "#204829", "#22b455", "#80ce87", "#92e5a1"]
+    ], [3, 3, 3, 3, 2, 1, 1, 1, 1], rw[3]),
+    hyperspeed: rw[1] < 0.03,
+    paper: wP([
+      'Jet', //"#363333",
+      'Old Lace', //"#FAF5E8",
+      'Eggshell', //"#F3EEDF",
+      'Cornsilk', //"#F2EAD0",
+      'Bone', //"#D0CBBA",
+      'Papaya Whip', //"#FAEDCD"
+    ], [1, 1, 1, 1, 1, 1], rw[4]),
+    people: wP([3, 2, 1], [1, 3, 21], rw[5])
+  };
+
+  addPeople();
+  stringFeatures();
+
+  function addPeople() {
+    for (let p = 0; p < d.people; p++) {
+      let pers = 'Person '+p;
+      Object.defineProperty(d, pers, {value : makeP(p*7),
+                                 writable : true,
+                                 enumerable : true,
+                                 configurable : true});
+    }
+  }
+
+  function stringFeatures() {
+    features.push('Location: '+d.type);
+    features.push('People: '+d.people);
+    features.push('Hyper: '+d.hyperspeed);
+    features.push('Palette: '+d.colors);
+    features.push('Paper: '+d.paper);
+    let h=0, xe=0, m=0, a=0;
+    for (let i = 0; i<d.people; i++) {
+      let p = d['Person '+i];
+      h += p.lA & p.lAH;
+      h += p.rA & p.rAH;
+      xe += 1 ^ p.lE;
+      xe += 1 ^ p.rE;
+      m += p.m;
+      a += p.lA;
+      a += p.rA;
+    }
+    features.push('Missing Eyes: '+xe)
+    features.push('Holding: '+h);
+    features.push('Singing: '+m);
+    features.push('Arms: '+a);
+  }
+
+
+  function makeP(t) {
+    return {
+      lE: rw[6 + t] < 0.9,
+      rE: rw[7 + t] < 0.9,
+      m: rw[8 + t] < 0.6,
+      lA: rw[9 + t] < 0.7,
+      rA: rw[10 + t] < 0.7,
+      lAH: rw[11 + t] < 0.2,
+      rAH: rw[12 + t] < 0.2
+    }
+  }
+
+  function su(t) {
+    let s = [];
+    for (let r = 0; r < 32; r++) s.push(t.slice(2 + 2 * r, 4 + 2 * r));
+    return s.map(t => parseInt(t, 16) / 255)
+  }
+
+  function gs(t) {
+    return parseInt(t.slice(0, 16), 16)
+  }
+
+  function wP(t, s, r) {
+    let i;
+    for (i = 0; i < s.length; i++) s[i] += s[i - 1] || 0;
+    var e = r * s[s.length - 1];
+    for (i = 0; i < s.length && !(s[i] >= e); i++);
+    return t[i]
+  }
+
+  featuresReduced=features;
+}
 
 
   //////
@@ -9433,7 +9373,1072 @@ else if (projectId===51){
   featuresReduced=features;
 
 }
+/////////////////////////
 
+else if (projectId===53){
+  (()=>{"use strict";function e(e){var f=o(~~e[0],0,255),t=o(~~e[1],0,255);return"#"+(o(~~e[2],0,255)|t<<8|f<<16|16777216).toString(16).slice(1)}function f(f,t,a){var c=Math.sin,r=Math.cos;const n=a/180*s;return e((([e,f,t])=>{let a=d(e+.3963377774*f+.2158037573*t,3),c=d(e-.1055613458*f-.0638541728*t,3),r=d(e-.0894841775*f-1.291485548*t,3);return[o(~~(255*p(4.0767245293*a-3.3072168827*c+.2307590544*r)),0,255),o(~~(255*p(-1.2681437731*a+2.6093323231*c-.341134429*r)),0,255),o(~~(255*p(-.0041119885*a-.7034763098*c+1.7068625689*r)),0,255)]})([f/=100,(t/=100)?t*r(n):0,t?t*c(n):0]))}function t(e,f){return 0>f?"Procedural":e?["Campgrounds","Bauhaus","Pop","Disco","Midnight","Holographic","Spring","Siren","PeachPlum","BloodOrange","Highlighter","Chalk"][f]:["Ballpoint","Memphis","Lime","Acid","Peppermint"][f]}function a(e){return 0===e?"Minimal":1===e?"Invert":2===e?"Screenprint":3===e?"Lino":6===e?"Acrylic":7===e?"Pencil":8===e?"Metallic":15===e?"Starfall":9===e?"Drift":12===e?"Warhol":13===e?"Riso":14===e?"Neon":"Unknown"}var c=Math.floor,r=Math.max,n=Math.min,s=Math.PI,d=Math.pow;const o=(e,f,t)=>r(n(e,t),f),i=e=>d((e+.055)/1.055,2.4),l=(f,t=~~(f/100*255))=>e([t,t,t]),b=e=>{"string"==typeof e&&(e=u(e));var f=e[0]/255,t=e[1]/255,a=e[2]/255;return.2126*(.03928>=f?f*(1/12.92):i(f))+.7152*(.03928>=t?t*(1/12.92):i(t))+.0722*(.03928>=a?a*(1/12.92):i(a))},h=(e,f)=>{var t=b(e),a=b(f);return(r(t,a)+.05)/(n(t,a)+.05)},u=e=>{var f=e.replace("#",""),t=parseInt(f,16);return[t>>16,255&t>>8,255&t]},p=e=>.0031308<e?1.055*d(e,1/2.4)-.055:12.92*e,g=(e,f,t=1,a=[3,2.5,2])=>{for(let c=0;c<a.length;c++){const r=e.filter(e=>f.every(f=>h(e,f)>=a[c]));if(r.length>=t)return r}},m=d(2,-32),v=32557,M=new Uint16Array(4),y=new DataView(M.buffer),S=()=>{const e=M[0],f=M[1],t=M[2],a=M[3],c=0|33103+v*e,r=0|63335+v*f+(19605*e+(c>>>16)),n=0|31614+v*t+19605*f+(62509*e+(r>>>16));M[0]=c,M[1]=r,M[2]=n,M[3]=5125+v*a+(19605*t+62509*f)+(22609*e+(n>>>16));const s=(a<<21)+((a>>2^t)<<5)+((t>>2^f)>>11);return m*((s>>>(a>>11)|s<<(31&-(a>>11)))>>>0)},w=(e,f=0)=>{const t=16;for(var a,c=1540483477,r=e.length,n=f^r,s=0;4<=r;)a=(65535&(a=255&e[s]|(255&e[++s])<<8|(255&e[++s])<<16|(255&e[++s])<<24))*c+(((a>>>t)*c&65535)<<t),n=(65535&n)*c+(((n>>>t)*c&65535)<<t)^(a=(65535&(a^=a>>>24))*c+(((a>>>t)*c&65535)<<t)),r-=4,++s;switch(r){case 3:n^=(255&e[s+2])<<t;case 2:n^=(255&e[s+1])<<8;case 1:n=(65535&(n^=255&e[s]))*c+(((n>>>t)*c&65535)<<t)}return n=(65535&(n^=n>>>13))*c+(((n>>>16)*c&65535)<<16),(n^=n>>>15)>>>0},P=()=>.5<S(),D=(e=.5)=>S()<e,k=(e,f)=>(void 0===f&&(f=e,e=0),S()*(f-e)+e),U=(e,f)=>c(k(e,f)),A=e=>e.length?e[U(e.length)]:void 0,B=e=>{for(var f,t,a=e.length,c=[...e];a;)f=~~(S()*a--),t=c[a],c[a]=c[f],c[f]=t;return c},L="#000000",C=e=>e.match(/.{6}/g).map(e=>"#"+e),E=e=>e.split`:`.map(C),I=C("f2c5d2e5bb579c96cdf5eeeb76b99570a7c5f8e6d1dfbcabf1e7e1efedf6e1dce9f0ded5cdcad5f2f2f2"),R=C("914e720078bf00a95c3255a4f150603d5588765ba700838abb8b41407060ff665e925f52ffe800d2515eff6c2fff48b0ac936ee45d50ff747762a8e54982cf0074a2235ba8484d7a435060d5e4c0a5aaa870747c5f8289375e775e695e00aa9319975d397e58516e5a4a635d68724d62c2b167b346009da5169b62237e742f61659d7ad2aa60bf775d7a6c5d80f65058d1517a9e4c6ea75154e3ed55ffb511ffae3bf6a04dee7f4bff6f4cba8032bd64398e595af2cdcff984cae6b5c9bd8ca682d8d5ffe900ff4c65"),j=E("455097db6a4568876bf5be2f:224816e85d13f5b2bc90c6cbf9b807:fc4626fddc3f0971d900bb70:ff5500f4c1451447142f04fce276af:21a48ff9ced08ab2dfef7a62"),H=E("344e49ebb133f7ebd0f9e9d3f8ead3a28a7d:224816e85d13f5b2bc90c6cbf9b807fcfdfe:272b239de6d7d4dd38e1e2db29b09de17072:290915f7ac32e8cec59c1debe37440eb8ae1:180d0643372fa79f98f66257d3978f0c4b37:222518ca684301853f4b97c206783b00833f:144714c58e46455097db6a4558765b:312fc882fcfcfbaff5d551ee1c1d67d85598:5f3746808cc5f293823c757e:282634bd928ba1a6aade7571ff4e44:3a3d7e6aaadefddf48:455097ffffffdb6a4568876bf5be2f"),O=[[0,50],[1,15],[2,50],[3,30],[7,160],[12,80],[6,160],[13,50],[14,50],[8,25],[9,25]],W=new Set;R.forEach((e,f)=>{R.forEach((t,a)=>{if(f!=a&&3<=h(e,t)){const e=[f,a];e.sort((e,f)=>e-f),W.add(e.join(":"))}})});const q=[...W].map(e=>e.split(":").map(e=>R[e]));(()=>{let c="undefined"!=typeof tokenData&&("string"==typeof tokenData?tokenData:tokenData.hash);if(c){const r=((c,r=42)=>{(e=>{const f=~~((e.length-2)/2),t=[];for(let a=0;a<f;a++){const f=2+2*a;t.push(parseInt(e.slice(f,f+2),16))}const a=w(t,1690382925),c=w(t,72970470);y.setUint32(0,a),y.setUint32(4,c)})(c),(e=>{const f=Math.sqrt(3);var t=(3-f)/6,a=[..."221021201001212012210010122102120100"].map(e=>e-1),c=0;const r=new Uint8Array(512);for(var n=r.slice(0,256);256>c;c++)n[c]=c;for(c=0;255>c;c++){var s=c+~~(e()*(256-c)),d=n[c];n[c]=n[s],n[s]=d}const o=r.slice();for(c=0;512>c;c++)r[c]=n[255&c],o[c]=r[c]%12})(S);let n=D(.01),d=!n&&D(.25),[o,i,b,h,p,m,v,M,C]=((t,a)=>{const c=a?15:O[(e=>{var f,t=0;for(f=0;f<e.length;f++)t+=e[f];var a=S()*t;for(f=0;f<e.length;f++){if(a<e[f])return f;a-=e[f]}return 0})(O.map(e=>e[1]))][0];let r,n,s=0,d=L,o="source-over",i=1,b=-1;const h=8==c;if(0==c)r=l(98),n=[l(5)];else if(1==c)r=l(5),n=[l(98)];else if(15===c)r=L,n=["#ffea00","#878787","#ffffff"];else if(9==c)r=L,n=["#ffffff"],s=0,i=.25,o="screen";else if(2==c||3==c){const e=2==c;r=e?f(50,k(5,20),k(360)):f(92,k(5,5),k(360)),n=[e?"#ffffff":L]}else if(12===c)r=(n=[...(()=>B(A(q)))()]).shift();else if(7==c)r=l(95),b=U(j.length),n=[...j[b]],o="multiply",s=.25,d="#ffffff";else if(13==c||14==c)r=(n=[...(e=>{const t=14==c?f(30,A([2,5,10]),k(100,300)):A(I),a=[t,A(g(R,[t],2)||[L])];let r=g(R,a);return P()&&r&&a.push(A(r.filter(e=>!a.includes(e)))),a})()]).shift();else if(6==c)b=U(H.length),r=(n=[...H[b]]).shift();else if(h){const e=A(g(R,[r=L],2.5,[5,4,3]));n=[L,l(40),e]}const p="source-over"===o;let m=p?1:i,v=d,M=p?0:s;if(!h&&15!=c&&(n=B(n),t)){const e=g(n,[r]);e&&(n=e)}return 0<M&&(n=n.map(f=>((f,t,a)=>{f=u(f),t=u(t);for(var c=0;3>c;c++)t[c]=t[c]*a+f[c]*(1-a);return e(t)})(f,v,M))),[n,r,m,o,"source-over"==o,h,9==c,c,b]})(d,n);o.map(e=>u(e)),A([[.5,.5],[1,.25],[.5,0],[0,1]]);let E=D(.1);d||A([4,5,6]);let W=D(.05);P();const x=!W&&D(.075),G=D(.2)&&x;P(),G||W||k(.02,.25),x||D(.1),!P()&&A([0,s/2]);let N=!v&&!m&&D(.1),T=n||m||2<=o.length&&D(.3);const V=!n&&!m&&D(.1);V&&U(10,21),P();let $=[[0,1,1,4.5,1],[0,.5,1,5,1.75],[0,.75,1,4,1],[0,1,.5,3,2]];W||m||!D(1)||$.push([0,.75,1,7.5,1],[0,.5,.75,5,4],[0,.5,.75,4,3]),G||W||m||!D(.25)||$.push([1,.4,.5,.5,1],[1,.2,1,1,1],[1,.4,1,1,1],[1,.25,.85,2,2]),W&&($=[[0,.5,1,2,2]]);let[z,F,J,K,Q]=A($),X=!x&&!V&&p&&!m&&!d&&D(.05),Y=!V&&!N&&!v&&!("multiply"==h)&&D(.33),Z=[N?.33:.15];N?Z.push(.5,.7):Y?Z.push(.5,1.1):Z.push(...A([[.66],[.5],[.33,.7],[.25,.5,.75]])),A([2,5,10,15]),N||P(),G||v||!(m||W||D(.1))||(m?o[2]:o[0]);const _=!x&&p&&!N&&!v&&!W&&!X&&!V&&D(.1);let ee;d?ee=[[.0125],[.01]]:(ee=[[.0085,.01],[.0125,.0085],[.015,.01,.0085]],!N&&ee.push([.01])),A(ee),k(-10,10),k(-10,10);{let e=!1;return d||(N?2<=o.length&&!T&&(e=!0):e=!0),((e={})=>()=>e)({Style:a(M),Palette:t(p,C),River:_,Stippled:N,Brushed:Y,Wireframe:X,Lattice:V,Blended:T&&!m,Patchwork:e,Grid:E,Landscape:W?"Summit":x?G?"Waterfall":"Coast":["Mountains","Hills"][z]})}})(c)();Object.entries(r).forEach(([e,f])=>{const t=[e,(f+"").charAt(0).toUpperCase()+(f+"").slice(1)].join(": ");features.push(t),featuresReduced.push(t)})}})()})();
+}
+
+////////
+
+else if (projectId===54){
+
+  let seedA = parseInt(tokenData.slice(0, 16), 16);
+
+let azonosito = parseInt(tokenId);
+
+let propKey = [];
+let propValue = [];
+
+let isPaused = false;
+let cFrameCount = 0;
+
+let itsStage = 0;
+
+let A = [0];
+
+let aX, aY, aR, aXp, aYp, aRp;
+let bX, bY, bR, bXp, bYp, bRp;
+let cX, cY, cR, cXp, cYp, cRp;
+let dX, dY, dR, dXp, dYp, dRp;
+let eX, eY, eR, eXp, eYp, eRp;
+let fX, fY, fR, fXp, fYp, fRp;
+
+let bRad, cRad, dRad, bRadp, cRadp, dRadp;
+
+let pdotColR, pdotColG, pdotColB, pdotColA;
+let dpdotColR, dpdotColG, dpdotColB, dpdotColA;
+
+let pdotMul;
+let dpdotMul;
+
+let pulses = 0;
+let pulseInterval;
+
+let thecols = [[35, 43, 43, 255], [248, 248, 255, 255], [255, 223, 0, 255], [255, 5, 5, 255], [46, 255, 83, 255], [254, 125, 5, 255], [215, 25, 144, 255], [0, 184, 200, 255], [9, 120, 255, 255], [0, 0, 0, 255]];
+let colnames = ["Ghost Black" /* 0 */, "Ghost White" /* 1 */, "Yellow" /* 2 */, "Red" /* 3 */, "Green" /* 4 */, "Orange" /* 5 */, "Pink" /* 6 */, "Cyan" /* 7 */, "Blue" /* 8 */, "Black" /* 9 */];
+let bgcol = [255, 255, 255, 255];
+let fgcol = [0, 0, 0, 255];
+
+let thecolsalt = [[70, 60, 254, 255], [84, 200, 100, 255], [230, 0, 154, 255], [255, 100, 29, 255]];
+
+let interval = 120;
+
+let stageAdvance;
+
+let size = 1200;
+let HALF_PI = 3.16/2.00;
+
+let which = -1;
+
+which = azonosito;
+
+if (which > 999999) {
+which = which - (Math.floor(which / 1000000) * 1000000);
+}
+
+interval = Math.floor(rnd().map( 0, 1, 75, 125));
+if (which == 2 || which == 61 || which == 173 || which == 313 || which == 11 || which == 89 || which == 211 || which == 349 || which == 29 || which == 107 || which == 233 || which == 367 || which == 43 || which == 149 || which == 277 || which == 383) {
+interval = Math.floor(rnd().map( 0, 1, 115, 125));
+}
+
+propKey.push("Speed");
+propValue.push((50 - (interval - 75)) + 75);
+
+if (Math.floor(rnd().map( 0, 1, 0, 100)) < 80) {
+pulseInterval = Math.floor(rnd().map( 0, 1, 3, 5));
+} else {
+pulseInterval = Math.floor(rnd().map( 0, 1, 2, 7));
+}
+propKey.push("Transition Interval");
+propValue.push(pulseInterval);
+
+colrnum = Math.floor(rnd().map( 0, 1, 0, 384));
+
+let cidx;
+if (colrnum < 6) {
+cidx = 5;
+} else if (colrnum < 12) {
+cidx = 6;
+} else if (colrnum < 18) {
+cidx = 8;
+} else if (colrnum < 36) {
+cidx = 4;
+} else if (colrnum < 60) {
+cidx = 7;
+} else if (colrnum < 90) {
+cidx = 0;
+} else if (colrnum < 126) {
+cidx = 1;
+} else if (colrnum < 168) {
+cidx = 2;
+} else if (colrnum < 216) {
+cidx = 3;
+} else {
+cidx = 9;
+}
+
+pdotColR = thecols[cidx][0];
+pdotColG = thecols[cidx][1];
+pdotColB = thecols[cidx][2];
+pdotColA = thecols[cidx][3];
+
+isRandom = true;
+if (which > 0) {
+oldcidx = cidx;
+cidx = -1;
+if (which == 2 || which == 61 || which == 173 || which == 313) {
+cidx = 0;
+}
+if (which == 11 || which == 89 || which == 211 || which == 349) {
+cidx = 1;
+}
+if (which == 29 || which == 107 || which == 233 || which == 367) {
+cidx = 2;
+}
+if (which == 43 || which == 149 || which == 277 || which == 383) {
+cidx = 3;
+}
+
+if (cidx >= 0) {
+isRandom = false;
+pdotColR = thecolsalt[cidx][0];
+pdotColG = thecolsalt[cidx][1];
+pdotColB = thecolsalt[cidx][2];
+pdotColA = thecolsalt[cidx][3];
+
+bgcol = [0, 0, 0, 255];
+fgcol = [255, 255, 255, 255];
+}
+cidx = oldcidx;
+}
+
+propKey.push("Type");
+if (isRandom) {
+propValue.push("Generated");
+} else {
+propValue.push("Curated");
+}
+
+propKey.push("Color");
+if (which == 383) {
+propValue.push("Rainbow");
+} else {
+propValue.push(colnames[cidx]);
+}
+
+dpdotColR = (pdotColR - fgcol[0]) / interval;
+dpdotColG = (pdotColG - fgcol[1]) / interval;
+dpdotColB = (pdotColB - fgcol[2]) / interval;
+dpdotColA = (pdotColA - 255) / interval;
+
+pdotUndulates = Math.floor(rnd().map( 0, 1, 0, 100));
+pdotMul = 1.00 + rnd().map( 0, 1, 0.3, 0.8);
+dpdotMul = (pdotMul-1.00) / interval;
+
+// Base coordinates
+
+aX = size*0.2;
+aY = size/2;
+aR = 0.00;
+
+bX = size*0.3;
+bY = size*0.4;
+bR = 0.00;
+bRad = size/7;
+
+cX = size*0.5;
+cY = size*0.4;
+cR = 0.00;
+cRad = size/18;
+
+dX = size*0.5;
+dY = size*0.6;
+dR = 0.00;
+dRad = size/18;
+
+eX = size*0.75;
+eY = size/2;
+eR = HALF_PI/3;
+
+fX = size*0.75;
+fY = size/2;
+fR = -1.0*(HALF_PI/3);
+
+// Prime coordinates
+
+aXp = size*rnd().map( 0, 1, 0.20, 0.80);
+aYp = size*rnd().map( 0, 1, 0.20, 0.80);
+aRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+aRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+bXp = size*rnd().map( 0, 1, 0.20, 0.80);
+bYp = size*rnd().map( 0, 1, 0.20, 0.80);
+bRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+bRadp = rnd().map( 0, 1, size/18, size/5);
+
+cXp = size*rnd().map( 0, 1, 0.20, 0.80);
+cYp = size*rnd().map( 0, 1, 0.20, 0.80);
+cRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+cRadp = rnd().map( 0, 1, size/18, size/5);
+
+dXp = size*rnd().map( 0, 1, 0.20, 0.80);
+dYp = size*rnd().map( 0, 1, 0.20, 0.80);
+dRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+dRadp = rnd().map( 0, 1, size/18, size/5);
+
+eXp = size*rnd().map( 0, 1, 0.20, 0.80);
+eYp = size*rnd().map( 0, 1, 0.20, 0.80);
+eRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+eRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+fXp = size*rnd().map( 0, 1, 0.20, 0.80);
+fYp = size*rnd().map( 0, 1, 0.20, 0.80);
+fRp = 3.14*rnd().map( 0, 1, -1.00, 1.00);
+fRp = 3.14*(-1+(Math.floor(rnd().map( 0, 1, 0, 16)) * (2.00 / 16) ));
+
+configNum = rnd().map( 0, 1, 0, 100);
+configNumB = rnd().map( 0, 1, 0, 100);
+
+if (isRandom) {
+
+if ( configNum >= 0 && configNum < 2) {
+propKey.push("Composition");
+propValue.push("Pclipse");
+}
+
+if ( configNum >= 2 && configNum < 6) {
+propKey.push("Composition");
+propValue.push("Pclipse");
+}
+
+if ( configNum >= 6 && configNum < 13) {
+propKey.push("Composition");
+propValue.push("Xclipse");
+}
+
+if ( configNum >= 13 && configNum < 23) {
+propKey.push("Composition");
+propValue.push("Crossover");
+}
+
+if ( configNum >= 23 && configNum < 33) {
+propKey.push("Composition");
+propValue.push("Crossover");
+}
+
+if ( configNum >= 33 && configNum < 43) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if ( configNum >= 43 && configNum < 53) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if ( configNum >= 53 && configNum < 63) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if ( configNum >= 63 && configNum < 73) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if ( configNumB >= 0 && configNumB <= 9) {
+bXp = cXp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bYp = cYp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bRadp = cRadp * 0.8;
+propKey.push("Composition");
+propValue.push("Hostile Takeover");
+}
+
+if ( configNumB >= 10 && configNumB <= 33) {
+bXp = dXp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bYp = dYp+(((size/50)*rnd().map( 0, 1, 0.9, 1.1))-(size/50/2));
+bRadp = dRadp * 0.8;
+propKey.push("Composition");
+propValue.push("Preferential Treatment");
+}
+
+}
+
+if (which == 2) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 11) {
+}
+
+if (which == 29) {
+propKey.push("Composition");
+propValue.push("Hostile Takeover");
+
+propKey.push("Composition");
+propValue.push("Isolated");
+}
+
+if (which == 43) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 61) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 89) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+if (which == 107) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 149) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 173) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 211) {
+propKey.push("Composition");
+propValue.push("Lazy Reflections");
+}
+
+if (which == 233) {
+propKey.push("Composition");
+propValue.push("At Attention");
+}
+
+if (which == 277) {
+propKey.push("Composition");
+propValue.push("Reflections");
+}
+
+if (which == 313) {
+}
+
+if (which == 349) {
+}
+
+if (which == 367) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+}
+
+if (which == 383) {
+propKey.push("Composition");
+propValue.push("Lazy Crossover");
+propKey.push("Composition");
+propValue.push("Rebound");
+}
+
+curhue = 15;
+
+if (pdotMul >= 1.00) {
+propKey.push("Pulse Direction");
+propValue.push("Contractive");
+} else {
+propKey.push("Pulse Direction");
+propValue.push("Expansive");
+}
+
+if (which % 7 == 0) {
+propKey.push("Composition");
+propValue.push("b:x");
+}
+
+for (let i = 0; i < propKey.length; i++) {
+features.push(propKey[i] + ": " + propValue[i]);
+featuresReduced=features;
+}
+
+function rnd() {
+  seedA ^= seedA << 13;
+  seedA ^= seedA >> 17;
+  seedA ^= seedA << 5;
+
+  return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+}
+//console.log(features);
+//console.log(featuresReduced);
+
+}
+
+else if (projectId===55){
+  (function calcFeatures () {
+
+    // extracted p5 funcs
+    const pfuncs = {
+      constrain: (n, low, high) => {
+        return Math.max(Math.min(n, high), low);
+      },
+      remap: (n, start1, stop1, start2, stop2, withinBounds) => {
+        const newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+        if (!withinBounds) {
+          return newval;
+        }
+        if (start2 < stop2) {
+          return pfuncs.constrain(newval, start2, stop2);
+        } else {
+          return pfuncs.constrain(newval, stop2, start2);
+        }
+      }
+    }
+
+    const calcDecPairs = () => {
+      // assumes tokenData is set globally
+      hashPairs = [];
+      for (let j = 0; j < 32; j++) {
+        hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+      }
+      // Parse the hash pairs into ints. Hash pairs are base 16 so "ec" becomes 236.
+      // Each pair will become a value ranging from 0 - 255
+      const decPairs = hashPairs.map(x => {
+        return parseInt(x, 16);
+      });
+      return decPairs
+    }
+
+    const dcp = calcDecPairs()
+    const opts = {}
+    const traits = []
+
+    const baseConfig = {
+      shardSteps: 8,
+      shardWidth: 3,     // how much shards overlap / gaps
+    }
+
+    opts.initAngle = pfuncs.remap(dcp[0], 0, 256, 0, 100)
+    opts.stepAngle = (2 * Math.PI) / baseConfig.shardSteps
+
+    opts.hueRange = pfuncs.remap(dcp[5], 0, 256, 50, 200)
+    opts.startHue = pfuncs.remap(dcp[10], 0, 256, 0, 80) // not close to the end
+    const hue = opts.startHue
+    opts.endHue = (hue + opts.hueRange) // might be more than 360
+    opts.hueStep = opts.hueRange / dcp.length
+
+    const startGlitch = pfuncs.remap(dcp[10], 0, 256, 0, 100)
+    opts.glitch = (startGlitch < 5)
+
+    for (const [key, value] of Object.entries(opts)) {
+      const v = Math.round(value)
+      traits.push(`${key}: ${v}`)
+    }
+
+    features = traits // overwrite globals
+    featuresReduced = traits;
+    console.log('set features:', features)
+  })()
+
+}
+
+
+
+
+//////
+
+else if (projectId===56){
+
+  const auroraIVFeatures = (hash) => {
+  	const features = [];
+  	const RandomGenerator = function (s) {
+  		let seedA = s;
+  		return function () {
+  			seedA ^= seedA << 13;
+  			seedA ^= seedA >> 17;
+  			seedA ^= seedA << 5;
+  			return ((seedA < 0 ? ~seedA + 1 : seedA) % 1000) / 1000;
+  		};
+  	};
+  	const random = RandomGenerator(parseInt(tokenData.slice(0, 16), 16));
+  	const randpos = (a) => {
+  		return a[Math.floor(random() * a.length)];
+  	}
+  	random();
+  	random();
+  	const day = random() > 0.15 ? 1 : 0;
+  	const model = randpos([1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4]);
+  	random();
+  	let hue = "hue " + randpos([0,15,15,15,15,15,15,100,200,220,250,300]);
+  	const inchue = random() >= 0.98 ? 0.02 : 0;
+  	const sr = random() > 0.95 ? 0.05 : -0.05;
+  	const bw = (day && random() > 0.98) ? 1 : 0;
+  	const sp = (day && random() > 0.98) ? 1 : 0;
+  	features.push("mode:" + ['night','day'][day]);
+  	features.push("model:" + ["megalopolis","city","station","outpost"][model-1]);
+  	if (bw || sp) {
+  		if (bw) hue = "black and white";
+  		if (sp) hue = "sepia";
+  	} else {
+  		if (inchue > 0) hue = "multicolors";
+  	}
+  	features.push("color:" + hue);
+  	features.push("rotation:" + (sr > 0 ? "counter-clockwise" : "clockwise"));
+  	return features;
+  };
+
+
+  /////////////////////////////////////////////////////////////////////
+
+
+  features = auroraIVFeatures(tokenData);
+  featuresReduced=features;
+  console.log(features)
+}
+
+
+
+/////////
+
+else if (projectId === 57) {
+
+	let hashPairs = [];
+	for (let i = 0; i < 32; i++) {
+		let hex = tokenData.slice((2 * i) + 2, (2 * i) + 4);
+		hashPairs[i] = parseInt(hex, 16);
+	}
+	let seed = parseInt(tokenData.slice(30, 46), 16);
+	let r, orientation, w;
+	let order = [];
+	let single, bw, transparency, outlines, anglelock, nonudge, darkmode, rev, linear = false;
+	let g = 0;
+	r = Math.floor(hashPairs[31].map(0, 255, 6, 12.9999999999));
+	if (hashPairs[0] == 2 || hashPairs[0] == 20 || hashPairs[0] == 200) {
+		r = 20;
+	}
+	w = ((Math.floor(hashPairs[1].map(0, 255, 0, 5.9999999999))) * .25) + .25;
+	orientation = Math.floor(hashPairs[30].map( 0, 255, 0, 1.9999999999));
+	if (hashPairs[29] > 224) {
+		anglelock = true;
+		rnd();
+	}
+	if (hashPairs[28] > 192) {
+		nonudge = true;
+	}
+	if (hashPairs[27] < 112) {
+		darkmode = true;
+	}
+	if (hashPairs[26] < 128 && (w > .75 && !anglelock) && !darkmode) {
+		transparency = true;
+	}
+	if (hashPairs[26] > 224) {
+		outlines = true;
+	}
+	if (hashPairs[25] < 36 && (w < 1.25 || transparency || outlines)) {
+		single = true;
+	}
+	if (hashPairs[25] > 232 && (w < 1.25 || transparency || outlines)) {
+		bw = true;
+	}
+
+	for (let i = 1; i < r + 1; i++) {
+		order.push(i);
+	}
+
+	if (hashPairs[24] > 224) {
+		rev = true;
+		order = order.reverse();
+	} else if (hashPairs[24] < 64 || w > .75 && !transparency && !outlines && !single && !bw) {
+		linear = true;
+	} else {
+		order = scramble(order);
+	}
+	for (let i = 0; i < r; i++) {
+		rnd();
+		rnd();
+		if (Math.floor(rnd().map( 0, 1, 0, 255)) < 1 && order[i] != 1 && order[i] != r) {
+			g++;
+		}
+	}
+
+	if (darkmode) {
+		features.push('Mode: Dark');
+	} else {
+		features.push('Mode: Light');
+	}
+	features.push('Bars: ' + (r - g));
+	features.push('Gaps: ' + g);
+	features.push('Width: ' + Math.floor(100 * w) + '%');
+	if (orientation == 0) {
+		features.push('Orientation: Vertical');
+	}
+	if (orientation == 1) {
+		features.push('Orientation: Horizontal');
+	}
+	if (anglelock && (w < 1.25 || transparency)) {
+		features.push('Rotation: Locked');
+	} else {
+		features.push('Rotation: Variable');
+	}
+	if (nonudge) {
+		features.push('Bounce: No');
+	} else {
+		features.push('Bounce: Yes');
+	}
+	if (single) {
+		features.push('Color: Single');
+	} else if (bw) {
+		features.push('Color: Black & White');
+	} else {
+		features.push('Color: Sequence');
+	}
+	if (rev) {
+		features.push('Arrangement: Reverse');
+	} else if (linear) {
+		features.push('Arrangement: Linear');
+	} else {
+		features.push('Arrangement: Shuffle');
+	}
+	if (transparency) {
+		features.push('Style: Transparent');
+	} else if (outlines) {
+		features.push('Style: Outlines');
+	} else {
+		features.push('Style: Solid');
+	}
+
+
+function scramble(arr) {
+	let newarr = [];
+	let length = arr.length;
+	for (let i = 0; i < length; i++) {
+		let choice = Math.floor(rnd().map(0, 1, 0, arr.length));
+		newarr.push(arr[choice]);
+		arr.splice(choice, 1);
+	}
+	return(newarr);
+}
+
+function rnd() {
+	seed ^= seed << 13;
+	seed ^= seed >> 17;
+	seed ^= seed << 5;
+	return (((seed < 0) ? ~seed + 1 : seed) % 1000) / 1000;
+}
+  featuresReduced=features;
+}
+
+  //////
+else if (projectId===58){
+
+let hashIndex = 0
+let hashData;
+
+var planets = 0;
+var ufos = 0;
+var ovals = 0;
+var circles = 0;
+var rectangles = 0;
+var arcs = 0;
+var triangles = 0;
+
+function setup() {
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+  let R = new Random(seed);
+  let extraHash = [...Array(225)].map(() => parseInt(R.random_between(0,255)));
+  hashData = setupParametersFromTokenData(tokenData).concat(extraHash);
+  let bcolor = hashData[inc()];
+  if (bcolor < 25) {
+    feature = "background: Gold";
+  } else if (bcolor < 50){
+    feature = "background: Old Lace";
+  } else if (bcolor < 75) {
+    feature = "background: Goldenrod Yellow"
+  } else if (bcolor < 100) {
+    feature = "background: Light Pink"
+  } else if (bcolor < 125) {
+    feature = "background: Antique White"
+  } else if (bcolor < 150) {
+    feature = "background: Ghost White"
+  } else if (bcolor < 170) {
+    feature = "background: Black"
+  } else if (bcolor < 195) {
+    feature = "background: Lavender"
+  } else if (bcolor < 218) {
+    feature = "background: Papaya Whip";
+  } else {
+    feature = "background: White"
+  }
+  features.push(feature);
+  featuresReduced.push(feature);
+}
+class Random {
+  constructor(seed) {
+    this.seed = seed
+  }
+  random_dec() {
+    this.seed ^= this.seed << 13
+    this.seed ^= this.seed >> 17
+    this.seed ^= this.seed << 5
+    return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+  }
+  random_between(a, b) {
+    return a + (b - a) * this.random_dec()
+  }
+}
+
+
+function draw() {
+
+  for (var x = 0; x < 400; x = x + 110) {
+    for (var y = 0; y < 400; y = y + 110) {
+      let colorChoice = hashData[inc()];
+      if ( colorChoice >= 170) {
+
+        circles = circles + 1;
+      } else {
+        pickShape(hashData[inc()]);
+      }
+      if (colorChoice < 86) {
+        circles = circles + 1;
+      } else {
+        pickShape(hashData[inc()]);
+      }
+      if (colorChoice < 170 && colorChoice >= 86) {
+        circles = circles + 1;
+      }
+      pickShape(hashData[inc()]);
+    }
+  }
+  features.push("Ovals: "+ ovals);
+  features.push("Circles: " + circles)
+  features.push("Arc: "+ arcs);
+  features.push("Rectangles: "+ rectangles);
+  features.push("Triangles: "+ triangles);
+  features.push("Planets: "+ planets);
+  featuresReduced.push("Planets: "+ planets);
+  features.push("UFO: "+ ufos);
+  featuresReduced.push("UFO: "+ ufos);
+  console.log(features);
+}
+function pickShape(value) {
+  let circleIndex = inc();
+  if (value <= 51) { // circle or oval
+    circles = circles + 1;
+  } else if (value <= 102) {
+    let circleTwo = inc();
+    ovals = ovals + 1;
+  } else if (value <= 154) {
+    arcs = arcs + 1;
+  } else if (value <= 208) {
+    let one = rangeConv(hashData[inc()], 60);
+    let two = rangeConv(hashData[inc()], 60);
+    let three = rangeConv(hashData[inc()], 60);
+    if (Math.abs(one - three) < 10) {
+      three = three + 10;
+    }
+    let four = rangeConv(hashData[inc()], 60);
+    if (Math.abs(two - four) < 10) {
+      four = four + 10;
+    }
+    let five = rangeConv(hashData[inc()], 60);
+    if (Math.abs(three - five) < 10) {
+      five = five + 10;
+    }
+    let six = rangeConv(hashData[inc()], 60);
+    if (Math.abs(four - six) < 10) {
+      six = six + 10;
+    }
+    triangles = triangles + 1;
+  } else {
+    let height = rangeConv(hashData[inc()], 30)+ 10;
+    let width = rangeConv(hashData[inc()], 30) + 10;
+    rectangles = rectangles + 1;
+  }
+  if ((value-inc()) == 42) {
+    // planet
+    let planetX = (rangeConv(hashData[inc()], 30)-10);
+    let planetY = (rangeConv(hashData[inc()], 30)-10);
+    ovals = ovals + 1;
+
+    if (value==119 || value==164 || value==95) {
+      arcs = arcs + 1;
+      ufos = ufos + 1;
+    } else {
+      circles = circles + 1;
+      planets = planets + 1;
+    }
+  }
+}
+function rangeConv(value, conv) {
+  return value * conv / 255;
+}
+function setupParametersFromTokenData(token) {
+  let hashPairs = []
+  //parse hash
+  for (let j = 0; j < 32; j++) {
+    hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)))
+  }
+  return hashPairs.map(x => {
+    return parseInt(x, 16)
+  })
+}
+function generateSeedFromTokenData(token) {
+  return parseInt(tokenData.slice(0, 16), 16)
+}
+function inc() {
+  return hashIndex = (hashIndex + 1) % hashData.length;
+}
+
+setup();
+draw();
+
+}
+//////////////////////////////
+else if (projectId===59){
+  function p5() {
+    this._lcg_random_state = null;
+    this._gaussian_previous = false;
+  }
+
+  // variables used for random number generators
+  const randomStateProp = '_lcg_random_state';
+  // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+  // m is basically chosen to be large (as it is the max period)
+  // and for its relationships to a and c
+  const m = 4294967296;
+  // a - 1 should be divisible by m's prime factors
+  const a = 1664525;
+  // c and m should be co-prime
+  const c = 1013904223;
+  let y2 = 0;
+
+  // Linear Congruential Generator that stores its state at instance[stateProperty]
+  p5.prototype._lcg = function(stateProperty) {
+    // define the recurrence relationship
+    this[stateProperty] = (a * this[stateProperty] + c) % m;
+    // return a float in [0, 1)
+    // we've just used % m, so / m is always < 1
+    return this[stateProperty] / m;
+  };
+
+  p5.prototype._lcgSetSeed = function(stateProperty, val) {
+    // pick a random seed if val is undefined or null
+    // the >>> 0 casts the seed to an unsigned 32-bit integer
+    this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+  };
+
+  p5.prototype.randomSeed = function(seed) {
+    this._lcgSetSeed(randomStateProp, seed);
+    this._gaussian_previous = false;
+  };
+
+  p5.prototype.random = function(min, max) {
+    let rand;
+
+    if (this[randomStateProp] != null) {
+      rand = this._lcg(randomStateProp);
+    } else {
+      rand = Math.random();
+    }
+    if (typeof min === 'undefined') {
+      return rand;
+    } else if (typeof max === 'undefined') {
+      if (min instanceof Array) {
+        return min[Math.floor(rand * min.length)];
+      } else {
+        return rand * min;
+      }
+    } else {
+      if (min > max) {
+        const tmp = min;
+        min = max;
+        max = tmp;
+      }
+
+      return rand * (max - min) + min;
+    }
+  };
+
+  function pickWeightedArray(e) {
+    let t = p5.prototype.random(1),
+      i = 0;
+    for (let r = 0; r < e.length; r++) {
+      if (t <= e[r].p + i) return r;
+      i += e[r].p
+    }
+    return 0
+  }
+
+  let letterData = {A:[],B:[],C:[],D:[],E:[],F:[],G:[],H:[],I:[],J:[],K:[],L:[],M:[],N:[],O:[],P:[],Q:[],R:[],S:[],T:[],U:[],V:[],W:[],X:[],Y:[],Z:[]};
+
+  let colorSchemes = [
+    {p: .03, isVariegated: !1, name: "flexible"},
+    {p: .03, isVariegated: !1, name: "puzzling"},
+    {p: .03, isVariegated: !1, name: "lustful"},
+    {p: .03, isVariegated: !1, name: "passionate"},
+    {p: .03, isVariegated: !1, name: "whimsical"},
+    {p: .03, isVariegated: !1, name: "ecstatic"},
+    {p: .03, isVariegated: !1, name: "mysterious"},
+    {p: .03, isVariegated: !1, name: "vivacious"},
+    {p: .03, isVariegated: !1, name: "bashful"},
+    {p: .03, isVariegated: !1, name: "confident"},
+    {p: .03, isVariegated: !1, name: "fiery"},
+    {p: .03, isVariegated: !1, name: "mellow"},
+    {p: .03, isVariegated: !1, name: "mystical"},
+    {p: .03, isVariegated: !1, name: "reserved"},
+    {p: .03, isVariegated: !1, name: "secretive"},
+    {p: .03, isVariegated: !1, name: "toxic"},
+    {p: .03, isVariegated: !1, name: "stimulated"},
+    {p: .03, isVariegated: !1, name: "peaceful"},
+    {p: .03, isVariegated: !1, name: "royal"},
+    {p: .03, isVariegated: !1, name: "fierce"},
+    {p: .03, isVariegated: !1, name: "fearless"},
+    {p: .03, isVariegated: !1, name: "reasonable"},
+    {p: .03, isVariegated: !1, name: "organic"},
+    {p: .03, isVariegated: !1, name: "dynamic"},
+    {p: .03, isVariegated: !1, name: "energetic"},
+    {p: .03, isVariegated: !1, name: "undomesticated"},
+    {p: .03, isVariegated: !1, name: "boisterous"},
+    {p: .03, isVariegated: !1, name: "satisfied"},
+    {p: .03, isVariegated: !1, name: "bubbly"},
+    {p: .03, isVariegated: !1, name: "wild"},
+    {p: .02, isVariegated: !0, name: "conflicted"},
+    {p: .02, isVariegated: !0, name: "balanced"},
+    {p: .02, isVariegated: !0, name: "perplexed"},
+    {p: .02, isVariegated: !0, name: "dignified"},
+    {p: .005, isVariegated: !0, name: "playful"},
+    {p: .005, isVariegated: !0, name: "intense"}
+  ];
+
+  let noiseScales = [
+    {p: .05, name: '20'},
+    {p: .1, name: '25'},
+    {p: .2, name: '30'},
+    {p: .3, name: '35'},
+    {p: .2, name: '40'},
+    {p: .1, name: '45'},
+    {p: .05, name: '50'}
+  ];
+
+  let angleAmps = [
+    {p: .025, name: '20'},
+    {p: .075, name: '25'},
+    {p: .1, name: '30'},
+    {p: .15, name: '35'},
+    {p: .3, name: '40'},
+    {p: .15, name: '45'},
+    {p: .1, name: '50'},
+    {p: .075, name: '55'},
+    {p: .025, name: '60'}
+  ]
+
+  let layouts = [
+    {p: .0584, name: "centerCircles"},
+    {p: .0576, name: "centerSquares"},
+    {p: .0576, name: "verticalLines"},
+    {p: .0576, name: "horizontalLines"},
+    {p: .0576, name: "verticalCircles"},
+    {p: .0576, name: "horizontalCircles"},
+    {p: .0576, name: "cornerCircles"},
+    {p: .0576, name: "cornerSquares"},
+    {p: .0576, name: "edgeCircles"},
+    {p: .0576, name: "hashtag"},
+    {p: .0576, name: "horizontalRectangles"},
+    {p: .0576, name: "verticalRectangles"},
+    {p: .0576, name: "edgeRectangles"},
+    {p: .0576, name: "rotatedSquare"},
+    {p: .0576, name: "star"},
+    {p: .0576, name: "x"},
+    {p: .0576, name: "corner x"},
+    {p: .01, name: "letter"},
+    {p: .01, name: 'confetti'}
+  ];
+
+  let isRotated, isStriped, isInverted, colorSchemeIndex, isMirrored, noiseScaleIndex, angleAmpIndex, offset, layoutType, isWavey, colorIndex;
+
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+  p5.prototype.randomSeed(seed);
+
+  // set up randomness
+  isMirrored = p5.prototype.random(1) < 0.2;
+  isRotated = p5.prototype.random(1) < 0.15;
+  isStriped = p5.prototype.random(1) < 0.1;
+  isInverted = p5.prototype.random(1) < 0.05;
+  isWavey = p5.prototype.random(1) < 0.01;
+  colorSchemeIndex = pickWeightedArray(colorSchemes);
+  noiseScaleIndex = pickWeightedArray(noiseScales);
+  angleAmpIndex = pickWeightedArray(angleAmps);
+  layoutIndex = pickWeightedArray(layouts);
+  offset = p5.prototype.random(-99999, 99999);
+
+  if (isMirrored) features.push("isSymmetric: true");
+  else features.push("isSymmetric: false");
+
+  if (isRotated) features.push("isBent: true");
+  else features.push("isBent: false");
+
+  if (isStriped) features.push("isStriped: true");
+  else features.push("isStriped: false");
+
+  if (isInverted) features.push("isColorInverted: true");
+  else features.push("isColorInverted: false");
+
+  if (isWavey) features.push("isWavey: true");
+  else features.push("isWavey: false");
+
+  if (colorSchemes[colorSchemeIndex].isVariegated) features.push("paletteType: varigatedWash");
+  else features.push("paletteType: gradedWash");
+
+  features.push("palette: " + colorSchemes[colorSchemeIndex].name);
+  features.push("noiseScale: " + noiseScales[noiseScaleIndex].name);
+  features.push("angleAmplitude: " + angleAmps[angleAmpIndex].name);
+  features.push("composition: " + layouts[layoutIndex].name);
+
+  featuresReduced=features;
+  console.log(features);
+}
+
+
+
+
+////////////////////////
+
+
+else if (projectId===60){
+
+  let hash = tokenData // .hash
+let seed = parseInt(hash.slice(0, 16), 16);
+
+let spins = 750 + 2750 * drand(seed);
+features = [
+  "proximity: " + (drand(seed) > 0.95 ? "closeup" : "faraway"),
+  "gravity: " + spinsToText(spins),
+];
+
+// deterministic random function
+function drand(seed) {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000
+}
+
+function spinsToText(spins) {
+  let gravity = ["moon", "jupiter", "quasar", "galaxy"];
+  for (let i = 0; i < 4; i++) {
+    if (spins < 850 * (i + 1)) {
+      return gravity[i];
+    }
+  }
+}
+
+featuresReduced = features;
+
+console.log(features)
+
+}
 
 
   //////
