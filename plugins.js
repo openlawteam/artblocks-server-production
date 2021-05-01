@@ -6858,521 +6858,117 @@ if (projectId===39){
   /////////
 
   else if (projectId ===41 ){
-    // START Comment this out before minifying
-    //function random_hash() {
-    //    let chars = "0123456789abcdef";
-    //    let result = '0x';
-    //    for (let i = 64; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-    //    return result;
-    //}
-    //tokenData = {
-    //    "hash": random_hash()
-    //}
-    // END Comment this out before minifying
-
-    // let tokenData = {"hash":"0x0c5bc96cf2b1cba8bab689f8caff9482c3402874d039b8987a102b94bcfaef3d","tokenId":"41000004"}
-    //let tokenData = {"hash":"0x0559aa28f62cfa991ec451e02360c4e747a95079f9b6ce35f764dc4aac4fca39","tokenId":"41000012"}
-    //let tokenData = {"hash":"0x146264f13c1e71c240d15018704c00bb29219b46d22e99d6e2a4c3bf347b18e0","tokenId":"41000575"}
-
     let hashPairs = [];
     for (let j = 0; j < 32; j++) {
-        hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
+    	hashPairs.push(tokenData.slice(2 + j * 2, 4 + j * 2));
     }
 
     const decPairs = hashPairs.map((x) => {
-        return parseInt(x, 16);
+    	return parseInt(x, 16);
     });
 
     let seed = parseInt(tokenData.slice(0, 16), 16);
 
-    let gridLoops1 = [];
-    let gridLoops2 = [];
-    let gridLoops_stroke = [];
-
     let unit, unit2, unit3, count, count2, count3;
     let offset, offsetH, offsetB, offsetHB, styleMaster, countX, countX2, strokeThick;
-    let rectY = true;
-    let ellipseY = false;
-    let tri1Y = false;
-    let tri2Y = false;
-    let gradY = false;
-    let space1Y = false;
-    let space2Y = false;
-    let smlRect = false;
-    let smlEllipse = false;
-    let rectGradY = false;
-    const Y_AXIS = 1;
-    const X_AXIS = 2;
-    let b1, b2, c1, c2;
-    let myColRnd1, myColRnd2, myColRnd3, palSwitch;
+    let palSwitch;
 
     var palette;
 
     // let features = [];
-    let parallelCount = [];
-    let parallelColour = [];
     let strokeColour = [];
-    let dotCount = [];
-    let headingCount = [];
-
-    if (decPairs[1] <= 85) {
-        features.push("Offset: Goldilocks")
-    } else if (decPairs[1] > 85 && decPairs[1] <= 170) {
-        features.push("Offset: Biggie")
-    } else {
-        features.push("Offset: Smalls")
-    }
-
-    if (decPairs[2] <= 85) {
-        countX = 0;
-        features.push("Base: None")
-    } else if (decPairs[2] > 85 && decPairs[2] < 170) {
-        countX = 1;
-        features.push("Base: Single")
-    } else {
-        countX = 2;
-        features.push("Base: Double")
-    }
-
-    if (decPairs[3] <= 85) {
-        countX2 = 0;
-    } else {
-        countX2 = 1;
-    }
 
     unit = Math.floor(map_range(decPairs[4], 0, 255, 2, 6));
     unit2 = Math.floor(map_range(decPairs[5], 0, 255, 3, 6));
     unit3 = Math.floor(map_range(decPairs[6], 0, 255, 2, 7));
 
-    if (decPairs[2] > 85) {
+    palSwitch = map_range(decPairs[10], 0, 255, 0, 1);
 
-        features.push("Base Grid: " + unit + "x" + unit)
+    if (decPairs[1] <= 85) {
+    	features.push("Offset: Goldilocks")
+    } else if (decPairs[1] > 85 && decPairs[1] <= 170) {
+    	features.push("Offset: Biggie")
+    } else {
+    	features.push("Offset: Smalls")
+    }
+
+    if (decPairs[2] <= 85) {
+    	features.push("Base: None")
+    } else if (decPairs[2] > 85 && decPairs[2] < 170) {
+    	features.push("Base: Single")
+    } else {
+    	features.push("Base: Double")
+    }
+
+    if (decPairs[2] > 85) {
+    	features.push("Base Grid: " + unit + "x" + unit)
     }
 
     features.push("Top Grid: " + unit2 + "x" + unit2)
 
-    palSwitch = map_range(decPairs[10], 0, 255, 0, 1);
 
     if (palSwitch <= 0.5) {
-        features.push("Palette: Mid-century")
+    	features.push("Palette: Mid-century")
     } else {
-        features.push("Palette: Candy")
+    	features.push("Palette: Candy")
     }
 
     class Random {
-        constructor(seed) {
-            this.seed = seed
-        }
-        random_dec() {
-            this.seed ^= this.seed << 13
-            this.seed ^= this.seed >> 17
-            this.seed ^= this.seed << 5
-            return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
-        }
-        random_between(a, b) {
-            return a + (b - a) * this.random_dec()
-        }
-        random_int(a, b) {
-            return Math.floor(this.random_between(a, b + 1))
-        }
-        random_choice(x) {
-            return x[Math.floor(this.random_between(0, x.length * 0.99))]
-        }
+    	constructor(seed) {
+    		this.seed = seed
+    	}
+    	random_dec() {
+    		this.seed ^= this.seed << 13
+    		this.seed ^= this.seed >> 17
+    		this.seed ^= this.seed << 5
+    		return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+    	}
+    	random_between(a, b) {
+    		return a + (b - a) * this.random_dec()
+    	}
+    	random_int(a, b) {
+    		return Math.floor(this.random_between(a, b + 1))
+    	}
+    	random_choice(x) {
+    		return x[Math.floor(this.random_between(0, x.length * 0.99))]
+    	}
     }
 
     let R = new Random(seed);
 
-
-    console.log(R);
-
-    class GridLooper {
-        constructor(k, l, c, rnd1, rnd2) {
-            this.k = k;
-            this.l = l;
-            this.c = c;
-            this.rnd1 = rnd1;
-            this.rnd2 = rnd2;
-        }
-
-        display() {
-
-            for (let i = 0; i < this.k; i++) {
-                for (let j = 0; j < this.l; j++) {
-
-                    styleMaster = Math.floor(R.random_between(0, 9));
-
-                    if (styleMaster == 0) {
-                        rectY = true;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 1) {
-                        rectY = false;
-                        ellipseY = true;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 2) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = true;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 3) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = true;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 4) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = true;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 5) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = true;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 6) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = true;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 7) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = true;
-                        smlEllipse = false;
-                        rectGradY = false;
-                    } else if (styleMaster == 8) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = true;
-                        rectGradY = false;
-                    } else if (styleMaster == 9) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        gradY = false;
-                        space1Y = false;
-                        space2Y = false;
-                        smlRect = false;
-                        smlEllipse = false;
-                        rectGradY = true;
-                    }
-
-
-
-                    if (rectY) {
-    					let val2 = R.random_between(0, 1);
-
-                        if (val2 <= 0.9) {
-
-                        } else if (val2 > 0.9 && val2 <= 0.99) {
-                        } else {
-                            parallelCount.push("yes")
-    						console.log(val2)
-
-                            if (decPairs[9] <= 127.5) {
-                               parallelColour.push("Black");
-                            } else {
-                                parallelColour.push("White");
-                            }
-                        }
-                    }
-
-                    if (smlRect) {}
-
-                    if (ellipseY) {
-    					let val = R.random_between(0, 1);
-                        if (val < 0.9) {
-
-                        } else {
-    											console.log(val)
-
-                            dotCount.push("yes")
-                        }
-                    }
-
-                    if (smlEllipse) {
-
-                    }
-
-                    if (tri1Y) {
-                        if (decPairs[11] <= 229.5) {
-
-                            headingCount.push("East")
-
-
-                        } else {
-
-
-                            headingCount.push("West")
-
-
-                        }
-
-
-                    }
-
-                    if (tri2Y) {
-
-                        if (decPairs[11] <= 229.5) {
-
-                            headingCount.push("East")
-                        } else {
-
-                            headingCount.push("West")
-
-                        }
-                    }
-
-                    if (gradY) {
-                        if (R.random_between(0, 1) < 0.5) {
-
-                        } else {
-
-                        }
-                    }
-                    if (rectGradY) {
-
-                    }
-                    if (space1Y) {}
-                    if (space2Y) {}
-                }
-            }
-
-
-        }
-
-    }
-
-    class GridLooper_stroke {
-        constructor(k, l, c, sw) {
-            this.k = k;
-            this.l = l;
-            this.c = c;
-            this.sw = sw;
-        }
-
-        display() {
-
-            if (decPairs[8] <= 127.5) {
-                strokeColour.push("White")
-            } else {
-                strokeColour.push("Black")
-            }
-
-            for (let i = 0; i < this.k; i++) {
-                for (let j = 0; j < this.l; j++) {
-
-                    styleMaster = Math.floor(R.random_between(0, 6));
-
-                    if (styleMaster == 0) {
-                        rectY = true;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 1) {
-                        rectY = false;
-                        ellipseY = true;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 2) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = true;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 3) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = true;
-                        space1Y = false;
-                        space2Y = false;
-                    } else if (styleMaster == 4) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = true;
-                        space2Y = false;
-                    } else if (styleMaster == 5) {
-                        rectY = false;
-                        ellipseY = false;
-                        tri1Y = false;
-                        tri2Y = false;
-                        space1Y = false;
-                        space2Y = true;
-                    }
-
-
-
-                    if (decPairs[8] <= 127.5) {
-
-                    } else {}
-
-                    if (rectY) {
-
-                    }
-
-                    if (ellipseY) {
-
-                    }
-
-                    if (tri1Y) {
-                        if (decPairs[11] <= 229.5) {
-
-
-                        } else {
-
-
-
-                        }
-                    }
-
-                    if (tri2Y) {
-                        if (decPairs[11] <= 229.5) {
-
-
-                        } else {
-
-
-                        }
-                    }
-
-                    if (space1Y) {}
-                    if (space2Y) {}
-                }
-            }
-        }
-    }
-
-
-
-    for (let i = 0; i < countX; i++) {
-        gridLoops1.push(new GridLooper(unit, unit, count, 0, 0));
-    }
-
-    for (let i = 0; i < 1; i++) {
-        gridLoops2.push(new GridLooper(unit2, unit2, count2, 0, 0));
-    }
-
-    for (let i = 0; i < countX2; i++) {
-        gridLoops_stroke.push(new GridLooper_stroke(unit3, unit3, count3, 0));
+    if (decPairs[8] <= 127.5) {
+    	strokeColour.push("White")
+    } else {
+    	strokeColour.push("Black")
     }
 
     if (decPairs[7] <= 85) {
-
-        features.push("Background: Gray")
+    	features.push("Background: Gray")
 
     } else if (decPairs[7] > 85 && decPairs[7] < 170) {
-
-
-        features.push("Background: Tint")
-
+    	features.push("Background: Tint")
     } else {
-        features.push("Background: Full")
-
+    	features.push("Background: Full")
     }
-
-    for (let i = 0; i < gridLoops1.length; i++) {
-        gridLoops1[i].display();
-    }
-
-    for (let i = 0; i < gridLoops2.length; i++) {
-        gridLoops2[i].display();
-    }
-
-    for (let i = 0; i < gridLoops_stroke.length; i++) {
-        gridLoops_stroke[i].display();
-    }
-
 
     if (decPairs[3] <= 85) {
-        features.push("Stroke: None")
+    	features.push("Stroke: None")
 
     } else {
-        features.push("Stroke: " + strokeColour)
-        features.push("Stroke Grid: " + unit3 + "x" + unit3)
-
+    	features.push("Stroke: " + strokeColour)
+    	features.push("Stroke Grid: " + unit3 + "x" + unit3)
     }
-
 
     if (decPairs[11] <= 229.5) {
-        features.push("Heading: East");
+    	features.push("Heading: East");
     } else {
-        features.push("Heading: West");
+    	features.push("Heading: West");
     }
-
-
-
 
     function map_range(value, low1, high1, low2, high2) {
-        return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+    	return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
     }
 
-    if (parallelCount.length != 0) {
-        features.push("Blinds: " + parallelCount.length + " " + parallelColour[0]);
-    }
 
     featuresReduced=features;
     console.log(features);
@@ -10599,6 +10195,216 @@ setup();
 draw();
 
 }
+//////////////////////////////
+else if (projectId===59){
+  function p5() {
+    this._lcg_random_state = null;
+    this._gaussian_previous = false;
+  }
+
+  // variables used for random number generators
+  const randomStateProp = '_lcg_random_state';
+  // Set to values from http://en.wikipedia.org/wiki/Numerical_Recipes
+  // m is basically chosen to be large (as it is the max period)
+  // and for its relationships to a and c
+  const m = 4294967296;
+  // a - 1 should be divisible by m's prime factors
+  const a = 1664525;
+  // c and m should be co-prime
+  const c = 1013904223;
+  let y2 = 0;
+
+  // Linear Congruential Generator that stores its state at instance[stateProperty]
+  p5.prototype._lcg = function(stateProperty) {
+    // define the recurrence relationship
+    this[stateProperty] = (a * this[stateProperty] + c) % m;
+    // return a float in [0, 1)
+    // we've just used % m, so / m is always < 1
+    return this[stateProperty] / m;
+  };
+
+  p5.prototype._lcgSetSeed = function(stateProperty, val) {
+    // pick a random seed if val is undefined or null
+    // the >>> 0 casts the seed to an unsigned 32-bit integer
+    this[stateProperty] = (val == null ? Math.random() * m : val) >>> 0;
+  };
+
+  p5.prototype.randomSeed = function(seed) {
+    this._lcgSetSeed(randomStateProp, seed);
+    this._gaussian_previous = false;
+  };
+
+  p5.prototype.random = function(min, max) {
+    let rand;
+
+    if (this[randomStateProp] != null) {
+      rand = this._lcg(randomStateProp);
+    } else {
+      rand = Math.random();
+    }
+    if (typeof min === 'undefined') {
+      return rand;
+    } else if (typeof max === 'undefined') {
+      if (min instanceof Array) {
+        return min[Math.floor(rand * min.length)];
+      } else {
+        return rand * min;
+      }
+    } else {
+      if (min > max) {
+        const tmp = min;
+        min = max;
+        max = tmp;
+      }
+
+      return rand * (max - min) + min;
+    }
+  };
+
+  function pickWeightedArray(e) {
+    let t = p5.prototype.random(1),
+      i = 0;
+    for (let r = 0; r < e.length; r++) {
+      if (t <= e[r].p + i) return r;
+      i += e[r].p
+    }
+    return 0
+  }
+
+  let letterData = {A:[],B:[],C:[],D:[],E:[],F:[],G:[],H:[],I:[],J:[],K:[],L:[],M:[],N:[],O:[],P:[],Q:[],R:[],S:[],T:[],U:[],V:[],W:[],X:[],Y:[],Z:[]};
+
+  let colorSchemes = [
+    {p: .03, isVariegated: !1, name: "flexible"},
+    {p: .03, isVariegated: !1, name: "puzzling"},
+    {p: .03, isVariegated: !1, name: "lustful"},
+    {p: .03, isVariegated: !1, name: "passionate"},
+    {p: .03, isVariegated: !1, name: "whimsical"},
+    {p: .03, isVariegated: !1, name: "ecstatic"},
+    {p: .03, isVariegated: !1, name: "mysterious"},
+    {p: .03, isVariegated: !1, name: "vivacious"},
+    {p: .03, isVariegated: !1, name: "bashful"},
+    {p: .03, isVariegated: !1, name: "confident"},
+    {p: .03, isVariegated: !1, name: "fiery"},
+    {p: .03, isVariegated: !1, name: "mellow"},
+    {p: .03, isVariegated: !1, name: "mystical"},
+    {p: .03, isVariegated: !1, name: "reserved"},
+    {p: .03, isVariegated: !1, name: "secretive"},
+    {p: .03, isVariegated: !1, name: "toxic"},
+    {p: .03, isVariegated: !1, name: "stimulated"},
+    {p: .03, isVariegated: !1, name: "peaceful"},
+    {p: .03, isVariegated: !1, name: "royal"},
+    {p: .03, isVariegated: !1, name: "fierce"},
+    {p: .03, isVariegated: !1, name: "fearless"},
+    {p: .03, isVariegated: !1, name: "reasonable"},
+    {p: .03, isVariegated: !1, name: "organic"},
+    {p: .03, isVariegated: !1, name: "dynamic"},
+    {p: .03, isVariegated: !1, name: "energetic"},
+    {p: .03, isVariegated: !1, name: "undomesticated"},
+    {p: .03, isVariegated: !1, name: "boisterous"},
+    {p: .03, isVariegated: !1, name: "satisfied"},
+    {p: .03, isVariegated: !1, name: "bubbly"},
+    {p: .03, isVariegated: !1, name: "wild"},
+    {p: .02, isVariegated: !0, name: "conflicted"},
+    {p: .02, isVariegated: !0, name: "balanced"},
+    {p: .02, isVariegated: !0, name: "perplexed"},
+    {p: .02, isVariegated: !0, name: "dignified"},
+    {p: .005, isVariegated: !0, name: "playful"},
+    {p: .005, isVariegated: !0, name: "intense"}
+  ];
+
+  let noiseScales = [
+    {p: .05, name: '20'},
+    {p: .1, name: '25'},
+    {p: .2, name: '30'},
+    {p: .3, name: '35'},
+    {p: .2, name: '40'},
+    {p: .1, name: '45'},
+    {p: .05, name: '50'}
+  ];
+
+  let angleAmps = [
+    {p: .025, name: '20'},
+    {p: .075, name: '25'},
+    {p: .1, name: '30'},
+    {p: .15, name: '35'},
+    {p: .3, name: '40'},
+    {p: .15, name: '45'},
+    {p: .1, name: '50'},
+    {p: .075, name: '55'},
+    {p: .025, name: '60'}
+  ]
+
+  let layouts = [
+    {p: .0584, name: "centerCircles"},
+    {p: .0576, name: "centerSquares"},
+    {p: .0576, name: "verticalLines"},
+    {p: .0576, name: "horizontalLines"},
+    {p: .0576, name: "verticalCircles"},
+    {p: .0576, name: "horizontalCircles"},
+    {p: .0576, name: "cornerCircles"},
+    {p: .0576, name: "cornerSquares"},
+    {p: .0576, name: "edgeCircles"},
+    {p: .0576, name: "hashtag"},
+    {p: .0576, name: "horizontalRectangles"},
+    {p: .0576, name: "verticalRectangles"},
+    {p: .0576, name: "edgeRectangles"},
+    {p: .0576, name: "rotatedSquare"},
+    {p: .0576, name: "star"},
+    {p: .0576, name: "x"},
+    {p: .0576, name: "corner x"},
+    {p: .01, name: "letter"},
+    {p: .01, name: 'confetti'}
+  ];
+
+  let isRotated, isStriped, isInverted, colorSchemeIndex, isMirrored, noiseScaleIndex, angleAmpIndex, offset, layoutType, isWavey, colorIndex;
+
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+  p5.prototype.randomSeed(seed);
+
+  // set up randomness
+  isMirrored = p5.prototype.random(1) < 0.2;
+  isRotated = p5.prototype.random(1) < 0.15;
+  isStriped = p5.prototype.random(1) < 0.1;
+  isInverted = p5.prototype.random(1) < 0.05;
+  isWavey = p5.prototype.random(1) < 0.01;
+  colorSchemeIndex = pickWeightedArray(colorSchemes);
+  noiseScaleIndex = pickWeightedArray(noiseScales);
+  angleAmpIndex = pickWeightedArray(angleAmps);
+  layoutIndex = pickWeightedArray(layouts);
+  offset = p5.prototype.random(-99999, 99999);
+
+  if (isMirrored) features.push("isSymmetric: true");
+  else features.push("isSymmetric: false");
+
+  if (isRotated) features.push("isBent: true");
+  else features.push("isBent: false");
+
+  if (isStriped) features.push("isStriped: true");
+  else features.push("isStriped: false");
+
+  if (isInverted) features.push("isColorInverted: true");
+  else features.push("isColorInverted: false");
+
+  if (isWavey) features.push("isWavey: true");
+  else features.push("isWavey: false");
+
+  if (colorSchemes[colorSchemeIndex].isVariegated) features.push("paletteType: varigatedWash");
+  else features.push("paletteType: gradedWash");
+
+  features.push("palette: " + colorSchemes[colorSchemeIndex].name);
+  features.push("noiseScale: " + noiseScales[noiseScaleIndex].name);
+  features.push("angleAmplitude: " + angleAmps[angleAmpIndex].name);
+  features.push("composition: " + layouts[layoutIndex].name);
+
+  featuresReduced=features;
+  console.log(features);
+}
+
+
+
+
+////////////////////////
+
 
 else if (projectId===60){
 

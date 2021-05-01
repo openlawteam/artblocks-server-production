@@ -72,7 +72,8 @@ const curatedProjects =
         39,
         40,
         41,
-        53
+        53,
+        59
       ]
     : [];
 const playgroundProjects =
@@ -387,6 +388,7 @@ app.get("/token/:tokenId", async (request, response) => {
         };
         await s3.getObject(checkImageExistsParams).promise();
 
+
         const responseWithToken = {
           platform,
           name: tokenName,
@@ -430,6 +432,7 @@ app.get("/token/:tokenId", async (request, response) => {
 
         response.json(responseWithToken);
       } catch (err) {
+
         const responseWithoutToken = {
           platform,
           name: tokenName,
