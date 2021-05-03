@@ -582,7 +582,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
 
     let pId = Math.floor(tokenId / 1000000);
     if (currentNetwork === "rinkeby") {
-      await timeout(pId === 36 ? 20000 : 500);
+      await timeout(pId === 36 ? 20000 : pId === 57 ? 30000 : 500);
     } else {
       await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId === 59 ? 30000 : 500);
     }
@@ -677,7 +677,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     let pId = Math.floor(tokenId / 1000000);
     if (currentNetwork === "rinkeby") {
-      await timeout(pId === 36 ? 20000 : 500);
+      await timeout(pId === 36 ? 20000 : pId === 57 ? 30000 : 500);
     } else {
       await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId === 59 ? 30000 : 500);
     }
