@@ -10030,171 +10030,179 @@ function rnd() {
 }
 
   //////
-else if (projectId===58){
+  else if (projectId===58){
 
-let hashIndex = 0
-let hashData;
+  let hashIndex = 0
+  let hashData;
+  var planets = 0;
+  var ufos = 0;
+  var ovals = 0;
+  var circles = 0;
+  var rectangles = 0;
+  var arcs = 0;
+  var triangles = 0;
 
-var planets = 0;
-var ufos = 0;
-var ovals = 0;
-var circles = 0;
-var rectangles = 0;
-var arcs = 0;
-var triangles = 0;
+  function setup() {
+    let seed = parseInt(tokenData.slice(0, 16), 16);
+    let R = new Random(seed);
+    let extraHash = [...Array(225)].map(() => parseInt(R.random_between(0,255)));
+    hashData = setupParametersFromTokenData(tokenData).concat(extraHash);
+    let bcolor = hashData[inc()];
 
-function setup() {
-  let seed = parseInt(tokenData.slice(0, 16), 16);
-  let R = new Random(seed);
-  let extraHash = [...Array(225)].map(() => parseInt(R.random_between(0,255)));
-  hashData = setupParametersFromTokenData(tokenData).concat(extraHash);
-  let bcolor = hashData[inc()];
-  if (bcolor < 25) {
-    feature = "background: Gold";
-  } else if (bcolor < 50){
-    feature = "background: Old Lace";
-  } else if (bcolor < 75) {
-    feature = "background: Goldenrod Yellow"
-  } else if (bcolor < 100) {
-    feature = "background: Light Pink"
-  } else if (bcolor < 125) {
-    feature = "background: Antique White"
-  } else if (bcolor < 150) {
-    feature = "background: Ghost White"
-  } else if (bcolor < 170) {
-    feature = "background: Black"
-  } else if (bcolor < 195) {
-    feature = "background: Lavender"
-  } else if (bcolor < 218) {
-    feature = "background: Papaya Whip";
-  } else {
-    feature = "background: White"
-  }
-  features.push(feature);
-  featuresReduced.push(feature);
-}
-class Random {
-  constructor(seed) {
-    this.seed = seed
-  }
-  random_dec() {
-    this.seed ^= this.seed << 13
-    this.seed ^= this.seed >> 17
-    this.seed ^= this.seed << 5
-    return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
-  }
-  random_between(a, b) {
-    return a + (b - a) * this.random_dec()
-  }
-}
-
-
-function draw() {
-
-  for (var x = 0; x < 400; x = x + 110) {
-    for (var y = 0; y < 400; y = y + 110) {
-      let colorChoice = hashData[inc()];
-      if ( colorChoice >= 170) {
-
-        circles = circles + 1;
-      } else {
-        pickShape(hashData[inc()]);
-      }
-      if (colorChoice < 86) {
-        circles = circles + 1;
-      } else {
-        pickShape(hashData[inc()]);
-      }
-      if (colorChoice < 170 && colorChoice >= 86) {
-        circles = circles + 1;
-      }
-      pickShape(hashData[inc()]);
-    }
-  }
-  features.push("Ovals: "+ ovals);
-  features.push("Circles: " + circles)
-  features.push("Arc: "+ arcs);
-  features.push("Rectangles: "+ rectangles);
-  features.push("Triangles: "+ triangles);
-  features.push("Planets: "+ planets);
-  featuresReduced.push("Planets: "+ planets);
-  features.push("UFO: "+ ufos);
-  featuresReduced.push("UFO: "+ ufos);
-  console.log(features);
-}
-function pickShape(value) {
-  let circleIndex = inc();
-  if (value <= 51) { // circle or oval
-    circles = circles + 1;
-  } else if (value <= 102) {
-    let circleTwo = inc();
-    ovals = ovals + 1;
-  } else if (value <= 154) {
-    arcs = arcs + 1;
-  } else if (value <= 208) {
-    let one = rangeConv(hashData[inc()], 60);
-    let two = rangeConv(hashData[inc()], 60);
-    let three = rangeConv(hashData[inc()], 60);
-    if (Math.abs(one - three) < 10) {
-      three = three + 10;
-    }
-    let four = rangeConv(hashData[inc()], 60);
-    if (Math.abs(two - four) < 10) {
-      four = four + 10;
-    }
-    let five = rangeConv(hashData[inc()], 60);
-    if (Math.abs(three - five) < 10) {
-      five = five + 10;
-    }
-    let six = rangeConv(hashData[inc()], 60);
-    if (Math.abs(four - six) < 10) {
-      six = six + 10;
-    }
-    triangles = triangles + 1;
-  } else {
-    let height = rangeConv(hashData[inc()], 30)+ 10;
-    let width = rangeConv(hashData[inc()], 30) + 10;
-    rectangles = rectangles + 1;
-  }
-  if ((value-inc()) == 42) {
-    // planet
-    let planetX = (rangeConv(hashData[inc()], 30)-10);
-    let planetY = (rangeConv(hashData[inc()], 30)-10);
-    ovals = ovals + 1;
-
-    if (value==119 || value==164 || value==95) {
-      arcs = arcs + 1;
-      ufos = ufos + 1;
+    if (bcolor < 25) {
+      feature = "background: Gold";
+    } else if (bcolor < 50){
+      feature = "background: Old Lace";
+    } else if (bcolor < 75) {
+      feature = "background: Goldenrod Yellow"
+    } else if (bcolor < 100) {
+      feature = "background: Light Pink"
+    } else if (bcolor < 125) {
+      feature = "background: Antique White"
+    } else if (bcolor < 150) {
+      feature = "background: Ghost White"
+    } else if (bcolor < 170) {
+      feature = "background: Black"
+    } else if (bcolor < 195) {
+      feature = "background: Lavender"
+    } else if (bcolor < 218) {
+      feature = "background: Papaya Whip";
     } else {
-      circles = circles + 1;
-      planets = planets + 1;
+      feature = "background: White"
+    }
+    features.push(feature);
+    featuresReduced.push(feature);
+  }
+  class Random {
+    constructor(seed) {
+      this.seed = seed
+    }
+    random_dec() {
+      this.seed ^= this.seed << 13
+      this.seed ^= this.seed >> 17
+      this.seed ^= this.seed << 5
+      return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+    }
+    random_between(a, b) {
+      return a + (b - a) * this.random_dec()
     }
   }
-}
-function rangeConv(value, conv) {
-  return value * conv / 255;
-}
-function setupParametersFromTokenData(token) {
-  let hashPairs = []
-  //parse hash
-  for (let j = 0; j < 32; j++) {
-    hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)))
+
+
+  function draw() {
+    for (var x = 0; x < 400; x = x + 110) {
+      for (var y = 0; y < 400; y = y + 110) {
+        let colorChoice = hashData[inc()];
+        if ( colorChoice >= 170) {
+
+          circles = circles + 1;
+        } else {
+          pickShape(hashData[inc()]);
+        }
+
+        if (colorChoice < 86) {
+
+          circles = circles + 1;
+        } else {
+          pickShape(hashData[inc()]);
+        }
+
+        if (colorChoice < 170 && colorChoice >= 86) {
+          circles = circles + 1;
+        }
+        pickShape(hashData[inc()]);
+      }
+    }
+    features.push("Ovals: "+ ovals);
+    features.push("Circles: " + circles)
+    features.push("Arc: "+ arcs);
+    features.push("Rectangles: "+ rectangles);
+    features.push("Triangles: "+ triangles);
+    features.push("Planets: "+ planets);
+    featuresReduced.push("Planets: "+ planets);
+    features.push("UFO: "+ ufos);
+    featuresReduced.push("UFO: "+ ufos);
   }
-  return hashPairs.map(x => {
-    return parseInt(x, 16)
-  })
-}
-function generateSeedFromTokenData(token) {
-  return parseInt(tokenData.slice(0, 16), 16)
-}
-function inc() {
-  return hashIndex = (hashIndex + 1) % hashData.length;
-}
+  function pickShape(value) {
+    let circleIndex = inc();
+    if (value <= 51) { // circle or oval
 
-setup();
-draw();
+      circles = circles + 1;
+    } else if (value <= 102) {
+      let circleTwo = inc();
 
-}
+      ovals = ovals + 1;
+    } else if (value <= 154) {
+      rangeConv(hashData[inc()]);
+      arcs = arcs + 1;
+    } else if (value <= 208) {
+      let one = rangeConv(hashData[inc()], 60);
+      let two = rangeConv(hashData[inc()], 60);
+      let three = rangeConv(hashData[inc()], 60);
+      if (Math.abs(one - three) < 10) {
+        three = three + 10;
+      }
+      let four = rangeConv(hashData[inc()], 60);
+      if (Math.abs(two - four) < 10) {
+        four = four + 10;
+      }
+      let five = rangeConv(hashData[inc()], 60);
+      if (Math.abs(three - five) < 10) {
+        five = five + 10;
+      }
+      let six = rangeConv(hashData[inc()], 60);
+      if (Math.abs(four - six) < 10) {
+        six = six + 10;
+      }
+
+      triangles = triangles + 1;
+    } else {
+      let height = rangeConv(hashData[inc()], 30)+ 10;
+      let width = rangeConv(hashData[inc()], 30) + 10;
+      rangeConv(hashData[inc()], 30)
+      rangeConv(hashData[inc()], 30)
+      rectangles = rectangles + 1;
+    }
+    if ((value-inc()) == 42) {
+      ovals = ovals + 1;
+      // planet
+      let planetX = (rangeConv(hashData[inc()], 30)-10);
+      let planetY = (rangeConv(hashData[inc()], 30)-10);
+
+      if (value==119 || value==164 || value==95) {
+        arcs = arcs + 1;
+        ufos=ufos+1;
+      } else {
+
+        circles = circles + 1;
+        planets=planets+1
+      }
+    }
+  }
+  function rangeConv(value, conv) {
+    return value * conv / 255;
+  }
+  function setupParametersFromTokenData(token) {
+    let hashPairs = []
+    //parse hash
+    for (let j = 0; j < 32; j++) {
+      hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)))
+    }
+    return hashPairs.map(x => {
+      return parseInt(x, 16)
+    })
+  }
+  function generateSeedFromTokenData(token) {
+    return parseInt(tokenData.slice(0, 16), 16)
+  }
+  function inc() {
+    return hashIndex = (hashIndex + 1) % hashData.length;
+  }
+
+  setup();
+  draw();
+
+  }
 //////////////////////////////
 else if (projectId===59){
   function p5() {
@@ -10439,7 +10447,235 @@ featuresReduced = features;
 console.log(features)
 
 }
+////////////
 
+else if (projectId===61){
+
+  !(function (t, r, n, e, o, a, i, f, u) {
+    function h(t) {
+      let r;
+      let n = t.length;
+      const o = this;
+      let a = 0;
+      let i = o.i = o.j = 0;
+      const f = o.S = [];
+      for (n || (t = [n++]); e > a;) f[a] = a++;
+      for (a = 0; e > a; a++) f[a] = f[i = g & i + t[a % n] + (r = f[a])], f[i] = r;
+      (o.g = function (t) {
+        for (var r, n = 0, a = o.i, i = o.j, f = o.S; t--;) r = f[a = g & a + 1], n = n * e + f[g & (f[a] = f[i =
+          g & i + r]) + (f[i] = r)];
+        return o.i = a, o.j = i, n
+      })(e)
+    }
+
+    function c(t, r) {
+      for (var n, e = t + '', o = 0; o < e.length;) r[g & o] = g & (n ^= 19 * r[g & o]) + e.charCodeAt(o++);
+      return l(r)
+    }
+
+    function s(n) {
+      try {
+        return d ? l(d.randomBytes(e)) : (t.crypto.getRandomValues(n = new Uint8Array(e)), l(n))
+      } catch (e) {
+        return [+new Date(), t, (n = t.navigator) && n.plugins, t.screen, l(r)]
+      }
+    }
+
+    function l(t) {
+      return String.fromCharCode.apply(0, t)
+    }
+    let d;
+    const p = n.pow(e, 6);
+    const w = n.pow(2, 52);
+    const y = 2 * w;
+    var g = e - 1;
+    const v = n['seed' + u] = function (t, o, a) {
+      const i = [];
+      const f = c((function t(r, n) {
+        let e;
+        const o = [];
+        const a = typeof r;
+        if (n && a == 'object')
+          for (e in r) try {
+            o.push(t(r[e], n - 1))
+          } catch (t) {}
+        return o.length ? o : a == 'string' ? r : r + '\0'
+      }((o = o == 1 ? {
+        entropy: !0
+      } : o || {}).entropy ? [t, l(r)] : t == null ? s() : t, 3)), i);
+      const d = new h(i);
+      return c(l(d.S), r), (o.pass || a || function (t, r, e) {
+        return e ? (n[u] = t, r) : t
+      })(function () {
+        for (var t = d.g(6), r = p, n = 0; w > t;) t = (t + n) * e, r *= e, n = d.g(1);
+        for (; t >= y;) t /= 2, r /= 2, n >>>= 1;
+        return (t + n) / r
+      }, f, 'global' in o ? o.global : this == n)
+    };
+    if (c(n[u](), r), i && i.exports) {
+      i.exports = v;
+      try {
+        d = require('crypto')
+      } catch (t) {}
+    } else f && f.amd && f(function () {
+      return v
+    })
+  }(this, [], Math, 256, 0, 0, typeof module === 'object' && module, typeof define === 'function' && define,
+    'random')), (function (t) {
+    const r = t.noise = {};
+
+    function n(t, r, n) {
+      this.x = t, this.y = r, this.z = n
+    }
+    n.prototype.dot3 = function (t, r, n) {
+      return this.x * t + this.y * r + this.z * n
+    };
+    const e = [new n(1, 1, 0), new n(-1, 1, 0), new n(1, -1, 0), new n(-1, -1, 0), new n(1, 0, 1), new n(-1, 0, 1),
+      new n(1, 0, -1), new n(-1, 0, -1), new n(0, 1, 1), new n(0, -1, 1), new n(0, 1, -1), new n(0, -1, -1)
+    ];
+    const o = [151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8,
+      99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32,
+      57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166,
+      77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143,
+      54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159,
+      86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82,
+      85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154,
+      163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178,
+      185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145,
+      235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4,
+      150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
+    ];
+    const a = new Array(512);
+    const i = new Array(512);
+    r.seed = function (t) {
+      t > 0 && t < 1 && (t *= 65536), (t = Math.floor(t)) < 256 && (t |= t << 8);
+      for (let r = 0; r < 256; r++) {
+        var n;
+        n = 1 & r ? o[r] ^ 255 & t : o[r] ^ t >> 8 & 255, a[r] = a[r + 256] = n, i[r] = i[r + 256] = e[n % 12]
+      }
+    }, r.seed(0);
+    Math.sqrt(3), Math.sqrt(3);
+
+    function f(t) {
+      return t * t * t * (t * (6 * t - 15) + 10)
+    }
+
+    function u(t, r, n) {
+      return (1 - n) * t + n * r
+    }
+    r.perlin3 = function (t, r, n) {
+      let e = Math.floor(t);
+      let o = Math.floor(r);
+      let h = Math.floor(n);
+      t -= e, r -= o, n -= h;
+      const c = i[(e &= 255) + a[(o &= 255) + a[h &= 255]]].dot3(t, r, n);
+      const s = i[e + a[o + a[h + 1]]].dot3(t, r, n - 1);
+      const l = i[e + a[o + 1 + a[h]]].dot3(t, r - 1, n);
+      const d = i[e + a[o + 1 + a[h + 1]]].dot3(t, r - 1, n - 1);
+      const p = i[e + 1 + a[o + a[h]]].dot3(t - 1, r, n);
+      const w = i[e + 1 + a[o + a[h + 1]]].dot3(t - 1, r, n - 1);
+      const y = i[e + 1 + a[o + 1 + a[h]]].dot3(t - 1, r - 1, n);
+      const g = i[e + 1 + a[o + 1 + a[h + 1]]].dot3(t - 1, r - 1, n - 1);
+      const v = f(t);
+      const M = f(r);
+      const m = f(n);
+      return u(u(u(c, p, v), u(s, w, v), m), u(u(l, y, v), u(d, g, v), m), M)
+    }
+  }(this));
+  const shuffleArray = t => {
+    for (let r = t.length - 1; r > 0; r--) {
+      const n = Math.floor(Math.random() * (r + 1));
+      const e = t[r];
+      t[r] = t[n], t[n] = e
+    }
+    return t
+  };
+  /*
+   * ###########################################################################
+   *  This is the end of the common code, everything below is custom to 70s Pop
+   * ###########################################################################
+   */
+
+  const startTime = new Date().getTime()
+
+  //  Define the colour palettes
+  const palettes = []
+  palettes.push(["f790ec", "90def7"]) // Florida
+  palettes.push(["90def7", "90f7a8"]) // New Orleans
+  palettes.push(["90f7a8", "f7d890"]) // Los Angeles
+  palettes.push(["f7d890", "f790ec"]) // Miami
+  const paletteName = ['Florida', 'New Orleans', 'Los Angeles', 'Miami']
+
+  /*
+   * This function makes all the features that we work with
+   */
+  const makeFeatures = (hash) => {
+    const f = {}
+
+    //  Seed the randomiser with the hash
+    Math.seedrandom(hash)
+
+    //  Define all the settings we need.
+    //  This only happens once
+    const lineTile1 = Math.random()
+    const lineTile2 = Math.random()
+    const borderChance = Math.random()
+    f.tiles = Math.floor((((lineTile1 + (lineTile2 / 2)) / 1.5) * 14) + 5)
+    f.lines = Math.floor(9 - (lineTile1 + lineTile2) / 2 * 8) + 1
+
+    f.linesBoost = 0
+    if (Math.random() < 0.1) f.linesBoost--
+    if (Math.random() < 0.1) f.linesBoost -= 2
+    if (Math.random() < 0.1) f.linesBoost++
+    if (Math.random() < 0.1) f.linesBoost += 2
+    if (f.linesBoost < -2) f.linesBoost = -2
+    if (f.linesBoost > 2) f.linesBoost = 2
+    f.lines += f.linesBoost
+    if (f.tiles >= 16) f.lines--
+    if (f.lines < 1) f.lines = 1
+
+    if (f.tiles > 17 && f.lines > 5) f.lines = 6
+
+    chance = 0.5
+    const pickSelector = Math.random()
+    f.format = 'Normal'
+
+    f.paletteIndex = Math.floor(Math.random() * palettes.length)
+    const thisPalette = shuffleArray(JSON.parse(JSON.stringify(palettes[f.paletteIndex])))
+    f.startCol = thisPalette[thisPalette.length - 1]
+    f.endCol = thisPalette[thisPalette.length - 2]
+
+    f.fill = 'Top-down'
+    f.special = 'None'
+    const specialChance = Math.random()
+    if (Math.random() <= 4 / 64) {
+      f.special = 'waves'
+    }
+
+    return f
+  }
+
+  const f = makeFeatures(tokenData)
+
+  if (typeof (features) === 'undefined') {
+    features = []
+  }
+
+  features.push(`Series: Fun Summertime Bonus Pack`)
+  features.push(`Tiles: ${f.tiles}x${f.tiles}`)
+  features.push(`Lines: ${f.lines}`)
+  features.push(`Boosted: ${f.linesBoost}`)
+  features.push(`Format: Normal`)
+  features.push(`Reversed: False`)
+  features.push(`Pattern: ${f.special}`)
+  features.push(`Decoration: None`)
+  features.push(`Palette: ${paletteName[f.paletteIndex]}`)
+  features.push(`Fill: Vibes`)
+  features.push(`Rotation: 0`)
+  features.push(`Inverted: False`)
+  features.push(`Doubled: False`)
+  features.push(`Phased: False`)
+}
 
   //////
 
