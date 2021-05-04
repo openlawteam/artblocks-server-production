@@ -33,7 +33,7 @@ const API_KEY = process.env.INFURA_KEY;
 
 var web3 = new Web3(`https://mainnet.infura.io/v3/${API_KEY}`);
 const {abi} = require('./artifacts/GenArt721.json');
-const address = "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a";
+const address = "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270"
 const contract = new web3.eth.Contract(abi, address);
 console.log(address);
 
