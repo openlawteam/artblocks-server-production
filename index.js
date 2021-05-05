@@ -134,7 +134,18 @@ app.set("view engine", "pug");
 app.use(express.static(__dirname + "./"));
 app.use(express.static("src"));
 
-app.use(cors());
+const allowedDomains = process.env.ALLOWED_DOMAINS
+  ? process.env.ALLOWED_DOMAINS.split(",")
+  : [];
+console.log(`Allowed domains ${allowedDomains.length}: ${allowedDomains}`);
+
+app.use(
+  cors((req, callback) => {
+    const isDomainAllowed = allowedDomains.indexOf(req.header("Origin")) !== -1;
+    const corsOptions = { origin: isDomainAllowed };
+    callback(null, corsOptions);
+  })
+);
 app.use(favicon(__dirname + "/favicon.ico"));
 let pathToHtml = path.join(__dirname, "index.html");
 >>>>>>> 55d9d2f... Added docker file and build info
