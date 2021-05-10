@@ -49,6 +49,12 @@ const s3 = new AWS.S3({
   // endpoint: process.env.OSS_ENDPOINT,
 });
 
+const sfn = new AWS.StepFunctions({
+  region: "us-east-1",
+  accessKeyId: process.env.OSS1_ACCESS_KEY,
+  secretAccessKey: process.env.OSS1_SECRET_KEY,
+});
+
 const currentNetwork = process.env.NETWORK || "mainnet";
 const imageBucket =
   currentNetwork === "mainnet" ? "artblocks-mainnet" : "artblocks-rinkeby";
@@ -159,28 +165,124 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
           queue.enqueue([request.params.tokenId, ratio, blockNumber]);
         }
         */
+        const payload = JSON.stringify({ tokenId: request.params.tokenId });
 
-        serveScriptResultRefresh(request.params.tokenId, ratio).then(
-          (result) => {
-            console.log(`serving: ${request.params.tokenId}`);
-            response.set("Content-Type", "image/png");
-            response.send(result);
+        await sfn
+          .startExecution({
+            stateMachineArn:
+              "arn:aws:states:us-east-1:568813240935:stateMachine:render-pipeline-sfn-test",
+            input: payload,
+            name: `AB-Render-${request.params.tokenId}-${Date.now()}`,
+          })
+          .promise();
+        const params = {
+          Bucket: imageBucket,
+          Key,
+        };
+        let count = 0;
+
+        const checkForImage = setInterval(() => {
+          s3.getObject(params, (checkImageErr) => {
+            if (!checkImageErr) {
+              clearInterval(checkForImage);
+              // Files larger then 5mb must be retreived in chunks
+              s3.headObject(params)
+                .promise()
+                .then((res) => {
+                  console.log(`stream size: ${res.ContentLength}`);
+                  if (res.ContentLength < 5000000) {
+                    const data = s3
+                      .getObject({
+                        Bucket: imageBucket,
+                        Key,
+                      })
+                      .createReadStream();
+                    data.on("error", (singleError) => {
+                      console.error(singleError);
+                    });
+
+                    console.log("Returning single stream");
+
+                    response.writeHead(200, {
+                      "Content-Type": "image/png",
+                    });
+                    data.pipe(response);
+                  } else {
+                    const numStreams = Math.ceil(res.ContentLength / 5000000);
+                    const dataArray = [];
+                    let range;
+                    for (let s = 0; s < numStreams; s += 1) {
+                      if (s === 0) {
+                        range = "bytes=0-5000000";
+                      } else if (s === numStreams - 1) {
+                        range = `bytes=${s * 5000000 + 1}-${res.ContentLength}`;
+                      } else {
+                        range = `bytes=${s * 5000000 + 1}-${
+                          s * 5000000 + 5000000
+                        }`;
+                      }
+                      const KeyMultiple = `${request.params.tokenId}.png`;
+                      const data = s3
+                        .getObject({
+                          Bucket: imageBucket,
+                          Key: KeyMultiple,
+                          Range: range,
+                        })
+                        .createReadStream();
+                      console.log(`Pushing stream ${s} to stream array.`);
+                      dataArray.push(data);
+                    }
+                    const combinedStream = CombinedStream.create();
+                    for (let t = 0; t < numStreams; t += 1) {
+                      combinedStream.append(dataArray[t]);
+                    }
+                    console.log("Returning combined streams");
+                    response.writeHead(200, {
+                      "Content-Type": "image/png",
+                    });
+                    combinedStream.pipe(response);
+                  }
+                })
+                .catch((errHead) => {
+                  console.log("s3HeadObject err:", errHead);
+                  response.send(errHead);
+                });
+            }
+          });
+          console.log(`interval: ${queue.getLength()}`);
+          count += 1;
+          console.log(count);
+          if (count > 20) {
+            response.sendFile(file);
+            clearInterval(checkForImage);
           }
-        );
+        }, 5000);
       } else {
         const params = {
           Bucket: imageBucket,
           Key,
         };
-        s3.getObject(params, (err) => {
+        s3.getObject(params, async (err) => {
           if (err) {
             console.log("first get err", err);
             let count = 0;
-            if (!queueRef[request.params.tokenId]) {
-              console.log("adding to queue");
-              queueRef[request.params.tokenId] = true;
-              queue.enqueue([request.params.tokenId, ratio, blockNumber]);
-            }
+
+            const payload = JSON.stringify({ tokenId: request.params.tokenId });
+
+            await sfn
+              .startExecution({
+                stateMachineArn:
+                  "arn:aws:states:us-east-1:568813240935:stateMachine:render-pipeline-sfn-test",
+                input: payload,
+                name: `AB-Render-${request.params.tokenId}-${Date.now()}`,
+              })
+              .promise();
+
+            // if (!queueRef[request.params.tokenId]) {
+            //   console.log("adding to queue");
+            //   queueRef[request.params.tokenId] = true;
+            //   queue.enqueue([request.params.tokenId, ratio, blockNumber]);
+            // }
             const checkForImage = setInterval(() => {
               s3.getObject(params, (checkImageErr) => {
                 if (!checkImageErr) {
@@ -590,7 +692,9 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-        await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId===59 ? 100000: 500);
+      await timeout(
+        pId === 39 ? 20000 : pId === 52 ? 4000 : pId === 59 ? 100000 : 500
+      );
     }
     console.log(`Renderer: navigated to url`);
 
@@ -600,7 +704,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     const imageResizer = Buffer.from(image);
 
     const resizedImage = await sharp(imageResizer)
-      .resize(Math.round(width/2), Math.round(height/2))
+      .resize(Math.round(width / 2), Math.round(height / 2))
       .png()
       .toBuffer();
 
@@ -687,7 +791,9 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId===59 ? 100000: 500);
+      await timeout(
+        pId === 39 ? 20000 : pId === 52 ? 4000 : pId === 59 ? 100000 : 500
+      );
     }
     const image = await page.screenshot();
 
@@ -695,7 +801,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width/2), Math.round(height/2))
+      .resize(Math.round(width / 2), Math.round(height / 2))
       .png();
 
     const params1 = {

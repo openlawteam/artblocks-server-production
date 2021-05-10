@@ -84,7 +84,7 @@ const curatedProjects =
         40,
         41,
         53,
-        59
+        59,
       ]
     : [];
 const playgroundProjects =
