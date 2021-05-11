@@ -554,6 +554,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           response.render("generator_tonejs", { script, data });
         } else if (scriptJSON.type === "paperjs") {
           response.render("generator_paperjs", { script, data });
+        } else if (scriptJSON.type === "zdog") {
+          response.render("generator_zdog", { script, data });
         } else {
           response.render("generator_threejs", { script, data });
         }
