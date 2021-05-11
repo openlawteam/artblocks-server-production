@@ -10416,31 +10416,32 @@ else if (projectId===59){
 
 else if (projectId===60){
 
-  let hash = tokenData // .hash
-let seed = parseInt(hash.slice(0, 16), 16);
+  let hash = tokenData;
+  let seed = parseInt(hash.slice(0, 16), 16);
 
-let spins = 750 + 2750 * drand(seed);
-features = [
-  "proximity: " + (drand(seed) > 0.95 ? "closeup" : "faraway"),
-  "gravity: " + spinsToText(spins),
-];
+  let spins = 750 + 2750 * drand(seed);
+  features = [
+    "proximity: " + (drand(seed) > 0.95 ? "closeup" : "faraway"),
+    "gravity: " + spinsToText(spins),
+  ];
 
-// deterministic random function
-function drand(seed) {
-    seed ^= seed << 13;
-    seed ^= seed >> 17;
-    seed ^= seed << 5;
-    return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000
-}
-
-function spinsToText(spins) {
-  let gravity = ["moon", "jupiter", "quasar", "galaxy"];
-  for (let i = 0; i < 4; i++) {
-    if (spins < 850 * (i + 1)) {
-      return gravity[i];
-    }
+  // deterministic random function
+  function drand(seed) {
+      seed ^= seed << 13;
+      seed ^= seed >> 17;
+      seed ^= seed << 5;
+      return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000
   }
-}
+
+  function spinsToText(spins) {
+    let gravity = ["moon", "jupiter", "quasar", "galaxy"];
+    for (let i = 0; i < 4; i++) {
+      if (spins < 850 * (i + 1)) {
+        return gravity[i];
+      }
+    }
+    return gravity[3];
+  }
 
 featuresReduced = features;
 
@@ -10450,7 +10451,6 @@ console.log(features)
 ////////////
 
 else if (projectId===61){
-
   !(function (t, r, n, e, o, a, i, f, u) {
     function h(t) {
       let r;
@@ -10661,23 +10661,287 @@ else if (projectId===61){
     features = []
   }
 
-  features.push(`Series: Fun Summertime Bonus Pack`)
   features.push(`Tiles: ${f.tiles}x${f.tiles}`)
   features.push(`Lines: ${f.lines}`)
   features.push(`Boosted: ${f.linesBoost}`)
-  features.push(`Format: Normal`)
-  features.push(`Reversed: False`)
   features.push(`Pattern: ${f.special}`)
-  features.push(`Decoration: None`)
   features.push(`Palette: ${paletteName[f.paletteIndex]}`)
   features.push(`Fill: Vibes`)
-  features.push(`Rotation: 0`)
-  features.push(`Inverted: False`)
-  features.push(`Doubled: False`)
-  features.push(`Phased: False`)
+
+  featuresReduced=features;
 }
 
+/////////
+
+else if (projectId === 62){
+
+  function hashToValues(hash) {
+    let v = [];
+    for (let e = 0; e < 32; e++) v.push(hash.slice(2 + 2 * e, 4 + 2 * e));
+    return v.map((e) => parseInt(e, 16));
+  }
+
+  function randomValueForIndex(index) {
+    return mapRange(randomValues[index], 0, 255, 0, 1);
+  }
+
+  function mapRange(value, inputMin, inputMax, outputMin, outputMax, clamp) {
+    if (Math.abs(inputMin - inputMax) < Number.EPSILON) {
+      return outputMin;
+    } else {
+      var outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin);
+      if (clamp) {
+        if (outputMax < outputMin) {
+          if (outVal < outputMax) outVal = outputMax;
+          else if (outVal > outputMin) outVal = outputMin;
+        } else {
+          if (outVal > outputMax) outVal = outputMax;
+          else if (outVal < outputMin) outVal = outputMin;
+        }
+      }
+      return outVal;
+    }
+  }
+
+  // DEBUG
+  // let tokenData = {
+  //   hash: '0x3958c695b50a92586414325cfd265e85083e3cdc83b7838d94c85b968ee98f49'
+  // };
+  //
+  // let features = [];
+  // let featuresReduced = [];
+  // END DEBUG
+
+  let randomValues = hashToValues(tokenData);
+
+  // Style.
+  let styleValue = randomValueForIndex(0);
+  let style = 'Style: ';
+
+  if (styleValue < 1 / 7) {
+    // horizontal
+    style += 'Saucer';
+  } else if (styleValue < 2 / 7) {
+    // vertical
+    style += 'Lava Lamp';
+  } else if (styleValue < 3 / 7) {
+    // noise + random
+    style += 'Noisy';
+  } else if (styleValue < 4 / 7) {
+    // sphere
+    style += 'Orb';
+  } else if (styleValue < 5 / 7) {
+    // sphere + random
+    style += 'Spacey';
+  } else if (styleValue < 6 / 7) {
+    // sphere + random + noise
+    style += 'Scattered';
+  } else {
+    // breathe
+    style += 'Breathe';
+  }
+
+  // Palette.
+  let paletteNames = [
+    'Blood Cells',
+    'Silver & Gold',
+    'Deep Sea',
+    'Seafoam',
+    'Ice',
+    'Pastel',
+    'Wisteria',
+    'Golden Gate',
+    'Neon',
+    'Pride',
+    'Flame',
+    'Ghost',
+    'Radioactive Slime',
+  ];
+
+  let paletteIndex = Math.min(paletteNames.length - 1, Math.floor(randomValueForIndex(2) * paletteNames.length));
+  let palette = 'Palette: ' + paletteNames[paletteIndex];
+
+  // Rotation.
+  let rotationDirection = mapRange(Math.floor(randomValueForIndex(3) * 3), 0, 2, -1, 1);
+  let rotation = 'Rotation: ';
+  if (rotationDirection == -1) {
+    rotation += 'Counterclockwise';
+  } else if (rotationDirection == 1) {
+    rotation += 'Clockwise';
+  } else {
+    rotation += 'None';
+  }
+
+  let size = 'Size: ' + (randomValueForIndex(4) > 0.5 ? 'Large' : 'Normal');
+  let chameleon = 'Chameleon: ' + (randomValueForIndex(5) < 0.1 ? 'Yes' : 'No');
+  let speed = 'Speed: ' + (randomValueForIndex(6) > 0.5 ? 'Slow' : 'Normal');
+
+
+  features.push(
+      style,
+      palette,
+      rotation,
+      speed,
+      size,
+      chameleon,
+  );
+
+  featuresReduced.push(
+      style,
+      palette,
+      rotation,
+      speed,
+      size,
+      chameleon
+  );
+
+  console.log(features);
+}
+
+
   //////
+else if (projectId===63){
+  let hPa = [];
+  let hDa = [];
+
+  for (let j = 0; j < 32; j++) {
+      hPa.push(tokenData.slice(2 + j * 2, 4 + j * 2));
+  }
+
+  hDa = hPa.map(x => {
+      return parseInt(x, 16);
+  });
+
+  /////
+
+  let cPI = hDa[1] < 7 ? 0 : Math.floor(map(hDa[1], 7, 256, 1, 19));
+
+  let cPIs = "Color Palette: ";
+
+  if (cPI == 0) { cPIs += "Grayscale"; }
+  if (cPI == 1) { cPIs += "Water Lilies with Japanese Bridge"; }
+  if (cPI == 2) { cPIs += "View from the Window"; }
+  if (cPI == 3) { cPIs += "Reflections on Girl"; }
+  if (cPI == 4) { cPIs += "Explosion"; }
+  if (cPI >= 5) { cPIs += "Other"; }
+
+  /////
+
+  let bags = "Alternate Color: ";
+
+  bags += hDa[2] < 64 ? "Black" : hDa[2] > 128 ? "Black & White" : "White";
+
+  /////
+
+  let h = tokenData.toLowerCase();
+
+  //Letter = ASCII / HEX : R = 82 / 52, O = 79 / 4F, Y = 89 / 59
+  let iR = h.indexOf("52") >= 0 && h.indexOf("4f") >= 0 && h.indexOf("59") >= 0;
+
+  let aL = [];
+  aL.push({ id: 76, ltr: "L" });
+  aL.push({ id: 149, ltr: "I" });
+  aL.push({ id: 216, ltr: "C" });
+  aL.push({ id: 288, ltr: "H" });
+  aL.push({ id: 372, ltr: "T" });
+  aL.push({ id: 441, ltr: "E" });
+  aL.push({ id: 519, ltr: "N" });
+  aL.push({ id: 602, ltr: "S" });
+  aL.push({ id: 686, ltr: "T" });
+  aL.push({ id: 755, ltr: "E" });
+  aL.push({ id: 828, ltr: "I" });
+  aL.push({ id: 906, ltr: "N" });
+
+  let tId = tokenData.tokenId % 1000000;
+
+  let iL = false;
+  let li = -1;
+
+  for (let i = 0; i < aL.length; i++) {
+      if (aL[i].id - 1 === tId) {
+          iL = true;
+          li = i;
+      }
+  }
+
+  let ltrs = "Letters: ";
+
+  if (iL) {
+      ltrs += "LICHTENSTEIN";
+  } else {
+      if (iR) {
+          ltrs += "ROY";
+      } else {
+          ltrs += "n/a";
+      }
+  }
+
+  /////
+
+  let oCs = "Layer Count: ";
+  oC = hDa[4] < 11 ? 2 : Math.floor(map(hDa[4], 11, 256, 3, 13));
+  if (oC == 2) { oCs += "Two"; }
+  else if (oC <= 4) { oCs += "Extra Small"; }
+  else if (oC <= 6) { oCs += "Small"; }
+  else if (oC <= 8) { oCs += "Medium"; }
+  else if (oC <= 10) { oCs += "Large"; }
+  else { oCs += "Extra Large"; }
+
+  /////
+
+  let orts = "Orientation: ";
+  orts += hDa[5] < 150 && !iR && !iL ? "Vertical" : "Horizontal";
+
+  /////
+
+  let nins = "Noise: ";
+  nins += hDa[6] < 11 ? "Large" : hDa[6] < 26 ? "Medium" : "Small";
+
+  /////
+
+  let soct = 0;
+  let stct = 0;
+  let htct = 0;
+  let brct = 0;
+
+  for (let i = 1; i <= oC; i++) {
+      if (hDa[6 + i] < 66) {
+          soct++;
+      } else if (hDa[6 + i] < 140) {
+          stct++;
+      } else if (hDa[6 + i] < 176) {
+          htct++;
+      } else {
+          brct++;
+      }
+  }
+
+  let socts = "Solid Count: " + soct;
+  let stcts = "Stripe Count: " + stct;
+  let htcts = "Halftone Count: " + htct;
+  let brcts = "Ben-Roy Count: " + brct;
+
+  /////
+
+  let dC = "Dot Size: ";
+  dC += brct == 0 && htct == 0 ? "n/a" : (hDa[0] < 21 ? "Extra Large" : (hDa[0] < 41 ? "Extra Small" : (hDa[0] < 72 ? "Large" : (hDa[0] < 122 ? "Medium" : "Small"))));
+
+  /////
+
+  features = [oCs, cPIs, bags, orts, dC, nins, ltrs];
+
+  function map(n, start1, stop1, start2, stop2) {
+      return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+  }
+
+featuresReduced=features;
+}
+
+
+
+
+
+  ////////
 
 
   return [features, featuresReduced];

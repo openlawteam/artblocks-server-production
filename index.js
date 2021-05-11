@@ -84,7 +84,8 @@ const curatedProjects =
         40,
         41,
         53,
-        59
+        59,
+        62
       ]
     : [];
 const playgroundProjects =
@@ -546,6 +547,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           response.render(
             request.params.svg === "obj" && Number(projectId) === 9
               ? "generator_js_obj"
+              : request.params.svg === "ship" && Number(projectId) === 37
+              ? "generator_js_ship"
               : "generator_js",
             { script, data }
           );
@@ -559,6 +562,8 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
           response.render("generator_tonejs", { script, data });
         } else if (scriptJSON.type === "paperjs") {
           response.render("generator_paperjs", { script, data });
+        } else if (scriptJSON.type === "zdog") {
+          response.render("generator_zdog", { script, data });
         } else {
           response.render("generator_threejs", { script, data });
         }

@@ -1,0 +1,931 @@
+html
+  head
+    script.
+      !{data}
+    style(type="text/css").
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      canvas {
+        padding: 0;
+        margin: auto;
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+  body
+    canvas
+    script.
+
+        let seed = generateSeedFromTokenData(tokenData);
+
+        const rng = rnd;
+
+        let scale;
+        let baseVector;
+
+        window.onload = function () {
+          var canvas = document.createElement('canvas');
+
+          const dim = Math.min(window.innerWidth, window.innerHeight) * 4;
+
+          canvas.width = dim;
+          canvas.height = dim;
+
+          canvas.setAttribute('style', 'width:' + dim / 4 + 'px; height:' + dim / 4 + 'px;');
+
+          scale = dim / 1200;
+
+          document.body.appendChild(canvas);
+
+          if (canvas.getContext) {
+            var ctx = canvas.getContext('2d');
+
+            const baseVectors = [
+              { u1: -0.04, u2: 0.38 },
+              { u1: 1.04, u2: 0.62 },
+              { u1: -0.1, u2: 0.4 },
+              { u1: 1.1, u2: 0.6 },
+              { u1: 0, u2: 0.5 },
+            ];
+
+            const b = w_pick(baseVectors, [16, 8, 4, 2, 1]);
+            baseVector = {
+              u1: [Math.cos(b.u1 * Math.PI), Math.sin(b.u1 * Math.PI)],
+              u2: [Math.cos(b.u2 * Math.PI), Math.sin(b.u2 * Math.PI)],
+            };
+
+            const brig_idx = w_pick([0, 1, 2, 3, 4, 5], [60, 15, 15, 6, 3, 1]);
+
+            const palette = get_palette();
+            const color_mode = w_pick(['random', 'group', 'main', 'single'], [4, 16, 4, 1]);
+
+            const ethereal = w_pick([true, false], [1, 4]);
+            const coordination = w_pick([true, false], brig_idx == 0 || brig_idx === 5 ? [1, 9] : [9, 1]);
+            const vertical_symmetry = w_pick([true, false], [1, 19]);
+            const block_shape = w_pick([0.2, 0.5, 0.75], [1, 4, 1]);
+
+            const trooper_rx = pick([12, 14, 16]);
+            const trooper_ry = pick([16, 18, 20, 22]);
+
+            const carrier_crew = pick([2, 3, 4]);
+            const cruiser_crew = pick([2, 3]);
+
+            const brigades = [
+              {
+                name: 'trooper',
+                rows: 1,
+                columns: 3,
+                pad_x: 38,
+                cell_size: 18,
+                radius_x: trooper_rx,
+                radius_y: trooper_ry,
+                block_size: 0.78,
+                equal_rows: false,
+
+                double: false,
+              },
+              {
+                name: 'convoy',
+                rows: 1,
+                columns: 2,
+                pad_x: 45,
+                pad_y: 25,
+                radius_x: 10,
+                radius_y: 24,
+
+                double: true,
+                rows2: 1,
+                columns2: 1,
+                radius_x2: 6,
+                radius_y2: 12,
+                block_size2: 0.72,
+              },
+              {
+                name: 'carrier',
+                rows: 2,
+                columns: carrier_crew,
+                pad_x: 15,
+                pad_y: 50,
+                radius_x: 5,
+                radius_y: 8,
+                block_size: 0.72,
+
+                double: true,
+                rows2: 1,
+                columns2: 1,
+                radius_x2: 26,
+                radius_y2: 10,
+              },
+              {
+                name: 'cruiser',
+                rows: cruiser_crew,
+                columns: 2,
+                pad_x: 55,
+                pad_y: 25,
+                radius_x: 6,
+                radius_y: 8,
+                block_size: 0.72,
+
+                double: true,
+                rows2: 1,
+                columns2: 1,
+                radius_x2: 14,
+                radius_y2: 30,
+              },
+              {
+                name: 'mothership',
+                radius_x: 36,
+                radius_y: 28,
+
+                double: false,
+              },
+              {
+                name: 'swarm',
+                rows: 7,
+                columns: 7,
+                pad_x: 16,
+                pad_x: 16,
+                cell_size: 12,
+                radius_x: 5,
+                radius_y: 5,
+                block_size: 0.68,
+
+                double: false,
+              },
+            ];
+
+            const brigade = brigades[brig_idx];
+
+            let options = {
+              rows: brigade.rows || 1,
+              columns: brigade.columns || 1,
+              padding_x: brigade.pad_x || 20,
+              padding_y: brigade.pad_y || 20,
+              cell_size: brigade.cell_size || 16,
+              cell_pad: -2,
+              radius_x: brigade.radius_x,
+              radius_y: brigade.radius_y,
+              h_symmetric: true,
+              v_symmetric: vertical_symmetry,
+              simple: false,
+              roundness: 0,
+              solidness: pick([0.5, 0.8, 1]),
+              compactness: 1,
+              block_size: brigade.block_size || 0.8,
+              chance_vertical: block_shape,
+              display_fill: true,
+              palette: palette,
+              color_mode: color_mode,
+              group_size: 0.65,
+              use_simplex: false,
+              rate_of_change: 0.05,
+              equal_rows: coordination,
+              ethereal: ethereal,
+              name: brigade.name,
+            };
+
+            var opts2 = {
+              ...options,
+              radius_x: brigade.radius_x2,
+              radius_y: brigade.radius_y2,
+              rows: brigade.rows2 || 1,
+              columns: brigade.columns2 || 1,
+              block_size: brigade.block_size2 || 0.8,
+            };
+
+            const ships1 = generate_ships(setup_apparatus(options), options.equal_rows, options.columns, options.rows);
+            const ships2 = brigade.double ? generate_ships(setup_apparatus(opts2), opts2.equal_rows, opts2.columns, opts2.rows) : null;
+
+            draw_background(ctx, options.palette.b, options.cell_size + options.cell_pad);
+
+            display(ctx, ships1, options);
+            if (brigade.double) display(ctx, ships2, opts2);
+
+            //save_image(canvas);
+          }
+
+          function save_image(canvas) {
+            var image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+            var anchor = document.createElement('a');
+            anchor.setAttribute('download', 'armada.png');
+            anchor.setAttribute('href', image);
+            anchor.click();
+          }
+
+          function setup_apparatus(options) {
+            let opts = {
+              initiate_chance: options.compactness,
+              extension_chance: options.block_size,
+              vertical_chance: options.chance_vertical,
+              horizontal_symmetry: options.h_symmetric,
+              vertical_symmetry: options.v_symmetric,
+              simple: options.simple,
+              roundness: options.roundness,
+              solidness: options.solidness,
+              colors: options.palette.c,
+              color_mode: options.color_mode,
+              group_size: options.group_size,
+              rng: rng,
+            };
+
+            return new Apparatus(options.radius_x, options.radius_y, opts);
+          }
+
+          function generate_ships(apparatus, equal_rows, nx, ny) {
+            let ships = [];
+            let grid;
+            for (let i = 0; i < ny; i++) {
+              let row = [];
+              if (equal_rows) grid = apparatus.generate(null, null, false, i, 0);
+              for (let j = 0; j < nx; j++) {
+                if (!equal_rows) grid = apparatus.generate(null, null, false, i * nx + j, 0);
+                row.push(grid.map(glitch));
+              }
+              ships.push(row);
+            }
+
+            return ships;
+          }
+
+          function glitch(rect) {
+            const rn1 = rng();
+            const shade = rn1 < 0.3 ? -1 : rn1 < 0.7 ? 0 : 1;
+            const glitch_col = rng() < 0.001 ? pick(get_palette().c) : rect.col;
+            return { ...rect, shade, col: glitch_col };
+          }
+
+          function display(ctx, ships, options) {
+            let padding_x = options.padding_x;
+            let padding_y = options.padding_y;
+            let nx = options.columns;
+            let ny = options.rows;
+
+            const init_pos = canvas.height / 2;
+
+            ctx.save();
+            ctx.translate(init_pos, init_pos);
+
+            var mag = (options.cell_size + options.cell_pad) * scale;
+
+            var off_x = (padding_x * (nx - 1)) / 2;
+            var off_y = (padding_y * (ny - 1)) / 2;
+            var offset = [off_x * mag, off_y * mag];
+
+            var u1 = changeBase(padding_x, 0);
+            var u2 = changeBase(0, padding_y);
+
+            for (let i = 0; i < ny; i++) {
+              ctx.save();
+              for (let j = 0; j < nx; j++) {
+                ctx.lineCap = 'square';
+                ctx.lineWidth = 1.5 * scale;
+                if (options.name !== 'trooper' || j === 1) display_apparatus(ctx, ships[i][j], options, offset);
+                ctx.translate(u1[0] * mag, u1[1] * mag);
+              }
+              ctx.restore();
+              ctx.translate(u2[0] * mag, u2[1] * mag);
+            }
+            ctx.restore();
+          }
+
+          function display_apparatus(ctx, rects, options, offset) {
+            ctx.save();
+            const { cell_size, cell_pad, display_fill, ethereal, v_symmetric } = options;
+            var mag = (cell_size + cell_pad) * scale;
+
+            const stroke_color = '#000';
+
+            let app_dim = get_apparatus_dim(options);
+
+            const roughRects = rects.map((rect) => {
+              const pos = changeMid(rect.x1, rect.y1, app_dim, v_symmetric);
+              const points = getRectPoints(
+                pos[0] * mag - offset[0],
+                pos[1] * mag - offset[1],
+                rect.w * mag - cell_pad * scale,
+                rect.h * mag - cell_pad * scale
+              );
+              const shade_mid_points = getRectPoints(
+                pos[0] * mag - offset[0] - 4 * scale,
+                pos[1] * mag - offset[1] - 4 * scale,
+                rect.w * mag - (cell_pad - 8) * scale,
+                rect.h * mag - (cell_pad - 8) * scale
+              );
+              const shade_points = getRectPoints(
+                (pos[0] - 0.8) * mag - offset[0],
+                (pos[1] + 1) * mag - offset[1],
+                rect.w * mag - cell_pad * scale,
+                rect.h * mag - cell_pad * scale
+              );
+              return { ...rect, points, shade_mid_points, shade_points };
+            });
+
+            if (display_fill) {
+              ctx.globalCompositeOperation = 'normal';
+              ctx.globalAlpha = 1;
+
+              roughRects.forEach((rect) => {
+                drawPoints(ctx, rect.shade_mid_points, ethereal ? '#000' : '#fff', null, false);
+              });
+              ctx.globalCompositeOperation = ethereal ? 'screen' : 'multiply';
+              roughRects.forEach((rect) => {
+                drawPoints(ctx, rect.points, rect.col, null, true);
+              });
+            }
+
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalAlpha = 0.2;
+            roughRects.forEach((rect) => {
+              if (rect.shade !== 0) {
+                const pos = changeMid(rect.x1, rect.y1, app_dim, v_symmetric);
+                const points = getRectPoints(pos[0] * mag - offset[0], pos[1] * mag - offset[1], rect.w * mag - cell_pad, rect.h * mag - cell_pad);
+                ctx.lineCap = 'round';
+                drawPoints(ctx, points, rect.shade === 1 ? '#fff' : '#000', null, false);
+              }
+            });
+            ctx.restore();
+          }
+
+          function getRectPoints(px, py, sx, sy) {
+            const nw = changeBase(px, py);
+            const ne = changeBase(px + sx, py);
+            const se = changeBase(px + sx, py + sy);
+            const sw = changeBase(px, py + sy);
+
+            const north = roughLine(nw, ne);
+            const east = roughLine(ne, se);
+            const south = roughLine(se, sw);
+            const west = roughLine(sw, nw);
+
+            return [...north, ...east, ...south, ...west];
+          }
+
+          function changeBase(x, y) {
+            var u1 = [1, 0]; //baseVector.u1;
+            var u2 = [0, 1]; //baseVector.u2;
+
+            const cx = x * u1[0] + y * u2[0];
+            const cy = x * u1[1] + y * u2[1];
+
+            return [cx, cy];
+          }
+
+          function changeMid(x, y, midshift, vertical_symmetry) {
+            var cx = midshift[0] / 2;
+            var cy = vertical_symmetry ? midshift[1] / 2 : (6 * midshift[1]) / 11;
+            return [x - cx, y - cy];
+          }
+
+          function get_apparatus_dim(opts) {
+            const x_cells = opts.radius_x * 2 + 11;
+            const y_cells = opts.radius_y * 2 + 11;
+
+            return [x_cells + 2, y_cells + 2];
+          }
+
+          function draw_background(ctx, bg_col, size) {
+            let mag = size * scale;
+            let w = canvas.width;
+            let h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = bg_col;
+            ctx.globalAlpha = 1;
+            //ctx.fillRect(0, 0, w, h);
+
+            const cell_dim = mag * 10;
+            const c = [w / 2, h / 2];
+
+            const lines = [];
+            for (var i = -20; i <= 20; i++) {
+              ctx.beginPath();
+              var from = changeBase(c[0] + i * cell_dim, -h);
+              var to = changeBase(c[0] + i * cell_dim, h * 2);
+              lines.push(roughLine(from, to, size * 4));
+            }
+
+            for (var i = -20; i <= 20; i++) {
+              ctx.beginPath();
+              var from = changeBase(-w * 2, c[1] + i * cell_dim);
+              var to = changeBase(w * 2, c[1] + i * cell_dim);
+              lines.push(roughLine(from, to, size * 4));
+            }
+
+            ctx.lineCap = 'square';
+            ctx.lineWidth = 2 * scale;
+            ctx.globalAlpha = 0.2;
+            //lines.forEach((line) => drawPoints(ctx, line, null, '#fff', false));
+          }
+
+          function drawFrame(ctx, s) {
+            let w = canvas.width;
+            let h = canvas.height;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(w, 0);
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.lineTo(0, 0);
+            ctx.closePath();
+
+            ctx.moveTo(s, s);
+            ctx.lineTo(s, h - s);
+            ctx.lineTo(w - s, h - s);
+            ctx.lineTo(w - s, s);
+            ctx.lineTo(s, s);
+            ctx.closePath();
+
+            ctx.fillStyle = '#000';
+            ctx.globalAlpha = 1;
+            ctx.fill();
+          }
+
+          function drawPoints(ctx, points, col, strokeCol, glitch) {
+            ctx.beginPath();
+            ctx.moveTo(points[0].a[0], points[0].a[1]);
+            for (let i = 1; i < points.length; i++) {
+              let p1 = points[i - 1];
+              let p2 = points[i];
+              ctx.bezierCurveTo(
+                p1.cp2 ? p1.cp2[0] : p1.a[0],
+                p1.cp2 ? p1.cp2[1] : p1.a[1],
+                p2.cp1 ? p2.cp1[0] : p2.a[0],
+                p2.cp1 ? p2.cp1[1] : p2.a[1],
+                p2.a[0],
+                p2.a[1]
+              );
+            }
+            if (col != null) {
+              ctx.fillStyle = col;
+              ctx.fill();
+            }
+            if (strokeCol != null) {
+              ctx.strokeStyle = strokeCol;
+              ctx.stroke();
+            }
+          }
+        };
+
+        class Apparatus {
+          constructor(
+            width,
+            height,
+            {
+              initiate_chance = 0.8,
+              extension_chance = 0.8,
+              vertical_chance = 0.8,
+              horizontal_symmetry = true,
+              vertical_symmetry = false,
+              roundness = 0.1,
+              solidness = 0.5,
+              colors = [],
+              color_mode = 'group',
+              group_size = 0.8,
+              simple = false,
+              simplex = null,
+              rate_of_change = 0.01,
+              rng = null,
+            } = {}
+          ) {
+            this.xdim = Math.round(width * 2 + 11, 0);
+            this.ydim = Math.round(height * 2 + 11, 0);
+            this.radius_x = width;
+            this.radius_y = height;
+            this.chance_new = initiate_chance;
+            this.chance_extend = extension_chance;
+            this.chance_vertical = vertical_chance;
+            this.colors = colors;
+            this.color_mode = color_mode;
+            this.group_size = group_size;
+            this.h_symmetric = horizontal_symmetry;
+            this.v_symmetric = vertical_symmetry;
+            this.roundness = roundness;
+            this.solidness = solidness;
+            this.simple = simple;
+            this.simplex = simplex;
+            this.rate_of_change = rate_of_change;
+            this.rng = rng;
+          }
+
+          generate(initial_top = null, initial_left = null, verbose = false, idx = 0, idy = 0) {
+            this.idx = idx;
+            this.idy = idy;
+
+            this.main_color = this.get_random(this.colors);
+            this.id_counter = 0;
+
+            let grid = new Array(this.ydim + 1);
+            for (var i = 0; i < grid.length; i++) {
+              grid[i] = new Array(this.xdim + 1);
+              for (var j = 0; j < grid[i].length; j++) {
+                if (i == 0 || j == 0) grid[i][j] = { h: false, v: false, in: false, col: null };
+                else if (i == 1 && initial_top != null) grid[i][j] = { ...initial_top[j], h: true };
+                else if (j == 1 && initial_left != null) grid[i][j] = { ...initial_left[i], v: true };
+                else if (this.h_symmetric && j > grid[i].length / 2) {
+                  grid[i][j] = deep_copy(grid[i][grid[i].length - j]);
+                  grid[i][j].v = grid[i][grid[i].length - j + 1].v;
+                } else if (this.v_symmetric && i > grid.length / 2) {
+                  grid[i][j] = deep_copy(grid[grid.length - i][j]);
+                  grid[i][j].h = grid[grid.length - i + 1][j].h;
+                } else {
+                  grid[i][j] = this.next_block(j, i, grid[i][j - 1], grid[i - 1][j]);
+                }
+              }
+            }
+            let rects = convert_linegrid_to_rectangles(grid);
+            return verbose ? [rects, grid] : rects;
+          }
+
+          next_block(x, y, left, top) {
+            const context = this;
+
+            if (!left.in && !top.in) {
+              return block_set_1(x, y);
+            }
+
+            if (left.in && !top.in) {
+              if (left.h) return block_set_3(x, y);
+              return block_set_2(x, y);
+            }
+
+            if (!left.in && top.in) {
+              if (top.v) return block_set_5(x, y);
+              return block_set_4(x, y);
+            }
+
+            if (left.in && top.in) {
+              if (!left.h && !top.v) return block_set_6();
+              if (left.h && !top.v) return block_set_7(x, y);
+              if (!left.h && top.v) return block_set_8(x, y);
+              return block_set_9(x, y);
+            }
+
+            function block_set_1(x, y) {
+              if (start_new_from_blank(x, y)) return new_block(x, y);
+              return { v: false, h: false, in: false, col: null, id: null };
+            }
+
+            function block_set_2(x, y) {
+              if (start_new_from_blank(x, y)) return new_block(x, y);
+              return { v: true, h: false, in: false, col: null, id: null };
+            }
+
+            function block_set_3(x, y) {
+              if (extend(x, y)) return { v: false, h: true, in: true, col: left.col, id: left.id };
+              return block_set_2(x, y);
+            }
+
+            function block_set_4(x, y) {
+              if (start_new_from_blank(x, y)) return new_block(x, y);
+              return { v: false, h: true, in: false, col: null, id: null };
+            }
+
+            function block_set_5(x, y) {
+              if (extend(x, y)) return { v: true, h: false, in: true, col: top.col, id: top.id };
+              return block_set_4(x, y);
+            }
+
+            function block_set_6() {
+              return { v: false, h: false, in: true, col: left.col, id: left.id };
+            }
+
+            function block_set_7(x, y) {
+              if (extend(x, y)) return { v: false, h: true, in: true, col: left.col, id: left.id };
+              if (start_new(x, y)) return new_block(x, y);
+              return { v: true, h: true, in: false, col: null, id: null };
+            }
+
+            function block_set_8(x, y) {
+              if (extend(x, y)) return { v: true, h: false, in: true, col: top.col, id: top.id };
+              if (start_new(x, y)) return new_block(x, y);
+              return { v: true, h: true, in: false, col: null, id: null };
+            }
+
+            function block_set_9(x, y) {
+              if (vertical_dir(x, y)) return { v: true, h: false, in: true, col: top.col, id: top.id };
+              return { v: false, h: true, in: true, col: left.col, id: left.id };
+            }
+
+            function new_block() {
+              let col;
+              if (context.color_mode === 'random') {
+                col = context.get_random(context.colors);
+              } else if (context.color_mode === 'main') {
+                col = context.rng() > 0.75 ? context.get_random(context.colors) : context.main_color;
+              } else if (context.color_mode === 'group') {
+                let keep = context.rng() > 0.5 ? left.col : top.col;
+                context.main_color = context.rng() > context.group_size ? context.get_random(context.colors) : keep || context.main_color;
+                col = context.main_color;
+              } else {
+                col = context.main_color;
+              }
+
+              return { v: true, h: true, in: true, col: col, id: context.id_counter++ };
+            }
+
+            function start_new_from_blank(x, y) {
+              if (context.simple) return true;
+              if (!active_position(x, y, -1 * (1 - context.roundness))) return false;
+              return context.rng() <= context.solidness;
+            }
+
+            function start_new(x, y) {
+              if (context.simple) return true;
+              if (!active_position(x, y, 0)) return false;
+              return context.rng() <= context.chance_new;
+            }
+
+            function extend(x, y) {
+              if (!active_position(x, y, 1 - context.roundness) && !context.simple) return false;
+              return context.rng() <= context.chance_extend;
+            }
+
+            function vertical_dir() {
+              return context.rng() <= context.chance_vertical;
+            }
+
+            function active_position(x, y, fuzzy) {
+              let fuzziness = 1 + context.rng() * fuzzy;
+              let xa = Math.pow(x - context.xdim / 2, 2) / Math.pow(context.radius_x * fuzziness, 2);
+              let ya = Math.pow(y - context.ydim / 2, 2) / Math.pow(context.radius_y * fuzziness, 2);
+              return xa + ya < 1;
+            }
+          }
+
+          get_random(array) {
+            return array[Math.floor(this.rng() * array.length)];
+          }
+        }
+
+        function deep_copy(obj) {
+          let nobj = [];
+          for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              nobj[key] = obj[key];
+            }
+          }
+          return nobj;
+        }
+
+        // --- Conversion ---
+        function convert_linegrid_to_rectangles(grid) {
+          let nw_corners = get_nw_corners(grid);
+          extend_corners_to_rectangles(nw_corners, grid);
+          return nw_corners;
+        }
+
+        function get_nw_corners(grid) {
+          let nw_corners = [];
+          for (let i = 0; i < grid.length; i++) {
+            for (let j = 0; j < grid[i].length; j++) {
+              let cell = grid[i][j];
+              if (cell.h && cell.v && cell.in) nw_corners.push({ x1: j, y1: i, col: cell.col, id: cell.id });
+            }
+          }
+          return nw_corners;
+        }
+
+        function extend_corners_to_rectangles(corners, grid) {
+          corners.map((c) => {
+            let accx = 1;
+            while (c.x1 + accx < grid[c.y1].length && !grid[c.y1][c.x1 + accx].v) {
+              accx++;
+            }
+            let accy = 1;
+            while (c.y1 + accy < grid.length && !grid[c.y1 + accy][c.x1].h) {
+              accy++;
+            }
+            c.w = accx;
+            c.h = accy;
+            return c;
+          });
+        }
+
+        // ----- GRAPHITE
+
+        const init_accuracy = Math.PI / 25;
+
+        function roughLine(a, b, length = 35) {
+          const max = 200;
+          const step_length = length * scale;
+          let start = { a: a, cp1: null, cp2: null };
+          const points = [start];
+
+          while (dist(points[points.length - 1].a, b) != 0 && points.length < max) {
+            const pnt = getNextPoint(points, step_length, b);
+            points.push(pnt);
+          }
+
+          return points;
+        }
+
+        function getNextPoint(points, step_dist, goal) {
+          let current = points[points.length - 1].a;
+          let remaining_distance = dist(current, goal);
+
+          let start = points[0].a;
+          let total_distance = dist(start, goal);
+
+          let remaining_ratio = remaining_distance / total_distance;
+          let step = step_dist * (rng() * 0.5 + 1);
+
+          if (remaining_distance <= step * 1.5) return { a: goal, cp1: null, cp2: null };
+
+          let accuracy = remaining_ratio * init_accuracy;
+
+          let ideal_direction = angle_of_direction(current, goal);
+          let direction_offset = rng() * accuracy - accuracy / 2;
+          let direction = ideal_direction + direction_offset;
+
+          let next_a = point_at_distance_and_angle(current, step, direction);
+          let next_cp1 = point_at_distance_towards_direction(next_a, -step / 3, goal);
+          let next_cp2 = point_at_distance_towards_direction(next_a, Math.min(step, dist(next_a, goal)) / 3, goal);
+
+          return { a: next_a, cp1: next_cp1, cp2: next_cp2 };
+        }
+
+        const dist = (p1, p2) => Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
+        const angle_of_direction = (p1, p2) => Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+        const point_at_distance_and_angle = (p1, dist, rad) => [p1[0] + dist * Math.cos(rad), p1[1] + dist * Math.sin(rad)];
+        const point_at_distance_towards_direction = (p1, dist, pdir) => point_at_distance_and_angle(p1, dist, angle_of_direction(p1, pdir));
+
+        function rnd() {
+          seed ^= seed << 13;
+          seed ^= seed >> 17;
+          seed ^= seed << 5;
+
+          const n = ((seed < 0 ? ~seed + 1 : seed) % 100000) / 100000;
+          return n === 0 || n === 1 ? 0.5 : n;
+        }
+
+        function range(min, max) {
+          if (max === undefined) {
+            max = min;
+            min = 0;
+          }
+
+          return rng() * (max - min) + min;
+        }
+
+        function rangeFloor(min, max) {
+          return Math.floor(range(min, max));
+        }
+
+        function pick(array) {
+          if (array.length === 0) return undefined;
+          return array[rangeFloor(0, array.length)];
+        }
+
+        function w_pick(arr, warr) {
+          const agg = warr.reduce((a, c) => [...a, a[a.length - 1] + c], [0]);
+          const t = range(agg[agg.length - 1]);
+          const i = agg.findIndex((el) => el > t) - 1;
+
+          return arr[i];
+        }
+
+        function generateSeedFromTokenData(tokenData) {
+          return parseInt(tokenData.hash.slice(0, 16), 16);
+        }
+
+        // ---- palettes ----
+
+        function get_palette() {
+          var palettes = [
+            {
+              c: ['#f1594a', '#f5b50e', '#14a160', '#2969de', '#885fa4'],
+              b: '#e2e6e8',
+              w: 1,
+            },
+            {
+              c: ['#ed555d', '#41b797', '#eda126', '#7b5770'],
+              b: '#2d1922',
+              w: 1,
+            },
+            {
+              c: ['#ec6c26', '#613a53', '#e8ac52', '#639aa0'],
+              b: '#d5cda1',
+              w: 2,
+            },
+            {
+              c: ['#809498', '#d3990e', '#ecddc5'],
+              b: '#863f52',
+              w: 2,
+            },
+            {
+              c: ['#6b5c6e', '#4a2839', '#d9574a'],
+              b: '#ffc34b',
+              w: 2,
+            },
+            {
+              c: ['#c37c2b', '#f6ecce', '#386a7a'],
+              b: '#e3cd98',
+              w: 2,
+            },
+            {
+              c: ['#4bae8c', '#d0c1a0'],
+              b: '#d06440',
+              w: 2,
+            },
+            {
+              c: ['#d24c23', '#7ba6bc', '#f0c667', '#ede2b3', '#672b35'],
+              b: '#108266',
+              w: 1,
+            },
+            {
+              c: ['#e3937b', '#d93f1d', '#e6cca7'],
+              b: '#558947',
+              w: 1,
+            },
+            {
+              c: ['#d03718', '#33762f', '#ead7c9', '#ce7028', '#689d8d'],
+              b: '#deb330',
+              w: 2,
+            },
+            {
+              c: ['#eb5627', '#eebb20', '#4e9eb8', '#f7f5d0'],
+              b: '#77c1c0',
+              w: 3,
+            },
+            {
+              c: ['#ff6555', '#ffb58f', '#d8eecf', '#8c4b47', '#bf7f93'],
+              b: '#ffda82',
+              w: 1,
+            },
+            {
+              c: ['#475b62', '#7a999c', '#fbaf3c', '#df4a33', '#f0e0c6', '#af592c'],
+              b: '#f0e0c6',
+              w: 3,
+            },
+            {
+              c: ['#e85b30', '#ef9e28', '#c6ac71', '#e0c191', '#3f6279', '#ee854e'],
+              b: '#ede4cb',
+              w: 2,
+            },
+            {
+              c: ['#c03a53', '#edd09e', '#aab5af', '#124639', '#eba735', '#8e9380', '#6c4127'],
+              b: '#e6e2d6',
+              w: 2,
+            },
+            {
+              c: ['#f4b232', '#f2dbbd', '#01799c', '#e93e48', '#006748', '#ed817d', '#2a2969'],
+              b: '#f2dbbd',
+              w: 1,
+            },
+            {
+              c: ['#FF514E', '#FDBC2E', '#4561CC', '#6CC283', '#238DA5', '#9BD7CB'],
+              b: '#2A303E',
+              w: 1,
+            },
+            {
+              c: ['#ea663f', '#f9cc27', '#84afd7', '#7ca994', '#f1bbc9'],
+              b: '#f5f6f1',
+              w: 2,
+            },
+            {
+              c: ['#ff7a5a', '#765aa6', '#fee7bc', '#515e8c', '#ffc64a', '#b460a6', '#4781c1'],
+              b: '#abe9e8',
+              w: 3,
+            },
+            {
+              c: ['#ae5d9d', '#f1e8bc', '#ef8fa3', '#f7c047', '#58c9ed', '#f77150'],
+              b: '#00ae83',
+              w: 3,
+            },
+            {
+              c: ['#FFC54A', '#fee7bc', '#54C4C6', '#4781C1', '#F36E4B', '#515F8C'],
+              b: '#FE98A6',
+              w: 3,
+            },
+            {
+              c: ['#F99854', '#fee7bc', '#54C4C6', '#6CC4EA', '#F496A6', '#B461A5'],
+              b: '#FFC649',
+              w: 3,
+            },
+            {
+              c: ['#36AA85', '#043554', '#FA3E2C', '#F99D7F', '#147562', '#026F36'],
+              b: '#022626',
+              w: 2,
+            },
+            {
+              c: ['#D14991', '#F6D031', '#F0645B', '#D2E4CE'],
+              b: '#2C134C',
+              w: 2,
+            },
+            {
+              c: ['#E59040', '#DD4C2F', '#106381', '#F8B8B9', '#018A82', '#B4AFAB', '#8DB4B9', '#53293D', '#2BAABB'],
+              b: '#DBB560',
+              w: 3,
+            },
+          ];
+
+          return w_pick(
+            palettes,
+            palettes.map((a) => a.w)
+          );
+        }

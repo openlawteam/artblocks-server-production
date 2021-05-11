@@ -334,6 +334,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
+    const blockNumber = await web3.eth.getBlockNumber();
     const projectId = await getProjectId(request.params.tokenId);
     const tokensOfProject =
       projectId < 3
@@ -376,7 +377,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
         if (!queueRef[request.params.tokenId]) {
           console.log("Video does not yet exist, adding to queue");
           queueRef[request.params.tokenId] = true;
-          queue.enqueue([`${request.params.tokenId}-video`, ratio]);
+          queue.enqueue([`${request.params.tokenId}-video`, ratio, blockNumber]);
         }
 
         // max timeout 2 min
@@ -443,8 +444,8 @@ setInterval(async () => {
 
 async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
   let url;
-  const width = Math.floor(ratio <= 1 ? 400 * ratio : 400);
-  const height = Math.floor(ratio <= 1 ? 400 : 400 / ratio);
+  const width = Math.floor(ratio <= 1 ? 800 * ratio : 800);
+  const height = Math.floor(ratio <= 1 ? 800 : 800 / ratio);
   try {
     if (testing) {
       url = `http://localhost:1234/generator/${tokenId}`;
@@ -455,7 +456,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
           : `https://api.artblocks.io/generator/${tokenId}`;
     }
 
-    const video = await renderVideo(url, 10, width, height);
+    const video = await renderVideo(url, 15, width, height);
     const videoFileContent = await readFile(video);
     const uploadVideoParams = {
       Bucket: imageBucket,
@@ -590,7 +591,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-        await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId===59 ? 100000: 500);
+        await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: 500);
     }
     console.log(`Renderer: navigated to url`);
 
@@ -687,7 +688,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : pId === 52 ? 4000 : pId===59 ? 100000: 500);
+      await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: 500);
     }
     const image = await page.screenshot();
 
@@ -714,7 +715,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       Body: resizedImage,
     };
 
-    // Uploading files to the bucket
+   // Uploading files to the bucket
     s3.upload(params1, (err, data) => {
       if (err) {
         throw err;
@@ -729,6 +730,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       }
       console.log(`Refreshed thumnail uploaded successfully. ${data.Location}`);
     });
+
     return image;
   } catch (error) {
     console.log(`${tokenId}| this is the error: ${error}`);
@@ -839,6 +841,48 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
     ) {
       const tokenId = Number(projectId) * 1000000 + i;
       await serveScriptResult(tokenId, ratio, refresh);
+      console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
+    }
+  }
+
+  console.log("local range image render complete");
+});
+
+app.get("/rendervideorange/:projectId/:startId/:endId?", async (request) => {
+  const refresh = Boolean(request.query.refresh) || false;
+  request.setTimeout(0);
+  const projectId = request.params.projectId;
+  console.log(projectId);
+  const scriptInfo =
+    projectId < 3
+      ? await contract.methods.projectScriptInfo(projectId).call()
+      : await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
+  const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
+  const tokensOfProject =
+    projectId < 3
+      ? await contract.methods.projectTokenInfo(projectId).call()
+      : await contract2.methods.projectTokenInfo(projectId).call();
+  const maxTokenId = Number(projectId) * 1000000 + Number(tokensOfProject[2]);
+  if (request.params.endId) {
+    for (
+      let i = Number(request.params.startId);
+      i < Number(request.params.endId);
+      i += 1
+    ) {
+      const tokenId = Number(projectId) * 1000000 + i;
+      console.log(tokenId);
+      await serveScriptVideo(tokenId, ratio, refresh);
+      console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
+    }
+  } else {
+    for (
+      let i = Number(request.params.startId);
+      i < Number(tokensOfProject[2]);
+      i += 1
+    ) {
+      const tokenId = Number(projectId) * 1000000 + i;
+      await serveScriptVideo(tokenId, ratio, refresh);
       console.log("RenderImageRange: Run completed for ", tokenId, "\n\n");
     }
   }
