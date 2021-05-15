@@ -591,7 +591,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-        await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: 500);
+          await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: pId===67 ? 15000: 500);
     }
     console.log(`Renderer: navigated to url`);
 
@@ -688,7 +688,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: 500);
+      await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: pId===67 ? 15000: 500);
     }
     const image = await page.screenshot();
 

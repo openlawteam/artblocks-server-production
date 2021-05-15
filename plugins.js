@@ -10939,9 +10939,768 @@ featuresReduced=features;
 
 
 
+//////////
+
+
+
+else if (projectId===64){
+  /******/ (() => { // webpackBootstrap
+  /******/ 	"use strict";
+  var __webpack_exports__ = {};
+
+  ;// CONCATENATED MODULE: ./src/utils/helpers.js
+  const random_hash = () => {
+    let chars = "0123456789abcdef";
+    let result = '0x';
+    for (let i = 64; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+  }
+
+  const setupParametersFromTokenData = (token) => {
+      let hashPairs = []
+      //parse hash
+      for (let j = 0; j < 32; j++) {
+          hashPairs.push(token.slice(2 + (j * 2), 4 + (j * 2)))
+      }
+      // map to 0-255
+      return hashPairs.map(x => {
+          return parseInt(x, 16)
+      })
+  }
+
+  const generateSeedFromTokenData = (token) => {
+      return parseInt(token.slice(0, 8), 16)
+  }
+
+  const rnd = (seed) => {
+      seed ^= seed << 13
+      seed ^= seed >> 17
+      seed ^= seed << 5
+
+      let result = (((seed < 0) ? ~seed + 1 : seed) % 1000) / 1000
+      return result
+  }
+
+  const range =  (min, max) => {
+      if (max === undefined) {
+        max = min;
+        min = 0;
+      }
+
+      if (typeof min !== 'number' || typeof max !== 'number') {
+        throw new TypeError('Expected all arguments to be numbers');
+      }
+
+      return rnd() * (max - min) + min;
+  }
+
+  const rangeFloor =  (min, max) => {
+      if (max === undefined) {
+        max = min
+        min = 0
+      }
+
+      if (typeof min !== 'number' || typeof max !== 'number') {
+        throw new TypeError('Expected all arguments to be numbers')
+      }
+
+      return Math.floor(range(min, max))
+  }
+
+  const pick =  (array) => {
+      if (array.length === 0) return undefined
+      return array[rangeFloor(0, array.length)]
+  }
+
+  const shuffleArray =  (arr) => {
+      if (!Array.isArray(arr)) {
+        throw new TypeError('Expected Array, got ' + typeof arr);
+      }
+
+      var rand;
+      var tmp;
+      var len = arr.length;
+      var ret = arr.slice();
+      while (len) {
+        rand = Math.floor(rnd() * len--);
+        tmp = ret[len];
+        ret[len] = ret[rand];
+        ret[rand] = tmp;
+      }
+      return ret;
+  }
+
+  const distance =  (x1, y1, x2, y2) => {
+      return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+  }
+
+  const sampleSize = (arr, num) => {
+      if (!Array.isArray(arr)) {
+        throw new TypeError('Expected Array, got ' + typeof arr);
+      }
+
+      if (arr.length < num) {
+        throw new TypeError('Array is has less elements than sample size, ' + arr.length + ' vs '+num);
+      }
+
+      let shuffled = shuffleArray(arr)
+
+      return {samples: shuffled.slice(0, num), leftOver: shuffled.slice(num)}
+  }
+
+  const mapd = (n, start1, stop1, start2, stop2) => {
+      return ((n-start1)/(stop1-start1))*(stop2-start2)+start2
+  }
+
+  const mapParam = (n, start, stop) => {
+      return mapd(n, 0, 255, start, stop)
+  }
+
+  const hexToHSL = (H) => {
+      // Convert hex to RGB first
+      let r = 0, g = 0, b = 0;
+      if (H.length == 4) {
+        r = "0x" + H[1] + H[1];
+        g = "0x" + H[2] + H[2];
+        b = "0x" + H[3] + H[3];
+      } else if (H.length == 7) {
+        r = "0x" + H[1] + H[2];
+        g = "0x" + H[3] + H[4];
+        b = "0x" + H[5] + H[6];
+      }
+      // Then to HSL
+      r /= 255;
+      g /= 255;
+      b /= 255;
+      let cmin = Math.min(r,g,b),
+          cmax = Math.max(r,g,b),
+          delta = cmax - cmin,
+          h = 0,
+          s = 0,
+          l = 0;
+
+      if (delta == 0)
+        h = 0;
+      else if (cmax == r)
+        h = ((g - b) / delta) % 6;
+      else if (cmax == g)
+        h = (b - r) / delta + 2;
+      else
+        h = (r - g) / delta + 4;
+
+      h = Math.round(h * 60);
+
+      if (h < 0)
+        h += 360;
+
+      l = (cmax + cmin) / 2;
+      s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+      s = +(s * 100).toFixed(1);
+      l = +(l * 100).toFixed(1);
+
+      return { h, s, l };
+  }
+
+  const chance = (value, chances) => {
+    let accumulatedChance = 0;
+    let found = chances.find((element) => {
+        accumulatedChance += element.chance;
+        return accumulatedChance >= value;
+    });
+    return found || chances[chances.length-1];
+  }
+
+  const lerp = (v0, v1, t) => {
+    return v0*(1-t)+v1*t
+  }
+
+  const clamp = (a,b,c) => {
+    return Math.max(b,Math.min(c,a));
+  }
+
+  const easeOutBack = (x) => {
+    const c1 = 3;//1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+  ;// CONCATENATED MODULE: ./src/data/scales.js
+  /* harmony default export */ const scales = ([
+      // 1 note
+      {
+          chance: 0.02,
+          scales: {
+              'A': ['A'],
+              'B': ['B'],
+              'C': ['C'],
+              'D': ['D'],
+              'E': ['E'],
+              'F': ['F'],
+              'G': ['G'],
+          },
+      },
+
+      // 2 notes
+      {
+          chance: 0.03,
+          scales: {
+              'Minor 6th': ['A', 'F'],
+          }
+      },
+
+      // 3 notes
+      {
+          chance: 0.05,
+          scales: {
+              'Quartal': ['G', 'C', 'F'],
+              'Phrygian (1-2-6)': ['D', 'D#', 'A#'],
+          }
+      },
+
+      // 4 notes
+      {
+          chance: 0.1,
+          scales: {
+              'Ritsu (Japanese)': ['A', 'B', 'C', 'E'],
+              'Balinese (Indonesian)': ['B', 'C', 'F#', 'G'],
+              'Major Pentatonic (omit 5)': ['F#', 'G#', 'A#', 'C#'],
+          }
+      },
+
+      // 5 notes
+      {
+          chance: 0.15,
+          scales: {
+              'Major Pentatonic': ['C', 'D', 'E', 'G', 'A'],
+              'Minor Pentatonic': ['A', 'C', 'D', 'E', 'G'],
+              'Han Iwato (Japanese)': ['G', 'G#', 'C', 'D', 'F'],
+              'Yamatebala Wofe (Ethiopian)': ['F#', 'G#', 'B', 'C#', 'E'],
+          }
+      },
+
+      // 6 notes
+      {
+          chance: 0.25,
+          scales: {
+              'Major Blues (American)': ['C', 'D', 'D#', 'E', 'G', 'A'],
+              'Satie': ['A', 'B', 'C', 'D#', 'E', 'F#'],
+              'Aeolian (Ancient Greek)': ['C#', 'D#', 'E', 'F#', 'G#', 'A'],
+              'Minor Pentatonic (add2)': ['G', 'A', 'A#', 'C', 'D', 'F'],
+              'Whole Tone': ['C#', 'D#', 'F', 'G', 'A', 'B'],
+          }
+      },
+
+      // 7 notes
+      {
+          chance: 0.4,
+          scales: {
+              'Harmonic Minor (C#)': ['C#', 'D#', 'E', 'F#', 'G#', 'A', 'C'],
+              'Hungarian Minor': ['A#', 'C', 'C#', 'E', 'F', 'G', 'G#'],
+              'Spanish Minor': ['G', 'G#', 'A#', 'C', 'C#', 'E', 'F'],
+              'Harmonic Minor (E)': ['E', 'F#', 'G', 'A', 'B', 'C', 'D#'],
+              'Todi That (Indian)': ['B', 'C', 'D', 'F', 'F#', 'G', 'A#'],
+              'Hijazkar (Middle Eastern)': ['A', 'A#', 'C#', 'D', 'E', 'F', 'G#'],
+          }
+      }
+  ]);
+  ;// CONCATENATED MODULE: ./src/data/colors.js
+  /* harmony default export */ const colors = ([
+      '#C51F33',
+      '#F38316',
+      '#F9B807',
+      '#FBD46A',
+      '#2D5638',
+      '#418052',
+      '#58B271',
+      '#9ED78E',
+      '#1B325F',
+      '#2A4DA8',
+      '#2B94E1',
+      '#92C7D3',
+      '#E84A62',
+      '#ED7889',
+      '#F3A5B0',
+      '#0E0F0D',
+      '#E5E5E5',
+  ]);
+  ;// CONCATENATED MODULE: ./src/data/colorsName.js
+  /* harmony default export */ const colorsName = ({
+      '#C51F33': 'Cardinal',
+      '#F38316': 'Tango',
+      '#F9B807': 'Selective Yellow',
+      '#FBD46A': 'Goldenrod',
+      '#2D5638': 'Killarney',
+      '#418052': 'Goblin',
+      '#58B271': 'Fern',
+      '#9ED78E': 'Feijoa',
+      '#1B325F': 'Biscay',
+      '#2A4DA8': 'Sapphire',
+      '#2B94E1': 'Curious Blue',
+      '#92C7D3': 'Half Baked',
+      '#E84A62': 'Mandy',
+      '#ED7889': 'Froly',
+      '#F3A5B0': 'Wewak',
+      '#0E0F0D': 'Black',
+      '#E5E5E5': 'Mercury',
+  });
+  ;// CONCATENATED MODULE: ./src/utils/random.js
+  class Random {
+      constructor(seed) {
+        this.seed = seed
+      }
+      random() {
+        this.seed ^= this.seed << 13
+        this.seed ^= this.seed >> 17
+        this.seed ^= this.seed << 5
+        return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
+      }
+  }
+  ;// CONCATENATED MODULE: ./src/index.js
+
+
+
+
+
+
+  let rawParams = setupParametersFromTokenData(tokenData);
+  let seed = generateSeedFromTokenData(tokenData);
+  let src_rnd = new Random(seed);
+  let direction = src_rnd.random() < 0.5;
+
+  const subdivisions_patterns = [
+      { name: 'Procedural', chance: 0.97, value: 0 },
+      { name: 'Full', chance: 0.002, value: 1 },
+      { name: 'Line', chance: 0.01, value: 2 },
+      { name: 'Diagonal', chance: 0.008, value: 3 },
+      { name: 'X', chance: 0.004, value: 4 },
+      { name: 'Plus', chance: 0.006, value: 5 },
+  ];
+  const blocks_heights = [
+      { name: 'Full', chance: 0.10, value: 0 },
+      { name: 'Tall', chance: 0.35, value: 1 },
+      { name: 'Medium', chance: 0.35, value: 2 },
+      { name: 'Short', chance: 0.20, value: 3 },
+  ];
+  const blocks_margins = [
+      { name: 'None', chance: 0.4, value: 0 },
+      { name: 'Small', chance: 0.3, value: 0.0075 },
+      { name: 'Big', chance: 0.3, value: 0.02 }
+  ];
+  const blocks_types = [
+      { name: 'Solid', chance: 0.3, value: 0 },
+      { name: 'Tube', chance: 0.3, value: 1 },
+      { name: 'Mix', chance: 0.4, value: 2 },
+  ];
+  const blocks_styles = [
+      { name: 'Color', chance: 0.6, value: 0 },
+      { name: 'Wireframe', chance: 0.05, value: 1 },
+      { name: 'Black Outline', chance: 0.25, value: 2 },
+      { name: 'White Outline', chance: 0.10, value: 3 },
+  ];
+  const music_oscillators = [
+      { name: 'Sine', chance: 0.4, value: 'sine', index: 0 },
+      { name: 'Square', chance: 0.2, value: 'square', index: 1 },
+      { name: 'Sawtooth', chance: 0.3, value: 'sawtooth', index: 2 },
+      { name: 'Triangle', chance: 0.1, value: 'triangle', index: 3 },
+  ];
+  const music_bpms = [
+      { name: 'Adagio (60bpm)', chance: 0.25, value: 60 },
+      { name: 'Moderato (90bpm)', chance: 0.6, value: 90 },
+      { name: 'Allegro (120bpm)', chance: 0.15, value: 120 }
+  ];
+  const music_patterns = [
+      { name: 'Procedural', chance: 0.98, value: 0 },
+      { name: 'Lined', chance: 0.01, value: 1 },
+      { name: 'Diagonal', chance: 0.006, value: 2 },
+      { name: 'Circled', chance: 0.004, value: 3 },
+  ];
+
+  const musicTypeScale = chance(mapParam(rawParams[5], 0, 1), scales);
+  const musicScale = Object.keys(musicTypeScale.scales)[~~mapParam(rawParams[6], 0, Object.keys(musicTypeScale.scales).length-0.01)];
+  const musicStartingOctave = ~~mapParam(rawParams[10], 1, 4.99);
+  const musicOctaveCount = ~~mapParam(rawParams[11], 1, 4 - Math.max(0, musicStartingOctave - 2) + 0.99);
+
+  const palette = [];
+  const bg = colors.splice(~~(src_rnd.random() * colors.length), 1)[0];
+  const background = hexToHSL(bg);
+  for (let i = 0; i < musicTypeScale.scales[musicScale].length; i++) {
+      const hex = colors.splice(~~(src_rnd.random() * colors.length), 1)[0];
+      const hsl = hexToHSL(hex);
+      palette.push(hsl);
+  }
+
+  let params = {
+      subdivisionsCount: ~~mapParam(rawParams[0], 0, 100),
+      subdivisionsPattern: chance(mapParam(rawParams[12], 0, 1), subdivisions_patterns).value,
+
+      blocksHeight: chance(mapParam(rawParams[1], 0, 1), blocks_heights).value,
+      blocksMargin: chance(mapParam(rawParams[2], 0, 1), blocks_margins).value,
+      blocksType: chance(mapParam(rawParams[3], 0, 1), blocks_types).value,
+      blocksStyle: chance(mapParam(rawParams[4], 0, 1), blocks_styles).value,
+
+      musicScale: musicTypeScale.scales[musicScale],
+      musicOscillator: chance(mapParam(rawParams[7], 0, 1), music_oscillators).value,
+      musicBpm: chance(mapParam(rawParams[8], 0, 1), music_bpms).value,
+      musicRests: mapParam(rawParams[9], 0, 1) < 0.25,
+      musicStartingOctave: musicStartingOctave,
+      musicOctaveCount: musicOctaveCount,
+      musicPattern: chance(mapParam(rawParams[13], 0, 1), music_patterns).value,
+
+      palette: { background: `hsl(${background.h}, ${background.s}%, ${background.l}%)`, stroke: '#0E0F0D', colors: palette },
+  };
+
+  let count = params.subdivisionsCount;
+  if (params.subdivisionsPattern != 0) count = 1000;
+  else if (params.musicPattern != 0) count = 100;
+
+  features = [
+      `Subdivisions: ${count == 0 ? 'None' : chance(mapParam(rawParams[12], 0, 1), subdivisions_patterns).name}`,
+      `Height: ${chance(mapParam(rawParams[1], 0, 1), blocks_heights).name}`,
+      `Margin: ${chance(mapParam(rawParams[2], 0, 1), blocks_margins).name}`,
+      `Type: ${chance(mapParam(rawParams[3], 0, 1), blocks_types).name}`,
+      `Style: ${chance(mapParam(rawParams[4], 0, 1), blocks_styles).name}`,
+      `Music Scale: ${musicScale}`,
+      `Number of Notes: ${params.musicScale.length}`,
+      `Oscillator: ${chance(mapParam(rawParams[7], 0, 1), music_oscillators).name}`,
+      `Bpm: ${chance(mapParam(rawParams[8], 0, 1), music_bpms).name}`,
+      `Melody: ${chance(mapParam(rawParams[13], 0, 1), music_patterns).name}`,
+      `Rests: ${params.musicRests ? 'True' : 'False'}`,
+      `Octaves: ${params.musicStartingOctave} - ${params.musicStartingOctave + (params.musicOctaveCount - 1)}`,
+      `Background: ${colorsName[bg]}`
+  ];
+  /******/ })()
+  ;
+  featuresReduced = features;
+}
+
 
 
   ////////
+
+else if (projectId===66){
+  // sfc32 is a chaotic PRNG, the sfc stands for "Small Fast Counter".
+  function sfc32(a, b, c, d) {
+    return function() {
+      a |= 0;
+      b |= 0;
+      c |= 0;
+      d |= 0;
+      var t = (((a + b) | 0) + d) | 0;
+      d = (d + 1) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11);
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+
+  // Call `prng()` to generate a pseudo-random number.
+  let prng = new sfc32(
+    parseInt(tokenData.substr(2, 8), 16),
+    parseInt(tokenData.substr(10, 8), 16),
+    parseInt(tokenData.substr(18, 8), 16),
+    parseInt(tokenData.substr(27, 8), 16)
+  );
+
+  // returns a random integer from 0 to max, with a given PRNG.
+  function rI(prng, max) {
+    return parseInt(max * prng());
+  }
+
+  // turns an array of 3 0-255 RGB color values into a RGB color string.
+  function rgbC(colorArray) {
+    return "rgb(" +
+      colorArray[0] + "," +
+      colorArray[1] + "," +
+      colorArray[2] +
+      ")";
+  }
+
+  // turns 2 arrays of 3 0-255 RGB color values into a RGB color string,
+  // given a specified blending ratio.
+  function rgbCB(colorArrayA, colorArrayB, blendA, blendB) {
+    return "rgb(" +
+      parseInt(colorArrayA[0] * blendA + colorArrayB[0] * blendB) + "," +
+      parseInt(colorArrayA[1] * blendA + colorArrayB[1] * blendB) + "," +
+      parseInt(colorArrayA[2] * blendA + colorArrayB[2] * blendB) +
+      ")";
+  }
+
+  // Color palettes.
+  function genPal() {
+    return [
+      // Fallen Leaves.
+      [
+        [89, 83, 88],
+        [168, 172, 61],
+        [255, 236, 89],
+        [252, 127, 49]
+      ],
+      // Preserves.
+      [
+        [158, 0, 89],
+        [93, 127, 218],
+        [182, 156, 211],
+        [239, 121, 138]
+      ],
+      // Sunny Day.
+      [
+        [0, 50, 73],
+        [98, 144, 195],
+        [234, 225, 81],
+        [240, 135, 0]
+      ],
+      // Forever Summer.
+      [
+        [209, 41, 0],
+        [245, 221, 82],
+        [46, 101, 232],
+        [82, 184, 0]
+      ],
+      // Cool Autumn.
+      [
+        [62, 137, 137],
+        [232, 221, 181],
+        [187, 89, 28],
+        [255, 204, 0]
+      ],
+      // Desert Sand.
+      [
+        [227, 126, 64],
+        [255, 240, 203],
+        [78, 128, 166],
+        [171, 212, 113]
+      ],
+      // Blood Moon.
+      [
+        [38, 38, 38],
+        [255, 237, 145],
+        [209, 209, 209],
+        [220, 0, 0]
+      ],
+      // Deep Purple.
+      [
+        [218, 172, 255],
+        [53, 16, 83],
+        [140, 0, 255],
+        [196, 196, 196]
+      ],
+      // Lenny.
+      [
+        [33, 33, 33],
+        [237, 237, 237],
+        [255, 66, 179],
+        [90, 255, 87]
+      ]
+    ];
+  }
+
+  // Fallen Leaves
+  let fallenLeaves = [
+    [89, 83, 88],
+    [168, 172, 61],
+    [255, 236, 89],
+    [252, 127, 49]
+  ];
+  // Preserves.
+  let preserves = [
+    [158, 0, 89],
+    [93, 127, 218],
+    [182, 156, 211],
+    [239, 121, 138]
+  ];
+  // Sunny Day.
+  let sunnyDay = [
+    [0, 50, 73],
+    [98, 144, 195],
+    [234, 225, 81],
+    [240, 135, 0]
+  ];
+  // Forever Summer.
+  let foreverSummer = [
+    [209, 41, 0],
+    [245, 221, 82],
+    [46, 101, 232],
+    [82, 184, 0]
+  ];
+  // Cool Autumn.
+  let coolAutumn = [
+    [62, 137, 137],
+    [232, 221, 181],
+    [187, 89, 28],
+    [255, 204, 0]
+  ];
+  // Desert Sand.
+  let desertSand = [
+    [227, 126, 64],
+    [255, 240, 203],
+    [78, 128, 166],
+    [171, 212, 113]
+  ];
+  // Blood Moon.
+  let bloodMoon = [
+    [38, 38, 38],
+    [255, 237, 145],
+    [209, 209, 209],
+    [220, 0, 0]
+  ];
+  // Purple Heart.
+  let purpleHeart = [
+    [218, 172, 255],
+    [53, 16, 83],
+    [140, 0, 255],
+    [196, 196, 196]
+  ];
+  // Lenny.
+  let lenny = [
+    [33, 33, 33],
+    [237, 237, 237],
+    [255, 66, 179],
+    [90, 255, 87]
+  ];
+
+  function getPaletteName(pal) {
+    if (JSON.stringify(pal) === JSON.stringify(fallenLeaves)) {
+      return "Fallen Leaves";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(preserves)) {
+      return "Preserves";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(sunnyDay)) {
+      return "Sunny Day";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(lenny)) {
+      return "Lenny";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(purpleHeart)) {
+      return "Purple Heart";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(bloodMoon)) {
+      return "Blood Moon";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(desertSand)) {
+      return "Desert Sand";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(coolAutumn)) {
+      return "Cool Autumn";
+    }
+    if (JSON.stringify(pal) === JSON.stringify(foreverSummer)) {
+      return "Forever Summer";
+    }
+    return "Unknown";
+  }
+
+  function genParams() {
+    return {
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+      // Fixed Params (fixed across potential color blending) ////
+      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////
+
+      // whether or not to leave the cacti and moon empty
+      e_S: rI(prng, 18) == 0,
+      // whether or not to leave the landscape empty
+      e_L: rI(prng, 54) == 0,
+      // whether or not to quilt color-blend
+      c_B: rI(prng, 9) == 0,
+      // whether or not to randomize colors
+      c_R: rI(prng, 9) == 0,
+      // whether or not to mirror the landscape
+      m_L: rI(prng, 3) == 0,
+
+      // whether or not to have a full moon
+      mo_F: rI(prng, 3) == 0,
+      // whether or not to shift the left arm
+      // 0 == no shift, even == up shift, odd == down shift
+      la_SH: rI(prng, 3),
+      // whether or not to shift the right arm
+      // 0 == no shift, even == up shift, odd == down shift
+      ra_SH: rI(prng, 3),
+      // whether or not to stretch the left arm
+      // 0 == no stretch, even == stretch long, odd == stretch short
+      la_ST: rI(prng, 3),
+      // whether or not to stretch the right arm
+      // 0 == no stretch, even == stretch long, odd == stretch short
+      ra_ST: rI(prng, 3),
+
+      // relative size of the stippling brush (an integer value)
+      st_S: rI(prng, 5) + 3,
+      // relative density of the stippling strokes
+      st_D: rI(prng, 1) + 1,
+    };
+  }
+
+  function getFeatures() {
+    let p = genParams();
+    let pal = genPal();
+
+    let paletteA = pal.splice(rI(prng, pal.length), 1)[0];
+    let plaetteAName = getPaletteName(paletteA);
+    let cactiColorsA = paletteA.splice(rI(prng, 4), 1)[0];
+    let skyColorsA = paletteA.splice(rI(prng, 3), 1)[0];
+    let earthColorsA = paletteA.splice(rI(prng, 2), 1)[0];
+    let moonColorsA = paletteA.splice(rI(prng, 1), 1)[0];
+
+    let paletteB = pal.splice(rI(prng, pal.length), 1)[0];
+    let plaetteBName = getPaletteName(paletteB);
+    let cactiColorsB = paletteB.splice(rI(prng, 4), 1)[0];
+    let skyColorsB = paletteB.splice(rI(prng, 3), 1)[0];
+    let earthColorsB = paletteB.splice(rI(prng, 2), 1)[0];
+    let moonColorsB = paletteB.splice(rI(prng, 1), 1)[0];
+
+    let quiltedSectionOptions = [
+      2, 2,
+      4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+      5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+      10, 10, 10,
+      20, 20, 20,
+      50, 50,
+      100
+    ];
+    let quiltSections =
+      quiltedSectionOptions[rI(prng, quiltedSectionOptions.length)];
+
+    var features = [];
+    features.push(`Quilting Size: ${quiltSections}`);
+
+    if (p.c_B && (quiltSections <= 10)) {
+      features.push(`Color Palette: ${plaetteAName} / ${plaetteBName}`);
+    } else if (p.c_R && !p.c_B && (quiltSections <= 5)) {
+      features.push(`Color Palette: Palette Roulette`);
+    } else {
+      features.push(`Color Palette: ${plaetteAName}`);
+    }
+
+    if (p.e_S) {
+      features.push(`Forgotten Saguaro: true`);
+    } else if (p.e_L && !p.e_S) {
+      features.push(`Forgotten Horizon: true`);
+    }
+
+    if (p.m_L) {
+      features.push(`Perspective: West`);
+    } else {
+      features.push(`Perspective: East`);
+    }
+
+    if (p.mo_F) {
+      features.push(`Moon: Full`);
+    } else {
+      features.push(`Moon: Crescent`);
+    }
+
+    return features;
+  }
+
+  features = getFeatures();
+  featuresReduced=features;
+
+}
+
+
+
+  //////
 
 
   return [features, featuresReduced];
