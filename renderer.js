@@ -560,7 +560,12 @@ async function renderImage(tokenId, tokenKey, ratio) {
   const height = Math.floor(ratio <= 1 ? 800 : 800 / ratio);
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--use-cmd-decoder=passthrough",
+        "--use-gl=egl",
+      ],
     });
     console.log(`Renderer: puppeteer launched.`);
     const page = await browser.newPage();
@@ -656,7 +661,12 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--use-cmd-decoder=passthrough",
+        "--use-gl=egl",
+      ],
     });
     const page = await browser.newPage();
     await page.setViewport({
