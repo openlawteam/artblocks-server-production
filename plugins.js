@@ -11371,7 +11371,532 @@ else if (projectId===64){
   ;
   featuresReduced = features;
 }
+///////////
 
+else if (projectId===65){
+  const hashPairs = [];
+  for (let j = 0; j < 32; j++) {
+    hashPairs.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+  }
+
+  const decPairs = hashPairs.map(x => {
+    return parseInt(x, 16);
+  });
+  var DEFAULT_SIZE = 1024
+  var DIM = Math.min(800, 800)
+  var M = 1
+  var pad = (DEFAULT_SIZE - (DEFAULT_SIZE/16))/6;
+  var gap = DEFAULT_SIZE/32;
+  var cycleSeed;
+
+  var bgColor;
+  var segments = new Array();
+  var shapes = new Array();
+  let cVal = decPairs[3] + decPairs[4] + decPairs[5];
+  let dTVal = decPairs[6] + decPairs[7] + decPairs[8];
+  let cBVal = decPairs[0] + decPairs[2] + decPairs[4] + decPairs[6] + decPairs[8] + decPairs[10];
+  let dz = cVal < 300;
+  let solid = cVal > 620;
+  let cB = cBVal < 350;
+  let dT = dTVal > 620;
+
+  let columns = Math.floor((decPairs[0]/256.0) * 4) + 1
+  let rows = Math.floor((decPairs[1]/256.0) * 4) + 1
+  let colWidth = Math.round((DIM/columns));
+  let rowWidth = Math.round((DIM/rows));
+
+  let cellDim = Math.min(colWidth,rowWidth);
+  let colD = (colWidth - cellDim) / 2;
+  let rowD = (rowWidth - cellDim) / 2;
+  let points = new Array();
+
+  var ticker = 0;
+  let i = 0;
+
+  let pool = (2 + Math.floor((decPairs[0]/256) * 6)) * 2;
+
+  let indexOffset = 1;
+  points[0] = new Array();
+  points[1] = new Array();
+  points[2] = new Array();
+  points[3] = new Array();
+
+  for(let i = indexOffset; i < pool + indexOffset; i += 2) {
+    let p0 = validateNode(Math.floor((decPairs[i]/256) * 7),points[0], 7);
+    let p1 = Math.floor((decPairs[i + 1]/256) * 7);
+
+    points[0].push(new Array(p0,p1));
+    if (!nodeExists(p1,points[2])) {
+      points[2].push(new Array(p1,p0));
+    }
+  }
+  indexOffset += pool;
+
+  pool = (2 + Math.floor((decPairs[indexOffset]/256) * 4)) * 2;
+
+  indexOffset++;
+  for(let i = indexOffset; i < pool + indexOffset; i += 2) {
+    let p0 = validateNode(Math.floor((decPairs[i]/256) * 5),points[3], 5);
+    let p1 = Math.floor((decPairs[i + 1]/256) * 5);
+    points[3].push(new Array(p0,p1));
+
+    if (!nodeExists(p1,points[1])) {
+      points[1].push(new Array(p1,p0));
+    }
+
+  }
+
+  let pairs = new Array();
+
+  for (let i = 0;i<points.length;i++) {
+    points[i].sort();
+
+    if (i > 1) {
+      points[i].reverse();
+    }
+    let exlusions = new Array();
+    if (exlusions.length == 0) {
+      for (let j = 0;j<points[i].length;j++) {
+        pairs.push(mapSideToPos(i,points[i][j]));
+      }
+    }
+  }
+
+  for (let i = 0;i<pairs.length;i++) {
+    let curPair = pairs[i];
+
+    let nodes = new Array();
+    nodes.push(curPair[0]);
+
+    for (let j = 0;j<pairs.length;j++) {
+      if (i != j) {
+        let intersect = intersection(curPair, pairs[j]);
+
+        if (intersect != null && !compareVec(curPair[0],intersect) &&  !compareVec(curPair[1],intersect)) {
+
+          let canAdd = true;
+          for (let k = 0;k<nodes.length;k++ ){
+            if (compareVec(intersect, nodes[k])) {
+              canAdd = false;
+              break;
+            }
+          }
+          if (canAdd) {
+            nodes.push(intersect);
+          }
+        }
+      }
+    }
+    nodes.push(curPair[1]);
+    segments.push(nodes);
+  }
+
+
+
+
+
+
+
+  let cycles = Math.floor((decPairs[1]/255) * 4) + 1;
+  if (cB || solid || !dz) {
+    cycles = 1;
+  }
+
+  if (!cB && !solid) {
+    let grounded = false;
+    let minX = 100000;
+    let maxX = 0;
+    let minY = 100000;
+    let maxY = 0;
+    let colorFamilyTicker = 0;
+    let colorFamilies = new Array();
+
+    for (let cycleCounter = 0;cycleCounter < cycles; cycleCounter++) {
+      cycleSeed = decPairs[cycleCounter];
+
+      let segmentTravel = (Math.floor((cycleSeed / 256) * ((cycleSeed / 64)))) + 1;
+
+      let segmentOffset = Math.floor((cycleSeed/256) * (segments.length - 1));
+      for (let i = 0;i<segments.length;i++) {
+        let colorBase = (Math.floor((decPairs[0] / 2) * 4) + ((colorFamilyTicker) * ((decPairs[0]/128) + 2))) % 300;
+        let colorConverter = (colorBase / 300) * 360;
+        let colorName = getColorFamily(colorConverter);
+        if (!colorFamilyExists(colorName,colorFamilies)) {
+          colorFamilies.push(colorName)
+        }
+        let skip = false;
+        if (!skip) {
+          let segmentOffsetStart = ((segmentOffset + i) % segments.length);
+
+          let curSeg = segments[segmentOffsetStart];
+          let nextSegIndex = (segmentOffsetStart + segmentTravel) % segments.length;
+          let nextSeg = segments[nextSegIndex];
+
+          let curSegP0 = valFromRange(0,curSeg.length - 2, decPairs[segmentOffsetStart]);
+          let curSegP1 = valFromRange(curSegP0 + 1,curSeg.length - 1, (decPairs[segmentOffsetStart] + decPairs[segmentOffsetStart]) % 255);
+          let nextSegP0 = valFromRange(0,nextSeg.length - 2, decPairs[nextSegIndex]);
+          let nextSegP1 = valFromRange(nextSegP0 + 1,nextSeg.length - 1, (decPairs[nextSegIndex] + decPairs[nextSegIndex]) % 255);
+
+          let v0 = curSeg[curSegP0];
+          let v1 = curSeg[curSegP1];
+          let v2 = nextSeg[nextSegP1];
+          let v3 = nextSeg[nextSegP0];
+
+          let pointStates = new Array(true,true,true,true);
+
+          let vecArray = new Array(v0,v1,v2,v3);
+
+          for (let curVecIndex = 0;curVecIndex < vecArray.length;curVecIndex++) {
+            let nextVectorIndex = curVecIndex + 1 == vecArray.length ? 0 : curVecIndex + 1;
+            let curSlope = sub(vecArray[nextVectorIndex], vecArray[curVecIndex]);
+            curSlope.normalize();
+            let compSlope;
+
+            for (let compVecIndex = 0;compVecIndex < vecArray.length;compVecIndex++) {
+              let modifedNextIndex = compVecIndex + 1 == vecArray.length ? 0 : compVecIndex + 1;
+              if (curVecIndex === modifedNextIndex) {
+                compSlope = sub(vecArray[modifedNextIndex], vecArray[compVecIndex]);
+                compSlope.normalize();
+                break;
+              }
+            }
+            if (add(curSlope, compSlope).mag() * 100 < 1) {
+              pointStates[curVecIndex] = false;
+            }
+          }
+
+          for (let pointIndex = 0;pointIndex<pointStates.length;pointIndex++) {
+            if (pointStates[pointIndex]) {
+              let validPoint = vecArray[pointIndex];
+              if (validPoint.x < minX) {
+                minX = validPoint.x;
+              }
+              if (validPoint.x > maxX) {
+                maxX = validPoint.x;
+              }
+              if (validPoint.y < minY) {
+                minY = validPoint.y;
+              }
+              if (validPoint.y > maxY) {
+                maxY = validPoint.y;
+              }
+            }
+          }
+          if ((curSegP0 == 0 && pointStates[0]) || (curSegP1 == curSeg.length - 1 && pointStates[1]) || (nextSegP1 == nextSeg.length - 1 && pointStates[2]) || (nextSegP0 == 0 && pointStates[3])) {
+            grounded = true;
+          }
+        }
+        colorFamilyTicker++;
+      }
+    }
+    let shapeWidth = maxX - minX;
+    let shapeHeight = maxY - minY;
+    let adjustedDim = Math.sqrt(shapeWidth * shapeHeight);
+
+    if (adjustedDim < 480) {
+      features.push("Size:Small");
+    }
+    else if (adjustedDim < 760) {
+      features.push("Size:Medium");
+    }
+    else if (adjustedDim < 940) {
+      features.push("Size:Large");
+    }
+    else {
+      features.push("Size:Huge");
+    }
+
+    if (grounded) {
+      features.push("Grounded");
+    }
+    else {
+      features.push("Flying");
+    }
+
+    let density = Math.floor((decPairs[1]/255) * 4) + 1;
+    if (cB || solid || !dz) {
+      density = 1;
+      cycles = 1;
+    }
+    features.push("Density:" + density);
+
+    var bg = "";
+
+    if (cB || decPairs[22] > 200) {
+      bg = "White"
+    }
+
+    let totalTicks = cycles * segments.length;
+    bg = "Dark"
+
+    if(cycles == 1 && !solid) {
+        bg = "Light"
+      if (dz) {
+          bg = "Dark"
+      }
+    }
+
+
+    if (dT && dTVal < 700) {
+       bg = "Black"
+    }
+    else if (dT && dTVal < 768) {
+        bg = "White"
+    }
+
+    if (cB) {
+      bg = "White"
+    }
+
+    features.push("Background:" + bg)
+
+    if (!dT) {
+      if (colorFamilies.length > 3) {
+        features.push("Color Family:Prism")
+      }
+      else {
+        for(let colorIndex = 0;colorIndex < colorFamilies.length;colorIndex++) {
+          features.push(colorFamilies[colorIndex]);
+        }
+      }
+    }
+  }
+
+  if (cB) {
+    features.push("Coloring Book")
+  }
+  if (dT) {
+    features.push("Desaturated")
+  }
+  if (solid) {
+    features.push("Solid")
+  }
+
+  function colorFamilyExists(colorFamily, familyArray) {
+    for (let i = 0;i<familyArray.length;i++) {
+      if (colorFamily === familyArray[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function getColorFamily(val) {
+    if (val < 13) {
+
+        return "Color Family:Red"
+    }
+    else if (val < 53) {
+
+          return "Color Family:Orange"
+    }
+    else if (val < 68) {
+
+          return "Color Family:Yellow"
+    }
+    else if (val < 158) {
+
+          return "Color Family:Green"
+    }
+    else if (val < 210) {
+
+          return "Color Family:Teal"
+    }
+    else if (val < 250) {
+
+          return "Color Family:Blue"
+    }
+    else if (val < 300) {
+
+          return "Color Family:Purple"
+    }
+    else if (val < 340) {
+
+          return "Color Family:Pink"
+    }
+    return "Color Family:Red"
+  }
+
+  function mapSideToPos(side, linePair) {
+    let p0 = createVector();
+    let p1 = createVector();
+
+    switch(side) {
+      case 0:
+        p0.set(fM(M,gap) + fM(linePair[0],pad),fM(M,gap));
+        p1.set(fM(M,gap) + fM(linePair[1],pad), fM(M,gap) + fM(6,pad));
+      break;
+      case 1:
+        p0.set(fM(M,gap) + fM(6,pad), fM(M,gap) + fM(linePair[0] + 1,pad));
+        p1.set(fM(M,gap), fM(M,gap) + fM(linePair[1] + 1,pad));
+      break;
+      case 2:
+        p0.set(fM(M,gap) + fM(linePair[0],pad), fM(M,gap) + fM(6,pad));
+        p1.set(fM(M,gap) + fM(linePair[1],pad),fM(M,gap));
+      break;
+      case 3:
+        p0.set(fM(M,gap), fM(M,gap) + fM(linePair[0] + 1,pad));
+        p1.set(fM(M,gap) + fM(6,pad), fM(M,gap) + fM(linePair[1] + 1,pad));
+      break;
+    }
+
+      p0.set(Math.floor(p0.x),Math.floor(p0.y));
+      p1.set(Math.floor(p1.x),Math.floor(p1.y));
+    return new Array(p0,p1);
+  }
+
+  function fM(a,b) {
+    return Math.floor(a * b);
+  }
+  function nodeExists(node, pool) {
+    for (let i = 0;i<pool.length;i++) {
+      if (pool[i][0] == node){
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function validateNode(node, pool, poolCap) {
+    var checkNode = node;
+
+    while (1) {
+      let exists = false;
+      for(var i = 0;i<pool.length;i++) {
+        if (checkNode == pool[i][0]) {
+          exists = true;
+          break;
+        }
+      }
+      if (exists) {
+        checkNode = (checkNode + 1) % poolCap;
+      }
+      else {
+        return checkNode;
+      }
+    }
+  }
+
+  function valFromRange(v0,v1,r) {
+    return Math.floor((v1 - v0) * (r/255)) + v0;
+  }
+
+  function compareVec(v0,v1) {
+    return v0.x == v1.x && v0.y == v1.y;
+  }
+
+  function intersection(line1, line2) {
+     var d =
+        (line2[1].y - line2[0].y) * (line1[1].x - line1[0].x)
+        -
+        (line2[1].x - line2[0].x) * (line1[1].y - line1[0].y);
+
+     var n_a =
+        (line2[1].x - line2[0].x) * (line1[0].y - line2[0].y)
+        -
+        (line2[1].y - line2[0].y) * (line1[0].x - line2[0].x);
+
+     var n_b =
+        (line2[1].x - line1[0].x) * (line1[0].y - line2[0].y)
+        -
+        (line2[1].y - line1[0].y) * (line1[0].x - line2[0].x);
+
+     if (d == 0)
+        return null;
+
+     var ua = n_a / d;
+     var ub = n_b / d;
+
+     if (ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0)
+     {
+        var intersection = createVector();
+        intersection.x = line1[0].x + (ua * (line1[1].x - line1[0].x));
+        intersection.y = line1[0].y + (ua * (line1[1].y - line1[0].y));
+
+        return intersection;
+     }
+     return null;
+  }
+
+  function createVector() {
+    return {
+      x:0,
+      y:0,
+      set:function(valX,valY) {
+        this.x = valX;
+        this.y = valY;
+      },
+      mult: function(val) {
+        this.x *= val;
+        this.y *= val;
+      },
+      mag:function() {
+        return Math.sqrt(this.magSq())
+      },
+      magSq:function() {
+        return this.x * this.x + this.y * this.y
+      },
+      normalize:function() {
+        let len = this.mag();
+        if (len !== 0) this.mult(1 / len);
+      }
+    }
+  }
+
+  function sub(v0,v1) {
+    return {
+      x:v0.x - v1.x || 0,
+      y:v0.y - v1.y || 0,
+
+      set:function(valX,valY) {
+        this.x = valX;
+        this.y = valY;
+      },
+      mult:function(val) {
+        this.x *= val;
+        this.y *= val;
+      },
+      mag:function() {
+        return Math.sqrt(this.magSq())
+      },
+      magSq:function() {
+        return this.x * this.x + this.y * this.y
+      },
+      normalize:function() {
+        let len = this.mag();
+
+        if (len !== 0) this.mult(1 / len);
+      }
+    }
+  }
+
+  function add(v0,v1) {
+    return {
+      x:v0.x + v1.x || 0,
+      y:v0.y + v1.y || 0,
+      set:function(valX,valY) {
+        this.x = valX;
+        this.y = valY;
+      },
+      mult: function(val) {
+        this.x *= val;
+        this.y *= val;
+      },
+      mag:function() {
+        return Math.sqrt(this.magSq())
+      },
+      magSq:function() {
+        return this.x * this.x + this.y * this.y
+      },
+      normalize:function() {
+        let len = this.mag();
+        if (len !== 0) this.mult(1 / len);
+      }
+    }
+  }
+featuresReduced = features;
+}
 
 
   ////////
@@ -11701,6 +12226,275 @@ else if (projectId===66){
 
 
   //////
+else if (projectId===69){
+  // Hash
+  const seed = tokenData;
+
+  // Properties
+  const FRAME = extraireNombre(9, 10);
+  const DEBORDEMENT_AUTORISE = FRAME && extraireNombre(47, 48) > 10;
+  const OVERFLOW = DEBORDEMENT_AUTORISE ? 1 : extraireNombre(46, 47) > 7;
+  const NB_FORMES = extraireNombre(45, 46, 3, extraireNombre(43, 44) < 7 ? 1 : 2);
+  const PETITS_RONDS_COLORES = extraireNombre(41, 42) > 14;
+  const NB_RONDS_COLORES = extraireNombre(44, 45, PETITS_RONDS_COLORES ? 40 : 6, PETITS_RONDS_COLORES ? 10 : 0);
+  const CERCLES_REGULIERS = extraireNombre(26, 28) > 245;
+  const MAX_SIZE_CERCLES = CERCLES_REGULIERS ? extraireNombre(24, 26, 4, 3) : extraireNombre(24, 26, 25, 3);
+  const CADRE_NOIR = extraireNombre(12, 14) > 244;
+  const CADRE_BORDER = !CADRE_NOIR && extraireNombre(11, 12) > 4;
+  const CADRE_DARK = !CADRE_NOIR && !CADRE_BORDER && extraireNombre(10, 11) > 8;
+  const LIGNES_NOIR_BLANC = extraireNombre(16, 18) > 244;
+  const LIGNES_1_SMALL_AREA = (!CADRE_BORDER && extraireNombre(31, 32) > 14) || (!FRAME && extraireNombre(31, 32) > 13);
+  const DIRECTION = [2, 2, 2, 2, 2, 2, 1, 1, 0, 3][extraireNombre(28, 30, 10)];
+  const MAX_LONGUEUR_1 = [extraireNombre(37, 39, 10, 10), extraireNombre(37, 39, 22, 10), extraireNombre(37, 39, 26, 6), extraireNombre(37, 39, 9, 6)][DIRECTION];
+  const MAX_LONGUEUR_2 = extraireNombre(35, 37, 30, 1);
+  const NB_JOUEURS_1 = extraireNombre(22, 24, 12, MAX_LONGUEUR_1 < [15, 15, 11, 11][DIRECTION] ? 10 : 5);
+  const NB_JOUEURS_2 = ~~((extraireNombre(20, 22, NB_JOUEURS_1, 1) * (32 - MAX_LONGUEUR_2)) ** 0.8) + 1;
+  const NB_JOUEURS_3 = extraireNombre(17, 20, extraireNombre(17, 18) > 13 ? 1000 : 200, 60);
+  const NB_JOUEURS_4 = extraireNombre(14, 17, 60, NB_JOUEURS_1 < 10 ? (10 - NB_JOUEURS_1) * 5 + 30 : 30);
+
+  // White circles
+  let rondsBlancs = 0;
+  for (let i = 0; i < NB_FORMES; i++) {
+  	if (extraireNombre(42, 43 + i, 16) > 2)	rondsBlancs++;
+  }
+
+  // Properties values
+  //features = ['All Abstraction'];
+  features.push('Frame: ' + (FRAME ? 'Yes' : 'No'));
+  featuresReduced.push('Frame: ' + (FRAME ? 'Yes' : 'No'));
+  FRAME && features.push('Overflow : ' + (OVERFLOW ? (DEBORDEMENT_AUTORISE ? 'Yes' : 'Partial') : 'None'));
+  FRAME && featuresReduced.push('Overflow : ' + (OVERFLOW ? (DEBORDEMENT_AUTORISE ? 'Yes' : 'Partial') : 'None'));
+  features.push('Dark Shapes: ' + NB_FORMES);
+  features.push('Light Shapes: ' + rondsBlancs);
+  features.push('Colored Shapes: ' + NB_RONDS_COLORES);
+  features.push('Direction Type: ' + ['Free', 'Axes', 'Diagonals', 'Chaos'][DIRECTION]);
+  features.push('Circles Type: ' + (CERCLES_REGULIERS ? 'Regular' : 'Variable'));
+  features.push('Circles Max Size: ' + MAX_SIZE_CERCLES);
+  featuresReduced.push('Dark Shapes: ' + NB_FORMES);
+  featuresReduced.push('Light Shapes: ' + rondsBlancs);
+  featuresReduced.push('Colored Shapes: ' + NB_RONDS_COLORES);
+  featuresReduced.push('Direction Type: ' + ['Free', 'Axes', 'Diagonals', 'Chaos'][DIRECTION]);
+  featuresReduced.push('Circles Type: ' + (CERCLES_REGULIERS ? 'Regular' : 'Variable'));
+  featuresReduced.push('Circles Max Size: ' + MAX_SIZE_CERCLES);
+  FRAME && !CADRE_NOIR && !CADRE_DARK && features.push('Frame Border: ' + (CADRE_BORDER ? 'Yes' : 'No'));
+  PETITS_RONDS_COLORES && features.push('Small Colored Shapes: Yes');
+  FRAME && CADRE_NOIR && features.push('Black Frame: Yes');
+  FRAME && CADRE_DARK && features.push('Dark Frame: Yes');
+  LIGNES_NOIR_BLANC && features.push('Black & White Lines: Yes');
+  LIGNES_1_SMALL_AREA && features.push('Lines 1 Small Area: Yes');
+  features.push('Number of Lines 1: ' + NB_JOUEURS_1);
+  features.push('Number of Lines 2: ' + NB_JOUEURS_2);
+  features.push('Number of Lines 3: ' + NB_JOUEURS_3);
+  features.push('Number of Lines 4: ' + NB_JOUEURS_4);
+
+  // Extraction
+  function extraireNombre(posDebut, posFin, mod, rajout = 0) {
+    const nombre = parseInt(seed.substring(posDebut, posFin), 16);
+    return (mod ? nombre % mod : nombre) + rajout;
+  }
+
+
+}
+////////
+
+else if (projectId===72){
+  function calculateFeatures() {
+    const palettes = [
+      [ '#1b3b4b', '#d40000', '#b68762', '#eef2f6', '#e6e0da', '#e0b299', '#eda67d', '#e2725b' ],
+      [ '#050504', '#1d3461', '#1f487d', '#237ba1', '#33b2cc', '#e6e6e6', '#fdd692', '#fb3640' ],
+      [ '#1e90ff', '#ff514e', '#ff7700', '#f7e3d5', '#69b668', '#2b9091', '#486abd', '#282e39' ],
+      [ '#1d2f53', '#ec5c23', '#fdc449', '#f5f1eb', '#f8b8a0', '#3cb8a4', '#72c1c6', '#5898c1' ],
+      [ '#ffbb33', '#f1faee', '#a8dadc', '#457b9d', '#1d3557', '#031927', '#424b54', '#042a2b' ],
+      [ '#26437f', '#ffcc00', '#d2292e', '#ffffff', '#000000', '#1884bf', '#fefddf', '#d9381e' ],
+    ];
+
+    const colorNames = [
+      ['Charcoal', 'Corsa', 'Mocha', 'Turbolence', 'Sand', 'Desert', 'Dune', 'Terra'],
+      ['Orca', 'Night', 'Whale', 'Sea', 'Pacific', 'Snow', 'Sunrise', 'Buoy'],
+      ['Maya', 'Ixora', 'Hibiscus', 'Lily', 'Jungle', 'Monstera', 'Azalea', 'Party'],
+      ['After', 'Flame', 'Gold', 'Isabelline', 'Melon', 'Invidia', 'Paradise', 'Freedom'],
+      ['Bee', 'Daisy', 'Sky', 'Hive', 'Blueberry', 'Queen', 'Storm', 'Moss'],
+      ['Blue', 'Yellow', 'Amaranth', 'White', 'Black', 'Ivory', 'Light', 'Red']
+    ];
+
+    const colorPalettes = ['Terracotta', 'Arctica', 'Tropicana', 'Feelings', 'Honey', 'Elemental' ];
+
+    let n = 0, y = 0, o, m, t, v, g, l, a = [];
+    for (let j = 0; j < 32; j++) {
+      a.push(tokenData.slice(2 + (j * 2), 4 + (j * 2)));
+    }
+
+    a = a.map(x => parseInt(x, 16));
+
+    const I = (x, a, b, c, d) => (x - a) * (d - c) / (b - a) + c,
+          X = parseInt,
+          { min: F, max: O, floor: W } = Math;
+
+    const z = (x, s, e) => I(x, 0, 256, s, e);
+    const q = (x, s, e) => parseInt(z(x, s, e), 10);
+
+    function Z(c) {
+      const a = c.substring(1).match(/.{1,2}/g).map(v => parseInt(v, 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4));
+      return a[0] * .2126 + a[1] * .7152 + a[2] * .0722;
+    }
+
+    const f = {
+      a: a[4] < 64, // Fill
+      b: q(a[8], 0, palettes.length), // Palette
+      d: z(a[11], .03, .16), // Padding width
+      e: z(a[22], .03, .16), // Padding height
+      g: q(a[12], 3, 8), // Genesis
+      h: a[15] < 85 ? -1 : z(a[16], 3, 3.3), // Decay
+      i: q(a[14], 5, 10), // Fragments
+      j: q(a[17], 0, 10), // Entropy
+      k: q(a[25], 1, 6), // Rows
+      l: q(a[26], 1, 6), // Columns
+      m: z(a[2], .2, .9), // Stability
+      p: z(a[3], 25, 90), // Background alpha
+      r: a[2] < 128, // Colored stroke
+      s: z(a[31], 0, .3), // Split
+      t: a[18] < 32 // Additional square
+    }
+
+    if (f.t) {
+      f.e = f.d
+      f.l = f.k
+    }
+
+    if (f.d === f.k) f.t = true
+
+    if (f.h === -1) f.i -= 2
+
+    if (a[13] > 224) f.g = 360
+
+    if (f.k > 3) f.i--
+    if (f.l > 3) f.i--
+    if (f.i < 3) f.j = 0
+
+    p = palettes[f.b]
+
+    f.c = q(a[21], 0, p.length)
+    f.n = q(a[23], 0, p.length)
+
+    b = p[f.c]
+    o = Z(b)
+
+    do {
+      f.n = (f.n + y++) % p.length
+      k = p[f.n]
+      m = Z(k)
+      n = (O(o, m) + .05) / (F(o, m) + .05)
+    } while(n < 3)
+
+    f.o = 1000 / (f.i + (f.h === -1 ? 4 : 0)) * (O(f.d, f.e) / (O(f.k, f.l) + 1))
+    if (!f.a) f.o = (a[30] < 128 && f.h === -1) ? (f.j = 0) : F(f.o / (f.i / 5), 4)
+    else if (f.r) {
+      f.o *= 2.5
+      p = p.filter(c => c != b)
+    }
+
+    features = {
+      Palette: colorPalettes[f.b],
+      Background: colorNames[f.b][f.c],
+      Fill: f.a ? 'No' : 'Yes',
+      Color: f.a && !f.r ? colorNames[f.b][f.n] : 'Multicolor',
+      Rows: f.k,
+      Columns: f.l,
+      Shapes: f.k * f.l,
+      Type: 'Group',
+      Square: f.t ? 'Yes' : 'No',
+      Stroke: 'Regular'
+    };
+
+    // if (f.a) features['Background Intensity'] = 'Maximum';
+    // else if (f.p < 42) features['Background Intensity'] = 'Minimum';
+    // else if (f.p < 59) features['Background Intensity'] = 'Low';
+    // else if (f.p < 76) features['Background Intensity'] = 'Average';
+    // else features['Background Intensity'] = 'High';
+
+    if (f.h === -1) features.Decay = 'No decay';
+    else if (f.h <= 3.1) features.Decay = 'Low';
+    else if (f.h >= 3.2) features.Decay = 'High';
+    else features.Decay = 'Average';
+
+    if (f.j === 0) features.Entropy = 'No entropy';
+    else if (f.j < 4) features.Entropy = 'Low';
+    else if (f.j < 7) features.Entropy = 'Average';
+    else if (f.j < 10) features.Entropy = 'High';
+    else if (f.j === 10) features.Entropy = 'Maximum';
+
+    if (f.i < 5) features.Fragmentation = 'Low';
+    else if (f.i < 7) features.Fragmentation = 'Average';
+    else if (f.i < 9) features.Fragmentation = 'High';
+    else if (f.i === 9) features.Fragmentation = 'Maximum';
+
+    switch (f.g) {
+      case 3:
+        features.Genesis = 'Triangle';
+      break;
+      case 4:
+        features.Genesis = 'Square';
+      break;
+      case 5:
+        features.Genesis = 'Pentagon';
+      break;
+      case 6:
+        features.Genesis = 'Exagon';
+      break;
+      case 7:
+        features.Genesis = 'Heptagon';
+      break;
+      case 360:
+        features.Genesis = 'Circle';
+      break;
+      default:
+        features.Genesis = 'Not available';
+      break;
+    }
+
+    features.Prismic = f.h === -1 && f.j === 0 ? 'Yes' : 'No';
+
+    if (f.i === 1) features.Split = 'Half';
+    else if (f.i === 2) features.Split = 'Four';
+    else if (f.s < 0.02) features.Split = 'Similar';
+    else if (f.s < 0.12) features.Split = 'Clean';
+    else if (f.s < 0.22) features.Split = 'Diverging';
+    else features.Split = 'Random';
+
+    if (f.m < .3) features.Stability = 'Maximum';
+    else if (f.m < .4) features.Stability = 'Very high';
+    else if (f.m < .5) features.Stability = 'High';
+    else if (f.m < .6) features.Stability = 'Average';
+    else if (f.m < .7) features.Stability = 'Low';
+    else if (f.m < .8) features.Stability = 'Very low';
+    else features.Stability = 'Minimum';
+
+    if (f.o === 0) features.Stroke = 'None';
+    else if (f.o < 2) features.Stroke = 'Light';
+    else if (f.o < 5) features.Stroke = 'Bold';
+    else if (f.o > 9) features.Stroke = 'Extra';
+
+    if (features.Shapes === 1) features.Type = 'Macro';
+    if (features.Shapes === 2) features.Type = 'Duo';
+    if (features.Shapes === 3) features.Type = 'Trio';
+    if (features.Shapes === 25) features.Type = 'Army';
+
+    if (f.d <= .1) features.Width = 'Wide';
+    else if (f.d >= .2) features.Width = 'Narrow';
+    else features.Width = 'Average';
+
+    if (f.k <= .1) features.Height = 'Tall';
+    else if (f.k >= .2) features.Height = 'Average';
+    else features.Height = 'Short';
+
+    return Object.entries(features).map(f => f.join(': '));
+  }
+features = calculateFeatures();
+featuresReduced = features;
+}
+
+
+  ///////
 
 
   return [features, featuresReduced];
