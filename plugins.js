@@ -7357,6 +7357,8 @@ if (projectId===39){
 /////////////
 
 else if (projectId===44){
+
+
   function setFeatures(hash, features, featuresReduced) {
     let PYRAMID_1,
         PYRAMID_2,
@@ -7740,7 +7742,7 @@ else if (projectId===44){
     }
 
 
-    if (BACKGROUND_TYPE === 'Geometric') {
+    if (BACKGROUND_TYPE === 'Sacred Geometry') {
       const cross = (TRI_CROSS1 || TRI_CROSS2)
       const circle = (TRI_C1 || TRI_C2)
       const triangle = (TRI_T1 || TRI_T2)
@@ -7783,6 +7785,7 @@ else if (projectId===44){
 
 
   setFeatures(tokenData, features, featuresReduced)
+
 }
 
 
@@ -12296,6 +12299,606 @@ else if (projectId===69){
 
 }
 ////////
+
+else if (projectId===71){
+  features = new Array(0);
+  //features[0] is Shape color
+  //features[1] is Background color
+  //features[2] is Grid background color
+  //features[3] is Grid color
+  var txnbpointV = 2;
+  var txnbpointH = 1;
+  var txnbsegment = "6,7";
+  var txnbfigure = "2";
+  var txnbcol = 3;
+  var txepais = 0;
+  var txlargeur = 2000;
+  var txhauteur = 2000;
+  var txnblig = 2;
+  var txcoltrait = "#BFE2D0";
+  var txQuadEp = 6;
+  var txEpaisSurl = 10;
+  var txDecal = "124,-124";
+  var txMG = 84;
+  var txMD = 84;
+  var txMH = 84;
+  var txMB = 84;
+  var txMI = 300;
+  var txArrondi = 100;
+  var textarea1 = new Array(73);
+  function load_textarea1(){
+  textarea1[0] = "#080a23*1*1*R**night-blue";
+  textarea1[1] = "#080a23*1*2*R**night-blue";
+  textarea1[2] = "#e0d5ce*1*1*R*CLAIR*off-white";
+  textarea1[3] = "#e0d5ce*1*2*R*CLAIR*off-white";
+  textarea1[4] = "#44ffb900-#440fc4a0*3**FDH**";
+  textarea1[5] = "#44ffb900-#440fc4a0*3**FDV**";
+  textarea1[6] = "#440fc4a0-#44ffb900*3**FDH**";
+  textarea1[7] = "#440fc4a0-#44ffb900*3**FDV**";
+  textarea1[8] = "#44e27824-#4423084b*3**FDH**";
+  textarea1[9] = "#44e27824-#4423084b*3**FDV**";
+  textarea1[10] = "#4423084b-#44e27824*3**FDH**";
+  textarea1[11] = "#4423084b-#44e27824*3**FDV**";
+  textarea1[13] = "#4b4148-#080a23*1**FDV*FFONCE*";
+  textarea1[14] = "#00ff00*1**Q*FFONCE*";
+  textarea1[12] = "#fffc8a-#fff000*1**FDV**";
+  textarea1[15] = "#ffffff*1*1*S**";
+  textarea1[16] = "#ffffff*1*2*S**";
+  textarea1[17] = "#080a23*1*1*S*CLAIR*";
+  textarea1[18] = "#080a23*1*2*S*CLAIR*";
+  textarea1[19] = "#B3ffffff*1**Q**";
+  textarea1[20] = "#4D080a23*1**Q**";
+  textarea1[21] = "#b14254-#355c7a*1**MDH**";
+  textarea1[22] = "#b14254-#355c7a*1**MDV**";
+  textarea1[23] = "#355c7a-#b14254*1**MDH**";
+  textarea1[24] = "#355c7a-#b14254*1**MDV**";
+  textarea1[25] = "#590c3877-#5900b290*2**MDH**";
+  textarea1[26] = "#590c3877-#5900b290*2**MDV**";
+  textarea1[27] = "#5900b290-#590c3877*2**MDH**";
+  textarea1[28] = "#5900b290-#590c3877*2**MDV**";
+  textarea1[29] = "#ffe888-#54b5a3*1**MDH**";
+  textarea1[30] = "#ffe888-#54b5a3*1**MDV**";
+  textarea1[31] = "#54b5a3-#ffe888*1**MDH**";
+  textarea1[32] = "#54b5a3-#ffe888*1**MDV**";
+  textarea1[33] = "#59cd924a-#5954b5a3*2**MDH**";
+  textarea1[34] = "#59cd924a-#5954b5a3*2**MDV**";
+  textarea1[35] = "#5954b5a3-#59cd924a*2**MDH**";
+  textarea1[36] = "#5954b5a3-#59cd924a*2**MDV**";
+  textarea1[37] = "#BFe27824-#23084b*1**MDV**";
+  textarea1[38] = "#BFe27824-#23084b*1**MDH**";
+  textarea1[39] = "#23084b-#BFe27824*1**MDV**";
+  textarea1[40] = "#23084b-#BFe27824*1**MDH**";
+  textarea1[41] = "#59e27824-#5923084b*2**MDV**";
+  textarea1[42] = "#59e27824-#5923084b*2**MDH**";
+  textarea1[43] = "#5923084b-#59e27824*2**MDV**";
+  textarea1[44] = "#5923084b-#59e27824*2**MDH**";
+  textarea1[45] = "#9ab18a-#9a365d*1**MDV**";
+  textarea1[46] = "#9a365d-#9ab18a*1**MDH**";
+  textarea1[47] = "#9a365d-#9ab18a*1**MDV**";
+  textarea1[48] = "#9ab18a-#9a365d*1**MDH**";
+  textarea1[49] = "#599ab18a-#599a365d*2**MDV**";
+  textarea1[50] = "#599a365d-#599ab18a*2**MDH**";
+  textarea1[51] = "#599a365d-#599ab18a*2**MDV**";
+  textarea1[52] = "#599ab18a-#599a365d*2**MDH**";
+  textarea1[53] = "#BFe27824-#23084b*1**MDV*CLAIR*";
+  textarea1[54] = "#BFe27824-#23084b*1**MDH*CLAIR*";
+  textarea1[55] = "#23084b-#BFe27824*1**MDV*CLAIR*";
+  textarea1[56] = "#23084b-#BFe27824*1**MDH*CLAIR*";
+  textarea1[57] = "#6d1e3a-#984527*1**MDV*CLAIR*";
+  textarea1[58] = "#984527-#6d1e3a*1**MDH*CLAIR*";
+  textarea1[59] = "#984527-#6d1e3a*1**MDV*CLAIR*";
+  textarea1[60] = "#6d1e3a-#984527*1**MDH*CLAIR*";
+  textarea1[61] = "#17062d-#6d1e37*1**MDV*CLAIR*";
+  textarea1[62] = "#6d1e37-#17062d*1**MDH*CLAIR*";
+  textarea1[63] = "#6d1e37-#17062d*1**MDV*CLAIR*";
+  textarea1[64] = "#17062d-#6d1e37*1**MDH*CLAIR*";
+  textarea1[65] = "#1f4056-#080a23*1**MDV*CLAIR*";
+  textarea1[66] = "#1f4056-#080a23*1**MDH*CLAIR*";
+  textarea1[67] = "#080a23-#1f4056*1**MDV*CLAIR*";
+  textarea1[68] = "#080a23-#1f4056*1**MDH*CLAIR*";
+  textarea1[69] = "#684949-#3e4952*1**MDV*CLAIR*";
+  textarea1[70] = "#684949-#3e4952*1**MDH*CLAIR*";
+  textarea1[71] = "#3e4952-#684949*1**MDV*CLAIR*";
+  textarea1[72] = "#3e4952-#684949*1**MDH*CLAIR*";
+  }
+  let idxcol;
+  let ctr = 0;
+  class Random {
+    constructor(seed) {
+      this.seed = seed;
+    }
+    random_dec() {
+      this.seed ^= this.seed << 13;
+      this.seed ^= this.seed >> 17;
+      this.seed ^= this.seed << 5;
+      return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000;
+    }
+    random_between(a, b) {
+      ctr = ctr + 1;
+      return a + (b - a) * this.random_dec();
+    }
+    random_int(a, b) {
+      return Math.floor(this.random_between(a, b+1));
+    }
+    random_choice(x) {
+      return x[Math.floor(this.random_between(0, x.length * 0.99))];
+    }
+  }
+  //function random_hash() {
+  //  let chars = "0123456789abcdef";
+  //  let result = '0x';
+  //  for (let i = 64; i > 0; --i){result += chars[Math.floor(Math.random() * chars.length)]};
+  //  return result;
+  //}
+  //let tokenData = {"hash": random_hash()};
+  let seed = parseInt(tokenData.slice(0, 16), 16);
+  let R = new Random(seed);
+  let done = false;
+  let couleurs_surlig = new Array(0);
+  let couleurs_marge = new Array(0);
+  let couleurs_quad = new Array(0);
+  let couleurs_remp = new Array(0);
+  let couleurs_trait = new Array(0);
+  let couleurs_fond = new Array(0);
+  let grpcouleurs = new Array(0);
+  let degCold = 0;
+  let degColf = 0;
+  let degrad = "";
+  let ok = false;
+  let numOrd = 0;
+  let pash = 0;
+  let pasl = 0;
+  let pointsx = new Array(0);
+  let pointsy = new Array(0);
+  let nordres = new Array(0);
+  let nordre = 0;
+  let xpoint = 0;
+  let ypoint = 0;
+  let M = 0;
+  let grRetour = "";
+  setup();
+  draw();
+  function setup() {
+    var DEFAULT_SIZE = txhauteur + txMH + txMB + (txMI * 2);
+    var WIDTH = 800;
+    var HEIGHT = 800;
+    var DIM = Math.min(WIDTH, HEIGHT);
+    M = (DIM / DEFAULT_SIZE);
+    txlargeur = int(M * txlargeur);
+    txhauteur = int(M * txhauteur);
+    txMD = int(M * txMD);
+    txMG = int(M * txMG);
+    txMH = int(M * txMH);
+    txMB = int(M * txMB);
+    txMI = int(M * txMI);
+    txArrondi = int(M * txArrondi);
+    txepais = M * txepais;
+    txEpaisSurl = M * txEpaisSurl;
+    txQuadEp = M * txQuadEp;
+    load_textarea1();
+    var w = txlargeur + txMD + txMG + (txMI * 2);
+    var h = txhauteur  + txMH + txMB + (txMI * 2);
+  }
+  function int(n){
+  	return Math.trunc(n);
+  }
+  function split(S,s){
+  	return S.split(s);
+  }
+  function trim(S){
+  	return S.trim();
+  }
+  function map(V,b1,e1,b2,e2){
+   var Po = e1 - b1;
+   var Pd = e2 - b2;
+  	return (V * Pd)/ Po;
+  }
+  function draw(){
+    if (done == true) {
+    } else {
+      done = true;
+      var chance = int(R.random_between(0,100));
+      if(chance <= 90){
+        grpcouleurs[0] = "";
+        features.push("Shape: Dark blue");
+      }else{
+        grpcouleurs[0] = "CLAIR";
+        features.push("Shape: Off-white");
+      }
+      pash = txhauteur / txnblig;
+      pasl = txlargeur / txnbcol;
+      let nbf = split(trim(txnbfigure), ",");
+      let nbfig = nbf[0];
+      let nbseg = split(trim(txnbsegment), ",");
+      let nbsegment = nbseg[0];
+      let txMI_ori = txMI;
+      let coeffs = "0";
+      coeffs = "0";
+      let affect_col = "";
+      for (let i = 0; i < textarea1.length; i = i + 1) {
+        let txel = split(textarea1[i],"*");
+        let coeff = int(txel[1]);
+        affect_col = txel[3].toUpperCase();
+        while (coeff > 0) {
+          switch(affect_col){
+            case "":
+              couleurs_marge.push(textarea1[i]);
+              couleurs_quad.push(textarea1[i]);
+              couleurs_trait.push(textarea1[i]);
+              couleurs_surlig.push(textarea1[i]);
+              couleurs_remp.push(textarea1[i]);
+              couleurs_fond.push(textarea1[i]);
+              break;
+            case "M":
+            case "MDH":
+            case "MDV":
+              couleurs_marge.push(textarea1[i]);
+            break;
+            case "Q":
+              couleurs_quad.push(textarea1[i]);
+            break;
+            case "T":
+              couleurs_trait.push(textarea1[i]);
+            break;
+            case "S":
+              couleurs_surlig.push(textarea1[i]);
+            break;
+            case "R":
+              couleurs_remp.push(textarea1[i]);
+              break;
+            case "F":
+            case "FDH":
+            case "FDV":
+              couleurs_fond.push(textarea1[i]);
+              break;
+          }
+          coeff = coeff - 1;
+        }
+      }
+      couleurs_marge = scramble(couleurs_marge);
+      couleurs_quad = scramble(couleurs_quad);
+      couleurs_trait = scramble(couleurs_trait);
+      couleurs_surlig = scramble(couleurs_surlig);
+      couleurs_remp = scramble(couleurs_remp);
+      couleurs_fond = scramble(couleurs_fond);
+    //  noStroke();
+      let la = txlargeur + (txMI * 2);
+      let ha = txhauteur + (txMI * 2);
+      let coulMarge = 0;
+      let cbg = int(R.random_between(0,couleurs_marge.length));
+      coulMarge = getCouleurs(cbg, 999, true, "M",grpcouleurs[0]);
+      //features marge idx de 21 � 72
+      switch (idxcol){
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 29:
+        case 30:
+        case 31:
+        case 32:
+        case 37:
+        case 38:
+        case 39:
+        case 40:
+        case 45:
+        case 46:
+        case 47:
+        case 48:
+        case 53:
+        case 54:
+        case 55:
+        case 56:
+        case 57:
+        case 58:
+        case 59:
+        case 60:
+          features.push("Background: Vivid gradient");
+          break;
+        case 61:
+        case 62:
+        case 63:
+        case 64:
+        case 65:
+        case 66:
+        case 67:
+        case 68:
+        case 69:
+        case 70:
+        case 71:
+        case 72:
+          features.push("Background: Dark gradient");
+          break;
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 33:
+        case 34:
+        case 35:
+        case 36:
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 49:
+        case 50:
+        case 51:
+        case 52:
+          features.push("Background: Pastel gradient");
+          break;
+          default:
+          features.push(idxcol);
+      }
+      let decal = int(split(trim(txDecal), ","));
+      let fx = txMG + txMI;
+      let fy = txMH + txMI;
+      let fl = txlargeur;
+      let fh = txhauteur;
+      let fpl = fl / txnbcol;
+      let fph = fh / txnblig;
+      cbg = int(R.random_between(0,couleurs_fond.length));
+      let c = getCouleurs(cbg, 999, false, "F",grpcouleurs[0]);
+      //features fond idx de 4 � 13
+      switch (idxcol){
+        case 13:
+          features.push("Grid background: Dark blue");
+          break;
+        case 12:
+          features.push("Grid background: Yellow");
+          break;
+          default:
+          features.push("Grid background: Alpha gradient");
+
+      }
+      grpcouleurs[1] = grRetour;
+      let gX = new Array(0);
+      let gY = new Array(0);
+      for(let i = 0;i < txnbcol + 1;i = i + 1){
+        gX.push(i * pasl);
+      }
+      for(let i = 0;i < txnblig + 1;i = i + 1){
+        gY.push(i * pash);
+      }
+      quadri( gX, gY, fx, fy,fpl,fph);
+      //couleurs quadrilage idx 14, 19 ou 20
+      switch (idxcol){
+        case 14:
+          features.push("Grid: Green");
+          break;
+        case 19:
+          features.push("Grid: White");
+          break;
+        case 20:
+          features.push("Grid: Dark");
+          break;
+          default:
+          features.push(idxcol);
+      }
+      let nordres_tri = new Array(0);
+      let surlx = new Array(0);
+      let surly = new Array(0);
+      let surlNbs = new Array(0);
+      nordre = 0;
+      xpoint = pasl / (txnbpointH + 1);
+      ypoint = pash / (txnbpointV + 1);
+      for (let i = 0; i < txnbpointH + 2; i = i + 1){
+        let j = 0;
+        appendXY(i, j, txnbpointH + 1, txnbpointV + 1);
+      }
+      for (let j = 0; j < txnbpointV + 2; j = j + 1){
+        let i = txnbpointH + 1;
+        appendXY(i, j, txnbpointH + 1, txnbpointV + 1);
+      }
+      for (let i = txnbpointH + 1; i > - 1; i = i - 1){
+        let j = txnbpointV + 1;
+        appendXY(i, j, txnbpointH + 1, txnbpointV + 1);
+      }
+      for (let j = txnbpointV + 1; j >= 0; j = j - 1){
+        let i = 0;
+        appendXY(i, j, txnbpointH + 1, txnbpointV + 1);
+      }
+      nbfig = nbf[int(R.random_between(0,nbf.length))];
+      for(let f = 0; f < nbfig; f = f + 1){
+        txMI = txMI_ori;
+        if(f < decal.length){
+          txMI = txMI + (decal[f] * M);
+        }
+        surlx = new Array(0);
+        surly = new Array(0);
+        surlNbs = new Array(0);
+        for(let i = 0; i < txnbcol;i = i + 1){
+          for(let j = 0; j < txnblig; j = j + 1){
+            let c = int(R.random_between(couleurs_remp.length));
+            //fill(getCouleurs(c, f, true, "R",grpcouleurs[0]));
+            let fill = getCouleurs(c, f, true, "R",grpcouleurs[0]);
+            if(txepais != 0){
+              let colt = traiteCouleurs(txcoltrait);
+              stroke(colt);
+              strokeWeight(txepais);
+            }
+            nordres = scramble(nordres);
+            nordres_tri = new Array(0);
+            nbsegment = nbseg[int(R.random_between(0,nbseg.length))];
+            for ( let k = 0; k < int(nbsegment) + 1; k = k + 1){
+              nordres_tri.push(nordres[k]);
+            }
+            nordres_tri.sort(function(a, b){
+              return a - b;
+            });
+            //beginShape();
+            let nbs = nbsegment;
+            surlNbs.push(nbs);
+            for ( let k = 0; k < nbs; k = k + 1){
+              let px = pointsx[nordres_tri[k]];
+              let py = pointsy[nordres_tri[k]];
+              let xa = int(px + txMG + txMI + gX[i]);
+              let ya = int(py + txMH + txMI + gY[j]);
+              //vertex(xa , ya);
+              surlx.push(xa);
+              surly.push(ya);
+            }
+          } // end loop nblig
+        } // end loop nbcol
+        surligner(surlx, surly, surlNbs,f);
+        surlx = new Array(0);
+        surly = new Array(0);
+        surlNbs = new Array(0);
+      } // end loop nbfig
+    }
+  }
+  function appendXY(i, j, limI, limJ){
+    if(i == limI){
+      pointsx.push(pasl);
+    }else{
+     pointsx.push(i * xpoint);
+    }
+    if(j == limJ){
+      pointsy.push(pash);
+    }else{
+     pointsy.push(j * ypoint);
+    }
+     nordres.push(nordre);
+     nordre = nordre + 1;
+  }
+  function scramble(arr) {
+   let newarr = [];
+   let length = arr.length;
+   for (let i = 0; i < length; i++) {
+       //var r = R.random_dec();
+       let Choix = Math.floor(map(R.random_dec(), 0, 1, 0, arr.length));
+       newarr.push(arr[Choix]);
+       arr.splice(Choix, 1);
+   }
+   return (newarr);
+  }
+  function  surligner(surlx, surly, surlNbs, ncouche) {
+    //strokeWeight(txEpaisSurl);
+    let nfig = 0;
+    let ctr = 0;
+    let nbs = 0;
+    ncouche = ncouche - 1;
+    let cols = 0;
+    for(let k = 0; k < surlx.length; k = k + 1){
+      let x = surlx[k];
+      let y = surly[k];
+      let ka = 0;
+      if(ctr == nbs){
+        nbs = surlNbs[nfig];
+        ka = k + int(nbs) - 1;
+        if(nfig % (txnbcol * txnblig) == 0){
+          ncouche = ncouche + 1;
+          cols = getCouleurs(0, ncouche, true, "S",grpcouleurs[0]);
+        }
+        nfig = nfig + 1;
+        ctr = 0;
+      }else{
+        ka = k-1;
+      }
+      ctr = ctr + 1;
+      let xa = surlx[ka];
+      let ya = surly[ka];
+    }
+    //noStroke();
+  }
+  function quadri( X,  Y,  fx,  fy,  fpl,  fph) {
+    let c = int(R.random_between(0,couleurs_quad.length));
+    let col = getCouleurs(c, 999, true, "Q",grpcouleurs[1]);
+  }
+  function traiteCouleurs(strCouleur){
+    let col = 0;
+    return(col);
+  }
+  function getCouleurs(numcol, numcouche, check_couche, util,grpc) {
+    let couleurs_temp = new Array(0);
+    switch (util){
+      case "M" :
+        couleurs_temp = couleurs_marge.copyWithin(0);
+        break;
+      case "Q" :
+        couleurs_temp = couleurs_quad.copyWithin(0);
+        break;
+      case "T" :
+        couleurs_temp = couleurs_trait.copyWithin(0);
+        break;
+      case "S" :
+        couleurs_temp = couleurs_surlig.copyWithin(0);
+        break;
+      case "R":
+        couleurs_temp = couleurs_remp.copyWithin(0);
+        break;
+      case "F" :
+        couleurs_temp = couleurs_fond.copyWithin(0);
+        break;
+    }
+    degrad = "";
+    let coulOk = false;
+    let uneFois = false;
+    let incr = 0;
+    let ligcouleurs = "";
+    let ncouche = "";
+    let utilList = "";
+    let sep1 = 0;
+    let lcoul;
+    while (coulOk == false){
+      if(numcol + incr < couleurs_temp.length){
+        ligcouleurs = couleurs_temp[numcol + incr];
+      }else{
+        ligcouleurs = couleurs_temp[0];
+      }
+      lcoul = split(ligcouleurs,"*");
+      if (check_couche == false) {
+        coulOk = true;
+        ok = true;
+      }else{
+        if (int(lcoul[2]) == numcouche + 1 || numcouche == 999){
+          if(lcoul[4] == grpc){
+            ok = true;
+            coulOk = true;
+          }
+        }
+      }
+      if ((numcol + incr) < (couleurs_temp.length - 1)){
+        incr = incr + 1;
+      }else{
+        if(uneFois == true){
+          coulOk = true;
+          ok = true;
+        }
+        incr = 0 - numcol;
+        uneFois = true;
+      }
+    }
+    idxcol = textarea1.indexOf(ligcouleurs);
+    grRetour = lcoul[4];
+    let str_col1 = lcoul[0];
+    let col = 0;
+    let tbc = split(str_col1,"-");
+    if(tbc[1] === undefined){
+      col = traiteCouleurs(tbc[0]);
+    }else{
+      col = 255;
+      let cold = traiteCouleurs(tbc[0]);
+      let colf = traiteCouleurs(tbc[1]);
+      if(lcoul[3].substring(1) == "DV" || lcoul[3].substring(1) == "DH"){
+        degCold = cold;
+        degColf = colf;
+        degrad = lcoul[3].substring(2);
+      }else{
+        let cx = R.random_between(0,100) / 100;
+        col = lerpColor(cold, colf, cx);
+      }
+    }
+    return col;
+  }
+featuresReduced = features;
+}
+
+
+
+
+
+//////
 
 else if (projectId===72){
   function calculateFeatures() {
