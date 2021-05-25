@@ -25,6 +25,7 @@ const CombinedStream = require("combined-stream");
 const sharp = require("sharp");
 const AWS = require("aws-sdk");
 const fs = require("fs");
+const fetch = require("node-fetch");
 const util = require("util");
 const { getTokenAndProject } = require("./lib/queries");
 
@@ -59,12 +60,12 @@ const testing = false;
 
 const mediaUrl =
   currentNetwork === "mainnet"
-    ? "artblocks-mainnet.s3.amazonaws.com"
+    ? "d2ekshiy7r5vl7.cloudfront.net"
     : "artblocks-rinkeby.s3.amazonaws.com";
 
 const medialThumbUrl =
   currentNetwork === "mainnet"
-    ? "artblocks-mainthumb.s3.amazonaws.com"
+    ? "d428bhatbfa76.cloudfront.net"
     : "artblocks-rinkthumb.s3.amazonaws.com";
 
 const queue = new Queue();
@@ -100,7 +101,6 @@ app.get("/", async (request, response) => {
 
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
   const blockNumber = await web3.eth.getBlockNumber();
-  console.log(blockNumber);
   const file = path.resolve(__dirname, "./src/rendering.png");
   if (!Number.isInteger(Number(request.params.tokenId))) {
     console.log("not integer");
@@ -159,14 +159,17 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
           queue.enqueue([request.params.tokenId, ratio, blockNumber]);
         }
         */
-
-        serveScriptResultRefresh(request.params.tokenId, ratio).then(
-          (result) => {
-            console.log(`serving: ${request.params.tokenId}`);
-            response.set("Content-Type", "image/png");
-            response.send(result);
-          }
-        );
+        if (projectId === 74 && currentNetwork === "mainnet") {
+          queueRenderPipelineJob(request.params.tokenId);
+        } else {
+          serveScriptResultRefresh(request.params.tokenId, ratio).then(
+            (result) => {
+              console.log(`serving: ${request.params.tokenId}`);
+              response.set("Content-Type", "image/png");
+              response.send(result);
+            }
+          );
+        }
       } else {
         const params = {
           Bucket: imageBucket,
@@ -176,11 +179,15 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
           if (err) {
             console.log("first get err", err);
             let count = 0;
-            if (!queueRef[request.params.tokenId]) {
+
+            if (projectId === 74 && currentNetwork === "mainnet") {
+              queueRenderPipelineJob(request.params.tokenId);
+            } else if (!queueRef[request.params.tokenId]) {
               console.log("adding to queue");
               queueRef[request.params.tokenId] = true;
               queue.enqueue([request.params.tokenId, ratio, blockNumber]);
             }
+
             const checkForImage = setInterval(() => {
               s3.getObject(params, (checkImageErr) => {
                 if (!checkImageErr) {
@@ -377,7 +384,11 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
         if (!queueRef[request.params.tokenId]) {
           console.log("Video does not yet exist, adding to queue");
           queueRef[request.params.tokenId] = true;
-          queue.enqueue([`${request.params.tokenId}-video`, ratio, blockNumber]);
+          queue.enqueue([
+            `${request.params.tokenId}-video`,
+            ratio,
+            blockNumber,
+          ]);
         }
 
         // max timeout 2 min
@@ -591,7 +602,17 @@ async function renderImage(tokenId, tokenKey, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-          await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: pId===67 ? 15000: 500);
+      await timeout(
+        pId === 39
+          ? 20000
+          : pId === 52
+          ? 6000
+          : pId === 59
+          ? 100000
+          : pId === 67
+          ? 15000
+          : 500
+      );
     }
     console.log(`Renderer: navigated to url`);
 
@@ -601,7 +622,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
     const imageResizer = Buffer.from(image);
 
     const resizedImage = await sharp(imageResizer)
-      .resize(Math.round(width/2), Math.round(height/2))
+      .resize(Math.round(width / 2), Math.round(height / 2))
       .png()
       .toBuffer();
 
@@ -626,6 +647,21 @@ async function renderImage(tokenId, tokenKey, ratio) {
   } catch (puppeteerErr) {
     return puppeteerErr;
   }
+}
+
+async function queueRenderPipelineJob(tokenId) {
+  const response = await fetch(
+    "https://4qy37pn64l.execute-api.us-east-1.amazonaws.com/main",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        tokenId,
+      }),
+    }
+  );
+  const data = await response.json();
+  console.log(data);
+  return data;
 }
 
 // TODO: lets use async/await with our s3 calls
@@ -688,7 +724,17 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     if (currentNetwork === "rinkeby") {
       await timeout(pId === 36 ? 20000 : 500);
     } else {
-      await timeout(pId === 39 ? 20000 : pId === 52 ? 6000 : pId===59 ? 100000: pId===67 ? 15000: 500);
+      await timeout(
+        pId === 39
+          ? 20000
+          : pId === 52
+          ? 6000
+          : pId === 59
+          ? 100000
+          : pId === 67
+          ? 15000
+          : 500
+      );
     }
     const image = await page.screenshot();
 
@@ -696,7 +742,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
 
     const imageResizer = Buffer.from(image);
     const resizedImage = sharp(imageResizer)
-      .resize(Math.round(width/2), Math.round(height/2))
+      .resize(Math.round(width / 2), Math.round(height / 2))
       .png();
 
     const params1 = {
@@ -715,7 +761,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       Body: resizedImage,
     };
 
-   // Uploading files to the bucket
+    // Uploading files to the bucket
     s3.upload(params1, (err, data) => {
       if (err) {
         throw err;

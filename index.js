@@ -50,12 +50,12 @@ const thumbBucket =
 
 const mediaUrl =
   currentNetwork === "mainnet"
-    ? "artblocks-mainnet.s3.amazonaws.com"
+    ? "d2ekshiy7r5vl7.cloudfront.net"
     : "artblocks-rinkeby.s3.amazonaws.com";
 
 const medialThumbUrl =
   currentNetwork === "mainnet"
-    ? "artblocks-mainthumb.s3.amazonaws.com"
+    ? "d428bhatbfa76.cloudfront.net"
     : "artblocks-rinkthumb.s3.amazonaws.com";
 
 const curatedProjects =
@@ -87,7 +87,7 @@ const curatedProjects =
         59,
         62,
         64,
-        72
+        72,
       ]
     : [];
 const playgroundProjects =
@@ -714,18 +714,9 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
         imgRequest.get(url);
         response.sendFile(file);
       } else {
-        const data = s3
-          .getObject({
-            Bucket: thumbBucket,
-            Key: tokenKey,
-          })
-          .createReadStream();
-        data.on("error", () => {
-          console.error(err);
-        });
-        console.log(`Returning thumb: ${request.params.tokenId}`);
-        response.writeHead(200, { "Content-Type": "image/png" });
-        data.pipe(response);
+        response.redirect(
+          `https://${medialThumbUrl}/${request.params.tokenId}.png`
+        );
       }
     });
   }
