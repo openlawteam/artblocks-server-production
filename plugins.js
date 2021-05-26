@@ -12285,6 +12285,12 @@ else if (projectId===69){
   FRAME && CADRE_DARK && features.push('Dark Frame: Yes');
   LIGNES_NOIR_BLANC && features.push('Black & White Lines: Yes');
   LIGNES_1_SMALL_AREA && features.push('Lines 1 Small Area: Yes');
+  FRAME && !CADRE_NOIR && !CADRE_DARK && featuresReduced.push('Frame Border: ' + (CADRE_BORDER ? 'Yes' : 'No'));
+  PETITS_RONDS_COLORES && featuresReduced.push('Small Colored Shapes: Yes');
+  FRAME && CADRE_NOIR && featuresReduced.push('Black Frame: Yes');
+  FRAME && CADRE_DARK && featuresReduced.push('Dark Frame: Yes');
+  LIGNES_NOIR_BLANC && featuresReduced.push('Black & White Lines: Yes');
+  LIGNES_1_SMALL_AREA && featuresReduced.push('Lines 1 Small Area: Yes');
   features.push('Number of Lines 1: ' + NB_JOUEURS_1);
   features.push('Number of Lines 2: ' + NB_JOUEURS_2);
   features.push('Number of Lines 3: ' + NB_JOUEURS_3);
@@ -12299,7 +12305,99 @@ else if (projectId===69){
 
 }
 ////////
+else if (projectId===70){
 
+  var seed = parseInt(tokenData.slice(0, 16), 16);
+
+  let rotMode = 0;
+  let xs_;
+  let ys_;
+  const pal_ = []
+
+  gen();
+
+
+
+  function gen() {
+
+    pal_.push('#23c054');
+    pal_.push('#0099dd');
+    pal_.push('#ccc');
+    pal_.push('#fae');
+    pal_.push('#f00');
+    pal_.push('#dd0');
+
+
+    let rotationModes =[
+      'radar',
+      'up down',
+      'left right',
+      'diagonal',
+      'spin',
+      'broken spin'];
+
+
+    rotMode = Math.floor(rnd_dec() * 6);
+    features.push('Rotation: '+rotationModes[rotMode])
+
+    let orientation = 'front';
+    if(rotMode==4 || rotMode== 5){
+      orientation = "side";
+    }
+    features.push('Orientation: '+orientation)
+
+
+
+    xs_ = rnd_dec() < .5 ? -1 : 1;
+    ys_ = rnd_dec() < .5 ? -1 : 1;
+
+    let nRad =(10 + 20 * rnd_dec());
+    let innerN = 2 + 10 * rnd_dec();
+    let outterN = 2 + 10 * rnd_dec();
+    let invert = rnd_dec() < .2 ? 1 : 0;
+    let Palette = invert==1?'invert':'direct'
+    features.push('Palette: ' + Palette);
+
+
+    let initLayers = 4 + rnd_dec() * 6;
+    let nColors = pal_.length;
+    let metaMode = rnd_dec() < .17 ? 0 : 1;
+    let metaModeStr = metaMode==0?'homogeneous':'heterogeneous'
+    features.push('MetaStyle: ' +  metaModeStr);
+
+    var mode =Math.floor(rnd_dec() * 8);
+
+    var colorMode = rnd_dec() < .17 ? 0 : 1;
+    let colorModeStr = colorMode==0?'singleColor':'mixedColors';
+    features.push('MetaColor: ' +  colorModeStr);
+
+    var radiusMode = rnd_dec() < .4 ? 0 : 1;
+    let radiusModeStr = radiusMode==0?'clean':'dirty';
+    features.push('RadialMode: ' +  radiusModeStr);
+
+    let colorSel = Math.floor(rnd_dec() * nColors);
+
+  }
+
+
+
+
+  function rnd_dec() {
+    seed ^= seed << 13
+    seed ^= seed >> 17
+    seed ^= seed << 5
+    return ((seed < 0 ? ~seed + 1 : seed) % 1000) / 1000
+  }
+
+
+
+  console.log(features);
+
+}
+
+
+
+//////
 else if (projectId===71){
   features = new Array(0);
   //features[0] is Shape color
@@ -13095,7 +13193,229 @@ else if (projectId===72){
 features = calculateFeatures();
 featuresReduced = features;
 }
+/////
 
+else if (projectId===76){
+
+  // dino pals features
+
+// mock tokenData ---------
+// function genTokenData(p) {
+//     let data = {};
+//     let hash = "0x";
+//     for (var i = 0; i < 64; i++)
+//     {
+//         hash += Math.floor(Math.random() * 16).toString(16);
+//     }
+//     data.hash = hash;
+//     data.tokenId = p * 1000000 + Math.floor(Math.random() * 1000);
+//     return data;
+// }
+// const tokenData = genTokenData(1);
+// end mock token data
+
+// hash will be used as seed
+const seed = parseInt(tokenData.slice(0, 16), 16);
+class Random {
+  constructor(seed) {
+    this.seed = seed;
+  }
+  rdec() {
+    this.seed ^= this.seed << 13;
+    this.seed ^= this.seed >> 17;
+    this.seed ^= this.seed << 5;
+    return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000;
+  }
+  rbet(a, b) {
+    // random between
+    return a + (b - a) * this.rdec();
+  }
+  rch(x) {
+    // random choice
+    return x[Math.floor(this.rbet(0, x.length * 0.99))];
+  }
+}
+const R = new Random(seed);
+
+// trait: world palette
+const worldAvailableColors = [
+  // beach
+  {
+    name: "beach",
+    earth: "#edcaa4",
+    sky: ["#91c3ff", "#ffbe4f"],
+    cloud: "rgba(185, 214, 250, 0.6)"
+  },
+  // forest
+  {
+    name: "forest",
+    earth: "#017a74",
+    sky: ["#1ea8e3", "#8928a1"],
+    cloud: "rgba(254, 254, 254, 0.5)"
+  },
+  // mountain
+  {
+    name: "mountain",
+    earth: "#97b7bd",
+    sky: ["#c1cff7", "#565961"],
+    cloud: "rgba(255, 255, 255, 0.3)"
+  },
+  // acqua
+  {
+    name: "acqua",
+    earth: "#0eb7c7",
+    sky: ["#5daef0", "#0e74c7"],
+    cloud: "rgba(222, 240, 255, 0.3)"
+  },
+  // vulcanic
+  {
+    name: "vulcanic",
+    earth: "#8a1506",
+    sky: ["#827f7d", "#f5eece"],
+    cloud: "rgba(74, 73, 72, 0.5)"
+  }
+];
+const worldColors = R.rch(worldAvailableColors);
+
+const TAU = 2 * Math.PI;
+// trait: eye color
+const eyeAvailableColors = [
+  "dark blue", // '#034180',
+  "red", // '#c2280a',
+  "dark purple", // #400610',
+  "light purple", // #810791'
+  "green", // #048c24'
+  "light blue" // '#0676bd',
+];
+const eyeColor = R.rch(eyeAvailableColors);
+
+// trait: dino palette
+const availableColors = [
+  {
+    // Orange
+    name: "orange",
+    primary: "#ed9907",
+    darker: "#d68a06",
+    lighter: "#edf7e4",
+    mouth: "#CC2255"
+  },
+  {
+    // green
+    name: "green",
+    primary: "#1aad69",
+    darker: "#16945a",
+    lighter: "#d1badb",
+    mouth: "#630427"
+  },
+  {
+    // purple
+    name: "purple",
+    primary: "#6744db",
+    darker: "#5837c4",
+    lighter: "#f7f7d7",
+    mouth: "#2f1a75"
+  },
+  {
+    // blue
+    name: "blue",
+    primary: "#1461de",
+    darker: "#1258c9",
+    lighter: "#f2cdf7",
+    mouth: "#570327"
+  },
+  {
+    // brown
+    name: "brown",
+    primary: "#7d5c41",
+    darker: "#6e5038",
+    lighter: "#dbe8ff",
+    mouth: "#630427"
+  },
+  {
+    // red
+    name: "red",
+    primary: "#eb1207",
+    darker: "#c70d04",
+    lighter: "#fce4e1",
+    mouth: "#140301"
+  },
+  {
+    // black
+    name: "black",
+    primary: "#2e2f45",
+    darker: "#232436",
+    lighter: "#c5c5c9",
+    mouth: "#f70757"
+  }
+];
+// albino
+const albinoPalette = {
+  name: "albino",
+  primary: "#f7f7ed",
+  darker: "#edede1",
+  lighter: "#ffffff",
+  mouth: "#edb2b2"
+};
+const eyebrowsColor = "#333";
+
+const isAlbinoDice = R.rdec();
+const isAlbino = isAlbinoDice <= 0.01;
+const colors = isAlbino ? albinoPalette : R.rch(availableColors);
+
+const finsColor = isAlbino ? albinoPalette.darker : "#fc6d00";
+
+// trait: species
+const dinoTypes = ["rex", "diplo", "raptor", "tricera", "stego"];
+const dinoType = R.rch(dinoTypes);
+
+const species = {
+  rex: "t-rex",
+  diplo: "diplodocus",
+  raptor: "velociraptor",
+  tricera: "triceratops",
+  stego: "stegosaur"
+};
+
+const mouthDice = R.rdec();
+// trait: mouth
+const mouthType =
+  dinoType === "tricera"
+    ? "beak"
+    : mouthDice < 0.1
+    ? "sad"
+    : mouthDice < 0.3
+    ? "meh"
+    : mouthDice < 0.5
+    ? "beak"
+    : mouthDice < 0.7
+    ? "surprised"
+    : "happy";
+
+const eyebrowDice = R.rdec();
+// trait eyebrows
+const eyebrowType =
+  eyebrowDice < 0.2
+    ? "angry"
+    : eyebrowDice < 0.4
+    ? "sad"
+    : eyebrowDice < 0.6
+    ? "neutral"
+    : "none";
+
+features = [
+  `species: ${species[dinoType]}`,
+  `main color: ${colors.name}`,
+  `eye color: ${eyeColor}`,
+  `world: ${worldColors.name}`,
+  `mouth: ${mouthType}`,
+  `eyebrows: ${eyebrowType}`
+];
+
+featuresReduced = features;
+
+// console.log(features);
+
+}
 
   ///////
 
