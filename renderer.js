@@ -159,7 +159,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
           queue.enqueue([request.params.tokenId, ratio, blockNumber]);
         }
         */
-        if (projectId === 68 && currentNetwork === "mainnet") {
+        if ((projectId === 68 /*|| projectId === 63*/) && currentNetwork === "mainnet") {
           queueRenderPipelineJob(request.params.tokenId);
         } else {
           serveScriptResultRefresh(request.params.tokenId, ratio).then(
@@ -180,7 +180,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
             console.log("first get err", err);
             let count = 0;
 
-            if (projectId === 68 && currentNetwork === "mainnet") {
+            if ((projectId === 68 /*|| projectId === 63*/) && currentNetwork === "mainnet") {
               queueRenderPipelineJob(request.params.tokenId);
             } else if (!queueRef[request.params.tokenId]) {
               console.log("adding to queue");

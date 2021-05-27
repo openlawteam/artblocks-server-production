@@ -12225,7 +12225,261 @@ else if (projectId===66){
   featuresReduced=features;
 
 }
+//////
 
+
+else if (projectId===68){
+
+  "use strict";
+  {
+      
+
+      const noise = {
+          init(seed) {
+              this.r = this.alea(seed);
+            this.p = this.bp(this.r);
+          },
+          bp(random) {
+              var i;
+              var p = new Uint8Array(256);
+              for (i = 0; i < 256; i++) {
+                  p[i] = i;
+              }
+              for (i = 0; i < 255; i++) {
+                  var r = i + ~~(random() * (256 - i));
+                  var aux = p[i];
+                  p[i] = p[r];
+                  p[r] = aux;
+              }
+              return p;
+          },
+
+          masher() {
+              var n = 0xefc8249d;
+              return function(data) {
+                  data = data.toString();
+                  for (var i = 0; i < data.length; i++) {
+                      n += data.charCodeAt(i);
+                      var h = 0.02519603282416938 * n;
+                      n = h >>> 0;
+                      h -= n;
+                      h *= n;
+                      n = h >>> 0;
+                      h -= n;
+                      n += h * 0x100000000; // 2^32
+                  }
+                  return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+              };
+          },
+          alea() {
+              var s0 = 0;
+              var s1 = 0;
+              var s2 = 0;
+              var c = 1;
+
+              var mash = this.masher();
+              s0 = mash(' ');
+              s1 = mash(' ');
+              s2 = mash(' ');
+
+              for (var i = 0; i < arguments.length; i++) {
+                  s0 -= mash(arguments[i]);
+                  if (s0 < 0) {
+                      s0 += 1;
+                  }
+                  s1 -= mash(arguments[i]);
+                  if (s1 < 0) {
+                      s1 += 1;
+                  }
+                  s2 -= mash(arguments[i]);
+                  if (s2 < 0) {
+                      s2 += 1;
+                  }
+              }
+              mash = null;
+              return function() {
+                  var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+                  s0 = s1;
+                  s1 = s2;
+                  return s2 = t - (c = t | 0);
+              };
+          },
+      };
+
+      noise.init(tokenData);
+      let rd=noise.r;
+
+
+      //THE PARAMETERS
+      let palette_index = rd(); //uniform
+      let blocky = rd()>0.5;
+      let gap = rd()>0.5;
+      let phat = rd()>0.7;
+      let mustache = rd()>0.5;
+      let silver = rd()>0.5;
+      let stairs = rd()>0.7;
+      let feathers = 1.0;
+      if(rd()>0.5) feathers=0.0;
+      let dark = rd()>0.5;
+      //dark=true;
+      let eyes = rd()>0.5;
+      let wobbly = rd()>0.5;
+      let grit = rd()>0.7;
+      let ghost = rd()>0.6;//&&!phat;
+      let fade = rd()>0.6;
+      let vert = rd()>0.8;
+      let ms = 15.0;
+      if(phat) ms=8.0;
+      let sl = 3.0+rd()*ms; //how much the line is scrambled
+      let sf = 1.0+rd()*ms; //how much feather like the colors move
+      let spin = rd()>0.9;
+      let spind = 0.3+rd()*0.4;
+      if(blocky) spind*=0.3;
+      if(!blocky && rd()>0.5) spind*=-1.0;
+      let n_angles = 8;
+      if(rd()>0.8) n_angles=12;
+      let ring = rd()>0.95;
+      let wind_shift=rd();
+      let wind_size = Math.pow(rd(),2.0);
+
+
+      let palettesNames = [
+              'Melting Flowers',
+              'Spoiled Snow',
+              'Oxford in Orange',
+              'Ocre Waves',
+              'Jimmy Hen',
+              'Ara Ararauna',
+              'Black and White',
+              'Fresh Squeeze',
+              'Boy/Girl',
+              'Icy Blues',
+              'Smart Fox',
+              'It was actually not a long story',
+              'Warm and Cozy',
+              'Morning Sky',
+              'Rust',
+              'From the forge',
+              'Dark Peach',
+              'Floral Essence',
+              'Bolder Choice',
+              'Macha Strawberry',
+              'Time for Blood',
+              'Cotton Candy on the Deep Sea',
+              'Light Peach',
+              'Miami',
+              'Bleeding Sky',
+              'Berlin',
+              'Patina',
+      ];
+      let pi = parseInt(Math.floor(palette_index*palettesNames.length));
+      features.push('Palette: '+palettesNames[pi]);
+      featuresReduced.push('Palette: '+palettesNames[pi]);
+
+      if(blocky && n_angles==8){
+        features.push('Shape: Blocky 8');
+        featuresReduced.push('Shape: Blocky 8');
+      } else if(blocky){
+        features.push('Shape: Blocky 12');
+        featuresReduced.push('Shape: Blocky 12');
+      } else {
+        features.push('Shape: Slick');
+        featuresReduced.push('Shape: Slick');
+      }
+      if(phat){
+          features.push('Build: Heavy');
+      } else {
+          features.push('Build: Light');
+      }
+      if(dark){
+        features.push('Time: Night');
+        featuresReduced.push('Time: Night');
+      } else {
+        features.push('Time: Day');
+        featuresReduced.push('Time: Day');
+      }
+      if(mustache&&silver) {
+        features.push('Spice: Salt&Pepper');
+        featuresReduced.push('Spice: Salt&Pepper');
+      } else if(mustache){
+        features.push('Spice: Pepper');
+        featuresReduced.push('Spice: Pepper');
+      } else if(silver){
+        features.push('Spice: Salt');
+        featuresReduced.push('Spice: Salt');
+      } else {
+        features.push('Spice: Vanilla');
+        featuresReduced.push('Spice: Vanilla');
+      }
+      if(feathers==1.0){
+        features.push('Colors: Feathers');
+        featuresReduced.push('Colors: Feathers');
+      } else {
+        features.push('Colors: Plain');
+        featuresReduced.push('Colors: Plain');
+      }
+      if(stairs){
+        features.push('Blocks: Colors');
+      } else {
+        features.push('Blocks: None');
+      }
+      if(eyes){
+        features.push('Type: Shiny');
+      } else {
+        features.push('Type: Clear');
+      }
+      if(spin&&wind_size>0.7){
+          features.push('Weather: Typhoon');
+      } else if(spin){
+          features.push('Weather: Tornado');
+      } else if(wind_size>0.7){
+          features.push('Weather: Windy');
+      } else {
+          features.push('Weather: Just fine');
+      }
+      if(grit){
+          features.push('Texture: Rough');
+          featuresReduced.push('Texture: Rough');
+      } else {
+          features.push('Texture: Kind of smooth');
+          featuresReduced.push('Texture: Kind of smooth');
+      }
+      if(vert){
+          features.push('Gradient: Vertical');
+      } else {
+          features.push('Gradient: None');
+      }
+      if(ghost&&fade){
+          features.push('Spirit: Late Ghost');
+      } else if(ghost) {
+          features.push('Spirit: Tight Ghost');
+      } else if(fade){
+          features.push('Spirit: Wide');
+      } else {
+          features.push('Spirit: Wandering');
+      }
+      if(ring){
+          features.push('Movie: Arrival');
+      } else {
+          features.push('Movie: Contact');
+      }
+      if(wobbly) {
+          features.push('Last Haircut: Who knows');
+          featuresReduced.push('Last Haircut: Who knows');
+      } else {
+          features.push('Last Haircut: Recently');
+          featuresReduced.push('Last Haircut: Recently');
+      }
+
+
+
+      console.log(features);
+
+
+  }
+
+
+}
 
 
   //////
@@ -13062,7 +13316,7 @@ else if (projectId===72){
       f.l = f.k
     }
 
-    if (f.d === f.k) f.t = true
+    if (f.l === f.k) f.t = true
 
     if (f.h === -1) f.i -= 2
 
@@ -13094,7 +13348,7 @@ else if (projectId===72){
       p = p.filter(c => c != b)
     }
 
-    features = {
+    const features = {
       Palette: colorPalettes[f.b],
       Background: colorNames[f.b][f.c],
       Fill: f.a ? 'No' : 'Yes',
@@ -13121,13 +13375,13 @@ else if (projectId===72){
     if (f.j === 0) features.Entropy = 'No entropy';
     else if (f.j < 4) features.Entropy = 'Low';
     else if (f.j < 7) features.Entropy = 'Average';
-    else if (f.j < 10) features.Entropy = 'High';
-    else if (f.j === 10) features.Entropy = 'Maximum';
+    else if (f.j < 9) features.Entropy = 'High';
+    else features.Entropy = 'Maximum';
 
     if (f.i < 5) features.Fragmentation = 'Low';
     else if (f.i < 7) features.Fragmentation = 'Average';
     else if (f.i < 9) features.Fragmentation = 'High';
-    else if (f.i === 9) features.Fragmentation = 'Maximum';
+    else features.Fragmentation = 'Maximum';
 
     switch (f.g) {
       case 3:
@@ -13180,19 +13434,111 @@ else if (projectId===72){
     if (features.Shapes === 3) features.Type = 'Trio';
     if (features.Shapes === 25) features.Type = 'Army';
 
-    if (f.d <= .1) features.Width = 'Wide';
-    else if (f.d >= .2) features.Width = 'Narrow';
+    if (f.d <= .07) features.Width = 'Wide';
+    else if (f.d >= .11) features.Width = 'Narrow';
     else features.Width = 'Average';
 
-    if (f.k <= .1) features.Height = 'Tall';
-    else if (f.k >= .2) features.Height = 'Average';
-    else features.Height = 'Short';
+    if (f.e <= .07) features.Height = 'Tall';
+    else if (f.e >= .11) features.Height = 'Short';
+    else features.Height = 'Average';
 
     return Object.entries(features).map(f => f.join(': '));
   }
-features = calculateFeatures();
-featuresReduced = features;
+featuresReduced = features = calculateFeatures();
 }
+/////
+
+
+
+else if (projectId===73){
+  let hashPairs = new Array(32), rvs = new Array(32);
+for (let j = 0; j < 32; j++) {
+     hashPairs[j] = tokenData.slice(2 + (j * 2), 4 + (j * 2));
+     rvs[j] = parseInt(hashPairs[j], 16);
+}
+
+let breeds = [
+     {name:"black",odds:51,body:[0,4,5,6],face:[0,1,2,3,4,5,6,7,8,9],palettes:[0],eyes:[0,1,2,3]},
+     {name:"white",odds:26,body:[0,6],face:[0,10,11,12],palettes:[1],eyes:[0,1,2]},
+     {name:"tabby",odds:100,body:[1,2,3,4,5,6,7],face:[1,2,3,4,5,6,7,8,9],palettes:[2,3,4],eyes:[0,1,2]},
+     {name:"shorthair",odds:20,body:[0,4,5,6],face:[0,1,4,6,7,8],palettes:[5],eyes:[3]},
+     {name:"calico",odds:17,body:[6],face:[1,12],palettes:[6],eyes:[0,1,2]},
+     {name:"siamese",odds:10,body:[0,6],face:[0,8],palettes:[7],eyes:[0,1,2]},
+     {name:"sphynx",odds:5,body:[0],face:[0],palettes:[11],eyes:[0,1,2],head:15,ear:11},
+     {name:"sandcat",odds:5,body:[3,8],face:[6],palettes:[12],eyes:[0,1],head:16,ear:12},
+     {name:"toyger",odds:5,body:[3,8],face:[6],palettes:[13],eyes:[0,1,2],head:17,ear:13},
+     {name:"alien",odds:12,body:[1,2,3,4,5,6,8],face:[1,2,3,4,5,6,7,8,9],palettes:[8,9],eyes:[4]},
+     {name:"zombie",odds:5,body:[1,2,3,4,5,6,7,8],face:[2,3,4,5,6,9],palettes:[10],eyes:[5]},
+];
+
+let patterns = {
+    body: [[],["tabby"],["tabby","belly"],["tabby","necktie"],["belly"],["necktie"],["corners"],["stripes"],["tabby","corners"]],
+    face: [[],["mask"],["round"],["nose","round"],["nose","chin"],["triangle"],["triangle","whiskers"],["whiskers"],["whiskers","nose"],["whiskers","chin"],["ear"],["temple"],["ear","temple"],["forehead","cheeks"]]
+}
+let palettes = ["black", "white", "ginger", "gray", "brown", "british blue", "calico", "creamy", "pink", "cyan", "green", "fleshy", "sand", "toyger"];
+let eyeColors = ["blue","yellow","green","orange","black","white"];
+let heads = ["round", "oval", "diamond", "squarish", "fluffy", "scruffy", "plain", "chonker", "slick", "rectangular", "teeny", "cheeky", "lemon", "silky", "chubby", "skinny", "wide", "blocky"];
+let ears = ["plain", "upright", "alert", "pointy", "teeny", "curved", "slanted", "folded", "floppy", "sideways", "perky", "sphynx", "wide", "round"];
+let eyes = ["round", "fierce", "squinting", "sullen", "meek", "stern", "mean", "droopy", "cross", "almond", "doe", "glaring", "sleepy", "pleading"];
+let pupils = ["thin", "big", "huge", "normal", "small", "thinnest"];
+let mouths = ["neutral", "pursed", "pleased", "pouting", "drooping", "displeased", "impartial", "dull", "smiling"];
+let whiskers = ["downward", "downward", "upward", "upward"];
+
+let tongues = [true, false, true, false, false, true, false, true, true];
+
+function determine(array, rv) { for (let id = 0; id < breeds.length; id++) { if ((rv -= array[id].odds) < 0) return id; } }
+function getFeatures() {
+     let traits = [];
+     let breed = breeds[determine(breeds, rvs[0])];
+     let bpID = breed.body[rvs[1] % breed.body.length];
+     let fpID = breed.face[rvs[2] % breed.face.length];
+     if (bpID == 0 && fpID == 0) { traits.push("pure") }
+     let colors = {};
+     let palette = palettes[breed.palettes[rvs[3] % breed.palettes.length]];
+     let head = breed.head ? heads[breed.head] : heads[rvs[4] % (heads.length - 3)];
+     let ear = breed.ear ? ears[breed.ear] : ears[rvs[5] % (ears.length - 3)];
+     let eye = eyes[rvs[6] % eyes.length];
+     let pupil = pupils[rvs[7] % pupils.length];
+     let mouth = mouths[rvs[8] % mouths.length];
+     let whisker = whiskers[rvs[9] % whiskers.length];
+     let tng = tongues[rvs[8] % mouths.length];
+     if (tng == true) { tng = rvs[15] < 18 && !["alien", "zombie"].includes(breed.name); }
+     let flip = rvs[10] < 128;
+     let swap = rvs[11] < 128;
+     if (swap && breed.name == "calico") { colors.prim = palette.sec; colors.sec = palette.prim; }
+     let heterochromia = rvs[12] < 13;
+     if (breed.eyes.length > 1 && heterochromia) { colors.eye = eyeColors[0]; colors.eyeAlt = eyeColors[breed.eyes[(rvs[13] % (breed.eyes.length > 2 ? 2 : 1)) + 1]]; }
+     else { heterochromia = false; colors.eye = colors.eyeAlt = eyeColors[breed.eyes[rvs[13] % breed.eyes.length]]; }
+     let eyeSwap = rvs[14] < 128;
+     traits.push(`breed: ${breed.name}`);
+     traits.push(`color: ${palette}`);
+     traits.push(`body pattern: ${bpID}`);
+     traits.push(`face pattern: ${fpID}`);
+     if (heterochromia) { traits.push(`eye color: heterochromia`) }
+     else { traits.push(`eye color: ${colors.eye}`) }
+     traits.push(`head: ${head}`);
+     traits.push(`ears: ${ear}`);
+     traits.push(`eyes: ${eye}`);
+     traits.push(`pupils: ${pupil}`);
+     traits.push(`mouth: ${mouth}`);
+     if(tng) { traits.push("tongue") }
+     return traits.map(t => titleCase(t));
+}
+
+function titleCase(str) {
+     return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.substring(1)).join(' ');
+}
+
+featuresReduced = features = getFeatures();
+console.log(features);
+}
+//////
+
+else if (projectId===74){
+
+}
+
+
 /////
 
 else if (projectId===76){
