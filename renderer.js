@@ -34,8 +34,7 @@ const util = require("util");
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
 
-const { abi } = require("./artifacts/GenArt721.json");
-const abi2 = require("./artifacts/GenArt721Core.json").abi;
+const abi = require("./artifacts/GenArt721Core.json").abi;
 
 const renderVideo = require("./lib/renderVideo");
 
@@ -67,16 +66,10 @@ let intervalCount = 0;
 const web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
 const address =
   currentNetwork === "mainnet"
-    ? require("./artifacts/GenArt721.json").contractAddressMainnet
-    : require("./artifacts/GenArt721.json").contractAddressRinkeby;
-
-const contract = new web3.eth.Contract(abi, address);
-const address2 =
-  currentNetwork === "mainnet"
     ? require("./artifacts/GenArt721Core.json").contractAddressMainnet
     : require("./artifacts/GenArt721Core.json").contractAddressRinkeby;
 
-const contract2 = new web3.eth.Contract(abi2, address2);
+const contract = new web3.eth.Contract(abi, address);
 
 console.log(address, address2);
 
@@ -93,7 +86,7 @@ app.get("/project/:projectId", async (request, response) => {
     console.log("not integer");
     response.send("invalid request");
   } else {
-    const nextProjectId = await contract2.methods.nextProjectId().call();
+    const nextProjectId = await contract.methods.nextProjectId().call();
     const exists = request.params.projectId < nextProjectId;
     if (exists) {
       const projectDetails = await getDetails(request.params.projectId);
@@ -176,10 +169,7 @@ app.get("/token/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
     // console.log(tokensOfProject);
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log(`exists? ${exists}`);
@@ -253,10 +243,7 @@ app.get("/generator/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
     const exists = tokensOfProject.includes(request.params.tokenId);
 
     if (exists) {
@@ -358,15 +345,9 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
     const exists = tokensOfProject.includes(request.params.tokenId);
-    const scriptInfo =
-      projectId < 3
-        ? await contract.methods.projectScriptInfo(projectId).call()
-        : await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
     // eslint-disable-next-line
     const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
@@ -568,15 +549,9 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject =
-      projectId < 3
-        ? await contract.methods.projectShowAllTokens(projectId).call()
-        : await contract2.methods.projectShowAllTokens(projectId).call();
+    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
     const exists = tokensOfProject.includes(request.params.tokenId);
-    const scriptInfo =
-      projectId < 3
-        ? await contract.methods.projectScriptInfo(projectId).call()
-        : await contract2.methods.projectScriptInfo(projectId).call();
+    const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
     // eslint-disable-next-line
     const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
@@ -987,13 +962,7 @@ async function getDetails(projectId) {
 async function getScript(projectId, scriptCount) {
   let scripts = [];
   for (let i = 0; i < scriptCount; i += 1) {
-    if (projectId < 3) {
       const newScript = contract.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    } else {
-      const newScript = contract2.methods
         .projectScriptByIndex(projectId, i)
         .call();
       scripts.push(newScript);
@@ -1004,18 +973,7 @@ async function getScript(projectId, scriptCount) {
 }
 
 async function getScriptInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectScriptInfo(projectId).call();
-    return {
-      scriptJSON: result[0] && JSON.parse(result[0]),
-      scriptCount: result[1],
-      hashesPerToken: result[2],
-      ipfsHash: result[3],
-      locked: result[4],
-      paused: result[5],
-    };
-  }
-  const result = await contract2.methods.projectScriptInfo(projectId).call();
+  const result = await contract.methods.projectScriptInfo(projectId).call();
   return {
     scriptJSON: result[0] && JSON.parse(result[0]),
     scriptCount: result[1],
@@ -1027,18 +985,7 @@ async function getScriptInfo(projectId) {
 }
 
 async function getProjectDescription(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectDetails(projectId).call();
-    return {
-      projectName: result[0],
-      artistName: result[1],
-      description: result[2],
-      artistWebsite: result[3],
-      license: result[4],
-      dynamic: result[5],
-    };
-  }
-  const result = await contract2.methods.projectDetails(projectId).call();
+  const result = await contract.methods.projectDetails(projectId).call();
   return {
     projectName: result[0],
     artistName: result[1],
@@ -1050,15 +997,7 @@ async function getProjectDescription(projectId) {
 }
 
 async function getURIInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectURIInfo(projectId).call();
-    return {
-      projectBaseURI: result[0],
-      projectBaseIpfsURI: result[1],
-      useIpfs: result[2],
-    };
-  }
-  const result = await contract2.methods.projectURIInfo(projectId).call();
+  const result = await contract.methods.projectURIInfo(projectId).call();
   return {
     projectBaseURI: result[0],
     projectBaseIpfsURI: result[1],
@@ -1067,24 +1006,8 @@ async function getURIInfo(projectId) {
 }
 
 async function getTokenDetails(projectId) {
-  if (projectId < 3) {
-    const tokens = await contract.methods
-      .projectShowAllTokens(projectId)
-      .call();
-    const result = await contract.methods.projectTokenInfo(projectId).call();
-    return {
-      artistAddress: result[0],
-      pricePerTokenInWei: result[1],
-      invocations: result[2],
-      maxInvocations: result[3],
-      active: result[4],
-      additionalPayee: result[5],
-      additionalPayeePercentage: result[6],
-      tokens,
-    };
-  }
-  const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
-  const result = await contract2.methods.projectTokenInfo(projectId).call();
+  const tokens = await contract.methods.projectShowAllTokens(projectId).call();
+  const result = await contract.methods.projectTokenInfo(projectId).call();
   return {
     artistAddress: result[0],
     pricePerTokenInWei: result[1],
@@ -1100,16 +1023,7 @@ async function getTokenDetails(projectId) {
 }
 
 async function getTokenRoyaltyInfo(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.getRoyaltyData(tokenId).call();
-    return {
-      artistAddress: result[0],
-      additionalPayee: result[1],
-      additionalPayeePercentage: result[2],
-      royaltyFeeByID: result[3],
-    };
-  }
-  const result = await contract2.methods.getRoyaltyData(tokenId).call();
+  const result = await contract.methods.getRoyaltyData(tokenId).call();
   return {
     artistAddress: result[0],
     additionalPayee: result[1],
@@ -1119,19 +1033,13 @@ async function getTokenRoyaltyInfo(tokenId) {
 }
 
 async function getTokenHashes(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.showTokenHashes(tokenId).call();
-    return result;
-  }
-  const result = await contract2.methods.tokenIdToHash(tokenId).call();
+  const result = await contract.methods.tokenIdToHash(tokenId).call();
   return result;
 }
 
 async function getPlatformInfo() {
-  const totalSupply =
-    (await contract.methods.totalSupply().call()) +
-    (await contract2.methods.totalSupply().call());
-  const nextProjectId = await contract2.methods.nextProjectId().call();
+  const totalSupply = await contract.methods.totalSupply().call()
+  const nextProjectId = await contract.methods.nextProjectId().call();
   const name = await contract.methods.name().call();
   const symbol = await contract.methods.symbol().call();
   return { totalSupply, nextProjectId, name, symbol };
@@ -1165,16 +1073,10 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
   request.setTimeout(0);
   const projectId = request.params.projectId;
   console.log(projectId);
-  const scriptInfo =
-    projectId < 3
-      ? await contract.methods.projectScriptInfo(projectId).call()
-      : await contract2.methods.projectScriptInfo(projectId).call();
+  const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
   const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
   const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
-  const tokensOfProject =
-    projectId < 3
-      ? await contract.methods.projectShowAllTokens(projectId).call()
-      : await contract2.methods.projectShowAllTokens(projectId).call();
+  const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
   if (request.params.endId) {
     for (
       let i = Number(request.params.startId);
