@@ -18,7 +18,6 @@ IN THE SOFTWARE.
 
 const express = require("express");
 const Web3 = require("web3");
-<<<<<<< HEAD
 const favicon = require("serve-favicon");
 
 const cors = require("cors");
@@ -110,45 +109,6 @@ app.use(express.static("src", { setHeaders: (res) => res.set("Access-Control-All
 
 app.use(cors());
 app.use(favicon(path.join(__dirname, "/favicon.ico")));
-=======
-const app = express();
-const fs = require("fs");
-var favicon = require("serve-favicon");
-const puppeteer = require("puppeteer");
-const cors = require("cors");
-const path = require("path");
-var beautify = require("js-beautify").js;
-//https://oneclickdapp.com/child-cello/
-
-const PORT = process.env.PORT || 8080;
-const API_KEY = process.env.INFURA_KEY;
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
-console.log(`Contract Address: ${CONTRACT_ADDRESS}`);
-
-var web3 = new Web3(`https://mainnet.infura.io/v3/${API_KEY}`);
-const { abi } = require("./artifacts/GenArt721.json");
-const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
-
-app.set("views", "./views");
-app.set("view engine", "pug");
-app.use(express.static(__dirname + "./"));
-app.use(express.static("src"));
-
-const allowedDomains = process.env.ALLOWED_DOMAINS
-  ? process.env.ALLOWED_DOMAINS.split(",")
-  : [];
-console.log(`Allowed domains ${allowedDomains.length}: ${allowedDomains}`);
-
-app.use(
-  cors((req, callback) => {
-    const isDomainAllowed = allowedDomains.indexOf(req.header("Origin")) !== -1;
-    const corsOptions = { origin: isDomainAllowed };
-    callback(null, corsOptions);
-  })
-);
-app.use(favicon(__dirname + "/favicon.ico"));
-let pathToHtml = path.join(__dirname, "index.html");
->>>>>>> 55d9d2f... Added docker file and build info
 
 app.get("/project/:projectId", async (request, response) => {
   if (!Number.isInteger(Number(request.params.projectId))) {
