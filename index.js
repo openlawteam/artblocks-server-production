@@ -53,52 +53,22 @@ const mediaUrl =
     : "rinkeby.oss.nodechef.com";
 const curatedProjects =
   currentNetwork === "mainnet"
-    ? [
-        0,
-        1,
-        2,
-        3,
-        4,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        17,
-        21,
-        23,
-        27,
-        28,
-        29,
-        35,
-        39,
-        40,
-        41,
-      ]
-    : [];
+    ? []
+    : [0];
 const playgroundProjects =
   currentNetwork === "mainnet"
-    ? [6, 14, 15, 16, 18, 19, 20, 22, 24, 25, 26, 30, 37, 42, 48]
+    ? []
     : [];
 const testing = false;
 
 const web3 = new Web3(`https://${currentNetwork}.infura.io/v3/${API_KEY}`);
-const { abi } = require("./artifacts/GenArt721.json");
+const abi = require("./artifacts/GenArt721Core.json").abi;
 const address =
-  currentNetwork === "mainnet"
-    ? require("./artifacts/GenArt721.json").contractAddressMainnet
-    : require("./artifacts/GenArt721.json").contractAddressRinkeby;
-
-const contract = new web3.eth.Contract(abi, address);
-const abi2 = require("./artifacts/GenArt721Core.json").abi;
-const address2 =
   currentNetwork === "mainnet"
     ? require("./artifacts/GenArt721Core.json").contractAddressMainnet
     : require("./artifacts/GenArt721Core.json").contractAddressRinkeby;
 
-const contract2 = new web3.eth.Contract(abi2, address2);
+const contract = new web3.eth.Contract(abi, address2);
 
 console.log(address, address2);
 
@@ -700,13 +670,7 @@ async function getDetails(projectId) {
 async function getScript(projectId, scriptCount) {
   const scripts = [];
   for (let i = 0; i < scriptCount; i += 1) {
-    if (projectId < 3) {
       const newScript = await contract.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    } else {
-      const newScript = await contract2.methods
         .projectScriptByIndex(projectId, i)
         .call();
       scripts.push(newScript);
@@ -716,18 +680,7 @@ async function getScript(projectId, scriptCount) {
 }
 
 async function getScriptInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectScriptInfo(projectId).call();
-    return {
-      scriptJSON: result[0] && JSON.parse(result[0]),
-      scriptCount: result[1],
-      hashesPerToken: result[2],
-      ipfsHash: result[3],
-      locked: result[4],
-      paused: result[5],
-    };
-  }
-  const result = await contract2.methods.projectScriptInfo(projectId).call();
+  const result = await contract.methods.projectScriptInfo(projectId).call();
   return {
     scriptJSON: result[0] && JSON.parse(result[0]),
     scriptCount: result[1],
@@ -739,18 +692,7 @@ async function getScriptInfo(projectId) {
 }
 
 async function getProjectDescription(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectDetails(projectId).call();
-    return {
-      projectName: result[0],
-      artistName: result[1],
-      description: result[2],
-      artistWebsite: result[3],
-      license: result[4],
-      dynamic: result[5],
-    };
-  }
-  const result = await contract2.methods.projectDetails(projectId).call();
+  const result = await contract.methods.projectDetails(projectId).call();
   return {
     projectName: result[0],
     artistName: result[1],
@@ -762,15 +704,7 @@ async function getProjectDescription(projectId) {
 }
 
 async function getURIInfo(projectId) {
-  if (projectId < 3) {
-    const result = await contract.methods.projectURIInfo(projectId).call();
-    return {
-      projectBaseURI: result[0],
-      projectBaseIpfsURI: result[1],
-      useIpfs: result[2],
-    };
-  }
-  const result = await contract2.methods.projectURIInfo(projectId).call();
+  const result = await contract.methods.projectURIInfo(projectId).call();
   return {
     projectBaseURI: result[0],
     projectBaseIpfsURI: result[1],
@@ -779,21 +713,7 @@ async function getURIInfo(projectId) {
 }
 
 async function getTokenDetails(projectId) {
-  if (projectId < 3) {
-    // const tokens = await contract.methods.projectShowAllTokens(projectId).call();
-    const result = await contract.methods.projectTokenInfo(projectId).call();
-    return {
-      artistAddress: result[0],
-      pricePerTokenInWei: result[1],
-      invocations: result[2],
-      maxInvocations: result[3],
-      active: result[4],
-      additionalPayee: result[5],
-      additionalPayeePercentage: result[6] /* tokens:tokens */,
-    };
-  }
-  // const tokens = await contract2.methods.projectShowAllTokens(projectId).call();
-  const result = await contract2.methods.projectTokenInfo(projectId).call();
+  const result = await contract.methods.projectTokenInfo(projectId).call();
   return {
     artistAddress: result[0],
     pricePerTokenInWei: result[1],
@@ -808,16 +728,7 @@ async function getTokenDetails(projectId) {
 }
 
 async function getTokenRoyaltyInfo(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.getRoyaltyData(tokenId).call();
-    return {
-      artistAddress: result[0],
-      additionalPayee: result[1],
-      additionalPayeePercentage: result[2],
-      royaltyFeeByID: result[3],
-    };
-  }
-  const result = await contract2.methods.getRoyaltyData(tokenId).call();
+  const result = await contract.methods.getRoyaltyData(tokenId).call();
   return {
     artistAddress: result[0],
     additionalPayee: result[1],
@@ -827,10 +738,8 @@ async function getTokenRoyaltyInfo(tokenId) {
 }
 
 async function getPlatformInfo() {
-  const totalSupply =
-    (await contract.methods.totalSupply().call()) +
-    (await contract2.methods.totalSupply().call());
-  const nextProjectId = await contract2.methods.nextProjectId().call();
+  const totalSupply = await contract.methods.totalSupply().call()
+  const nextProjectId = await contract.methods.nextProjectId().call();
   const name = await contract.methods.name().call();
   const symbol = await contract.methods.symbol().call();
   return { totalSupply, nextProjectId, name, symbol };
@@ -842,11 +751,7 @@ async function getProjectId(tokenId) {
 }
 
 async function getTokenHashes(tokenId) {
-  if (tokenId < 3000000) {
-    const result = await contract.methods.showTokenHashes(tokenId).call();
-    return result;
-  }
-  const result = await contract2.methods.tokenIdToHash(tokenId).call();
+  const result = await contract.methods.tokenIdToHash(tokenId).call();
   return result;
 }
 
