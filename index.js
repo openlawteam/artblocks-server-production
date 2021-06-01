@@ -42,7 +42,7 @@ const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
-  secretAccessKey: process.env.OSS_SECRET_KEY;
+  secretAccessKey: process.env.OSS_SECRET_KEY
 });
 
 const currentNetwork = "mainnet";
@@ -67,9 +67,9 @@ const address =
     ? require("./artifacts/GenArt721Core.json").contractAddressMainnet
     : require("./artifacts/GenArt721Core.json").contractAddressRinkeby;
 
-const contract = new web3.eth.Contract(abi, address2);
+const contract = new web3.eth.Contract(abi, address);
 
-console.log(address, address2);
+console.log(address);
 
 app.set("views", "./views");
 app.set("view engine", "pug");
@@ -154,7 +154,7 @@ app.get("/platform", async (request, response) => {
   response.render("platformInfo", {
     name: "Art Blocks",
     symbol: "BLOCKS",
-    address: [address, address2],
+    address: [address],
     totalSupply: platformInfo.totalSupply,
     projects,
     nextProjectId: platform.nextProjectId,
@@ -669,11 +669,10 @@ async function getDetails(projectId) {
 async function getScript(projectId, scriptCount) {
   const scripts = [];
   for (let i = 0; i < scriptCount; i += 1) {
-      const newScript = await contract.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    }
+		const newScript = await contract.methods
+			.projectScriptByIndex(projectId, i)
+			.call();
+		scripts.push(newScript);
   }
   return scripts.join(" ");
 }
