@@ -42,15 +42,14 @@ const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
-  secretAccessKey: process.env.OSS_SECRET_KEY,
-  endpoint: process.env.OSS_ENDPOINT,
+  secretAccessKey: process.env.OSS_SECRET_KEY
 });
 
 const currentNetwork = "mainnet";
 const mediaUrl =
   currentNetwork === "mainnet"
-    ? "mainnet.oss.nodechef.com"
-    : "rinkeby.oss.nodechef.com";
+    ? process.env.MEDIA_URL_MAINNET
+    : process.env.MEDIA_URL_RINKEBY
 const curatedProjects =
   currentNetwork === "mainnet"
     ? []

@@ -31,9 +31,8 @@ var zlib = require('zlib');
 var AWS = require('aws-sdk');
 
 var s3  = new AWS.S3({
-          accessKeyId: "OCTR0VJR1MTE0CCBCC60",
-          secretAccessKey: "Q0tRGX8v7xAc67YZnkMCiHUS5oErmZBwHleGBOqi",
-          endpoint: "https://oss.nodechef.com"
+          accessKeyId: process.env.OSS_ACCESS_KEY,
+          secretAccessKey:process.env.OSS_SECRET_KEY 
 });
 //https://oneclickdapp.com/child-cello/
 
@@ -201,21 +200,14 @@ async function getProjectId(tokenId){
   return Math.floor(tokenId/1000000);
 }
 
-function buildData(hashes, tokenId, type){
-  //to expose token hashes use let hashes = tokenData.hashes[0] (example if only one hash is minted)
-  if (tokenId<3000000){
-    let data = {};
-  	data.hashes = hashes;
-  	data.tokenId = tokenId;
-  	return `let tokenData = ${JSON.stringify(data)}`;
-  } else {
-    let data = {};
-    data.hash = hashes;
-    data.tokenId = tokenId;
-    return `let tokenData = ${JSON.stringify(data)}`;
-  }
-
+function buildData(hashes, tokenId, type) {
+//to expose token hashes use let hashes = tokenData.hashes[0] (example if only one hash is minted)
+	let data = {};
+	data.hash = hashes;
+	data.tokenId = tokenId;
+	return `let tokenData = ${JSON.stringify(data)}`;
 }
+
   function toBuffer(ab) {
     var buf = Buffer.alloc(ab.byteLength);
     var view = new Uint8Array(ab);

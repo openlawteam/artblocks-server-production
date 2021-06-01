@@ -43,8 +43,7 @@ const API_KEY = process.env.INFURA_KEY;
 
 var s3  = new AWS.S3({
           accessKeyId: process.env.OSS_ACCESS_KEY,
-          secretAccessKey: process.env.OSS_SECRET_KEY,
-          endpoint: process.env.OSS_ENDPOINT
+          secretAccessKey: process.env.OSS_SECRET_KEY
 });
 
 
