@@ -1,0 +1,212 @@
+{
+  ".DS_Store": {
+    "mt": "Sat Dec 12 2020 14:33:58 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/.DS_Store"
+  },
+  ".gitignore": {
+    "mt": "Sun Dec 06 2020 23:56:07 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/.gitignore"
+  },
+  ".nvmrc": {
+    "mt": "Sun Dec 06 2020 23:48:01 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/.nvmrc"
+  },
+  "README.md": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/README.md"
+  },
+  "__nc_app__artblocks-server-rinkeby.json": {
+    "mt": "Fri Dec 11 2020 12:17:50 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-server-rinkeby.json"
+  },
+  "__nc_app__artblocks-server.json": {
+    "mt": "Sat Dec 12 2020 08:53:42 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-server.json"
+  },
+  "__nc_app__artblocks-temp-server.json": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__artblocks-temp-server.json"
+  },
+  "__nc_app__temporary-rinkeby.json": {
+    "mt": "Fri Dec 11 2020 12:04:53 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/__nc_app__temporary-rinkeby.json"
+  },
+  "artifacts/GenArt721.json": {
+    "mt": "Mon Dec 07 2020 00:08:16 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721.json"
+  },
+  "artifacts/GenArt721Bonus.sol": {
+    "mt": "Sun Dec 06 2020 23:40:21 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721Bonus.sol"
+  },
+  "artifacts/GenArt721Core.json": {
+    "mt": "Sat Dec 12 2020 03:00:50 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721Core.json"
+  },
+  "artifacts/GenArt721Minter.sol": {
+    "mt": "Sat Dec 12 2020 02:17:12 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/GenArt721Minter.sol"
+  },
+  "artifacts/Randomizer.sol": {
+    "mt": "Sat Dec 12 2020 02:55:32 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/Randomizer.sol"
+  },
+  "artifacts/RandomizerDAI.sol": {
+    "mt": "Sat Dec 12 2020 00:29:35 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/RandomizerDAI.sol"
+  },
+  "artifacts/RandomizerDAI2.sol": {
+    "mt": "Sun Dec 06 2020 23:40:21 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/RandomizerDAI2.sol"
+  },
+  "artifacts/RandomizerDAI3.sol": {
+    "mt": "Sun Dec 06 2020 23:40:21 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/RandomizerDAI3.sol"
+  },
+  "artifacts/RandomizerDAIClean.sol": {
+    "mt": "Sun Dec 06 2020 23:40:21 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/artifacts/RandomizerDAIClean.sol"
+  },
+  "favicon.ico": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/favicon.ico"
+  },
+  "index.js": {
+    "mt": "Sat Dec 12 2020 14:43:18 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/index.js"
+  },
+  "package-lock.json": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/package-lock.json"
+  },
+  "package.json": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/package.json"
+  },
+  "src/aframe.min.js": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/aframe.min.js"
+  },
+  "src/p5.js": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/p5.js"
+  },
+  "src/processing.js": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/processing.js"
+  },
+  "src/three.js": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/three.js"
+  },
+  "src/vox.js": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/src/vox.js"
+  },
+  "views/generator_aframe.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_aframe.pug"
+  },
+  "views/generator_megavox.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_megavox.pug"
+  },
+  "views/generator_p5js.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_p5js.pug"
+  },
+  "views/generator_processing.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_processing.pug"
+  },
+  "views/generator_threejs.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_threejs.pug"
+  },
+  "views/generator_vox.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/generator_vox.pug"
+  },
+  "views/home.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/home.pug"
+  },
+  "views/platformInfo.pug": {
+    "mt": "Sun Dec 06 2020 23:46:19 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/platformInfo.pug"
+  },
+  "views/projectInfo.pug": {
+    "mt": "Mon Dec 07 2020 22:36:22 GMT-0600 (Central Standard Time)",
+    "exists": true,
+    "state": 1,
+    "path": "/Users/erick/apps/artblocks-v2/server/views/projectInfo.pug"
+  }
+}

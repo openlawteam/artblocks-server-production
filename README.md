@@ -1,9 +1,15 @@
 Art Blocks Server
 
-npm i
+Create the .env file with the environment Variables
+```
+CONTRACT_ADDRESS=
+INFURA_KEY=
+PORT=3000
+ALLOWED_DOMAINS=http://localhost:3000
+```
 
-make sure and add your rpc provider key in a .env file.
+Building the Docker image
+> docker build . -t thelao/flamingo-ab-server:1
 
-Use Node 10
-
-Replace contract address inside index.js
+Running it
+> docker run -p 3000:3000 --env-file=.env thelao/flamingo-ab-server:1
