@@ -71,6 +71,18 @@ const contract = new web3.eth.Contract(abi, address);
 
 console.log(address, address2);
 
+function getBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_MAINNET
+	  : process.env.MEDIA_URL_RINKEBY;
+}
+
+function getThumbBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_THUMB_MAINNET
+	  : process.env.MEDIA_URL_THUMB_RINKEBY;
+}
+
 app.set("views", "./views");
 app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "./")));
@@ -384,7 +396,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
         );
       } else {
         const params = {
-          Bucket: currentNetwork,
+          Bucket: getBucket(),
           Key,
         };
         s3.getObject(params, (err) => {
@@ -407,7 +419,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                       if (res.ContentLength < 5000000) {
                         const data = s3
                           .getObject({
-                            Bucket: currentNetwork,
+                            Bucket: getBucket(),
                             Key,
                           })
                           .createReadStream();
@@ -442,7 +454,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                           const KeyMultiple = `${request.params.tokenId}.png`;
                           const data = s3
                             .getObject({
-                              Bucket: currentNetwork,
+                              Bucket: getBucket(),
                               Key: KeyMultiple,
                               Range: range,
                             })
@@ -483,7 +495,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                     if (res.ContentLength < 5000000) {
                       const data = s3
                         .getObject({
-                          Bucket: currentNetwork,
+                          Bucket: getBucket(),
                           Key,
                         })
                         .createReadStream();
@@ -513,7 +525,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
                         }
                         const data = s3
                           .getObject({
-                            Bucket: currentNetwork,
+                            Bucket: getBucket(),
                             Key,
                             Range: range,
                           })
@@ -569,7 +581,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
       // });
     } else {
       const checkVideoExistsParams = {
-        Bucket: currentNetwork,
+        Bucket: getBucket(),
         Key: videoTokenKey,
       };
       try {
@@ -655,14 +667,14 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-          : `https://api.artblocks.io/generator/${tokenId}`;
+          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
     }
 
     const video = await renderVideo(url, 10, width, height);
     const videoFileContent = await readFile(video);
     const uploadVideoParams = {
-      Bucket: currentNetwork,
+      Bucket: getBucket(),
       Key: tokenKey,
       Body: videoFileContent,
       ContentType: "video/mp4",
@@ -684,7 +696,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
 async function serveScriptVideo(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}`);
   const tokenKey = `${tokenId}.mp4`;
-  const checkVideoExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  const checkVideoExistsParams = { Bucket: getBucket(), Key: tokenKey };
   if (refresh) {
     await renderAndUploadVideo(tokenId, tokenKey, ratio);
     return true;
@@ -783,8 +795,8 @@ async function renderImage(tokenId, tokenKey, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-          : `https://api.artblocks.io/generator/${tokenId}`;
+          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
       await page.goto(url);
     }
 
@@ -807,13 +819,13 @@ async function renderImage(tokenId, tokenKey, ratio) {
       .toBuffer();
 
     const params1 = {
-      Bucket: currentNetwork,
+      Bucket: getBucket(),
       Key: tokenKey,
       ContentType: "image/png",
       Body: image,
     };
     const params2 = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: getThumbBucket(),
       Key: tokenKey,
       ContentType: "image/png",
       Body: resizedImage,
@@ -832,7 +844,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
 async function serveScriptResult(tokenId, ratio, refresh) {
   console.log(`Running Puppeteer: ${tokenId}, refresh: ${refresh}`);
   const tokenKey = `${tokenId}.png`;
-  const checkImageExistsParams = { Bucket: currentNetwork, Key: tokenKey };
+  const checkImageExistsParams = { Bucket: getBucket(), Key: tokenKey };
   if (refresh) {
     console.log("Refreshed Render Image Running....");
     await renderImage(tokenId, tokenKey, ratio);
@@ -878,8 +890,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? `https://rinkebyapi.artblocks.io/generator/${tokenId}`
-          : `https://api.artblocks.io/generator/${tokenId}`;
+          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
       await page.goto(url);
     }
 
@@ -899,14 +911,14 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       .png();
 
     const params1 = {
-      Bucket: currentNetwork,
+      Bucket: getBucket(),
       Key: tokenKey,
       ContentType: "image/png",
       Body: image,
     };
 
     const params2 = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: getThumbBucket(),
       Key: tokenKey,
       ContentType: "image/png",
       Body: resizedImage,
