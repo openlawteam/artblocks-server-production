@@ -69,6 +69,18 @@ const address =
 
 const contract = new web3.eth.Contract(abi, address);
 
+function getBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_MAINNET
+	  : process.env.MEDIA_URL_RINKEBY;
+}
+
+function getThumbBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_THUMB_MAINNET
+	  : process.env.MEDIA_URL_THUMB_RINKEBY;
+}
+
 console.log(address);
 
 app.set("views", "./views");
@@ -274,8 +286,8 @@ app.get("/token/:tokenId", async (request, response) => {
       }`;
       const tokenExternalUrl = `${
         currentNetwork === "mainnet"
-          ? "https://www.artblocks.io/"
-          : "https://rinkeby.artblocks.io/"
+          ? process.env.APP_URL_MAINNET
+          : process.env.APP_URL_RINKEBY
       }token/${request.params.tokenId}`;
       const tokenCollectionName = `${project.name} by ${project.artistName}`;
       const fallbackTraits = [
@@ -296,7 +308,7 @@ app.get("/token/:tokenId", async (request, response) => {
       try {
         const tokenKey = `${request.params.tokenId}.png`;
         const checkImageExistsParams = {
-          Bucket: currentNetwork,
+          Bucket: getBucket(),
           Key: tokenKey,
         };
         await s3.getObject(checkImageExistsParams).promise();
@@ -521,7 +533,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
       const tokenKey = `${request.params.tokenId}.png`;
 
       const params = {
-        Bucket: currentNetwork,
+        Bucket: getBucket(),
         Key: tokenKey,
       };
       s3.getObject(params, (err) => {
@@ -530,24 +542,16 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
           console.log("didn't find it or hard refresh");
           if (!testing) {
             if (currentNetwork === "mainnet") {
-              const regularUrl = `http://render-engine-mainnet-2-11808.nodechef.com/image/${request.params.tokenId}`;
+              const regularUrl = process.env.API_URL_MAINNET + `/${request.params.tokenId}`;
               const refreshUrl = `${regularUrl}/refresh`;
               url = request.params.refresh ? refreshUrl : regularUrl;
-              /*
-                    if (isEven(Number(request.params.tokenId))){
-                      url = request.params.refresh?"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-1-11808.nodechef.com/image/"+request.params.tokenId;
-                    }
-                    else {
-                      url = request.params.refresh?"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId+"/refresh":"http://render-engine-mainnet-2-11808.nodechef.com/image/"+request.params.tokenId;
-                    }
-                    */
             } else {
-              const regularUrl = `http://render-engine-rinkeby-1-11808.nodechef.com/image/${request.params.tokenId}`;
+              const regularUrl = process.env.API_URL_RINKEBY + `/${request.params.tokenId}`;
               const refreshUrl = `${regularUrl}/refresh`;
               url = request.params.refresh ? refreshUrl : regularUrl;
             }
           } else {
-            const regularUrl = `http://localhost:1234/image/${request.params.tokenId}`;
+            const regularUrl = process.env.API_URL_RINKEBY + `/image/${request.params.tokenId}`;
             const refreshUrl = `${regularUrl}/refresh`;
             url = request.params.refresh ? refreshUrl : regularUrl;
           }
@@ -582,7 +586,7 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
   } else {
     const tokenKey = `${request.params.tokenId}.png`;
     const params = {
-      Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+      Bucket: getThumbBucket(),
       Key: tokenKey,
     };
     s3.getObject(params, (err) => {
@@ -590,18 +594,18 @@ app.get("/thumb/:tokenId/:refresh?", async (request, response) => {
         let url;
         console.log("didn't find it");
         if (!testing) {
-          const rinkebyUrl = `https://rinkebyapi.artblocks.io/image/${request.params.tokenId}/refresh/`;
-          const prodUrl = `https://api.artblocks.io/image/${request.params.tokenId}/refresh/`;
+          const rinkebyUrl = process.env.API_URL_RINKEBY + `/image/${request.params.tokenId}/refresh/`;
+          const prodUrl = process.env.API_URL_MAINNET + `/image/${request.params.tokenId}/refresh/`;
           url = currentNetwork === "rinkeby" ? rinkebyUrl : prodUrl;
         } else {
-          url = `http://localhost:1234/image/${request.params.tokenId}/refresh`;
+          url = process.env.API_URL_RINKEBY + `/image/${request.params.tokenId}/refresh`;
         }
         imgRequest.get(url);
         response.sendFile(file);
       } else {
         const data = s3
           .getObject({
-            Bucket: currentNetwork === "rinkeby" ? "rinkthumb" : "mainthumb",
+            Bucket: getThumbBucket(),
             Key: tokenKey,
           })
           .createReadStream();
