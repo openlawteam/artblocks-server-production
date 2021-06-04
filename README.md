@@ -12,4 +12,4 @@ Building the Docker image
 > docker build . -t thelao/flamingo-ab-server:1
 
 Running it
-> docker run -p 3000:3000 --env-file=.env thelao/flamingo-ab-server:1
+> docker run -p 8080:3000 --env-file=.env thelao/flamingo-ab-server:1
