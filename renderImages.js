@@ -42,14 +42,24 @@ const API_KEY = process.env.INFURA_KEY;
 
 
 var s3  = new AWS.S3({
-          accessKeyId: process.env.OSS_ACCESS_KEY,
-          secretAccessKey: process.env.OSS_SECRET_KEY
+	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
-
-
 
 const currentNetwork = "mainnet";
 const testing = true;
+
+function getBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_MAINNET
+	  : process.env.MEDIA_URL_RINKEBY;
+}
+
+function getThumbBucket() {
+	currentNetwork === "mainnet"
+	  ? process.env.MEDIA_URL_THUMB_MAINNET
+	  : process.env.MEDIA_URL_THUMB_RINKEBY;
+}
 
 let queue = new Queue();
 
@@ -123,7 +133,7 @@ app.get('/generator/:tokenId', async (request, response) => {
 async function serveScriptResult(tokenId, ratio){
   console.log("Running Puppeteer: "+tokenId);
   queue.dequeue();
-  var params = { Bucket: currentNetwork, Key: tokenId+".png" };
+  var params = { Bucket: getBucket(), Key: tokenId+".png" };
     s3.getObject(params, async function(err, data) {
         if (!err) {
           console.log(`I'm the renderer. Token ${tokenId} already exists.`);
@@ -153,13 +163,13 @@ async function serveScriptResult(tokenId, ratio){
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
           const params1 = {
-                Bucket: currentNetwork,
+                Bucket: getBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: image
             };
             const params2 = {
-                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Bucket: getThumbBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: resizedImage
@@ -190,7 +200,7 @@ async function serveScriptResult(tokenId, ratio){
 async function serveScriptResultSmall(tokenId, ratio){
   console.log("Running Puppeteer: "+tokenId);
   queue.dequeue();
-  var params = { Bucket: currentNetwork, Key: tokenId+".png" };
+  var params = { Bucket: getBucket(), Key: tokenId+".png" };
     s3.getObject(params, async function(err, data) {
         if (!err) {
           console.log(`I'm the renderer. Token ${tokenId} already exists.`);
@@ -220,13 +230,13 @@ async function serveScriptResultSmall(tokenId, ratio){
             const imageResizer = Buffer.from(image);
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
           const params1 = {
-                Bucket: currentNetwork,
+                Bucket: getBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: image
             };
             const params2 = {
-                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Bucket: getThumbBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: resizedImage
@@ -283,14 +293,14 @@ async function serveScriptResultRefresh(tokenId, ratio){
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
 
             const params1 = {
-                Bucket: currentNetwork,
+                Bucket: getBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: image
             };
 
             const params2 = {
-                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Bucket: getThumbBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: resizedImage
@@ -344,14 +354,14 @@ async function serveScriptResultRefreshSmall(tokenId, ratio){
             const resizedImage = sharp(imageResizer).resize(Math.round(width/3),Math.round(height/3)).png();
 
             const params1 = {
-                Bucket: currentNetwork,
+                Bucket: getBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: image
             };
 
             const params2 = {
-                Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+                Bucket: getThumbBucket(),
                 Key: tokenId+".png",
                 ContentType: "image/png",
                 Body: resizedImage
@@ -379,7 +389,7 @@ async function serveScriptResultRefreshSmall(tokenId, ratio){
 app.get("/deletethumb/:tokenId", async (request,response)=>{
 
   s3.deleteObject({
-    Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+    Bucket: getThumbBucket(),
     Key: request.params.tokenId+".png"
   },function (err,data){
     console.log(err);
@@ -391,7 +401,7 @@ app.get("/deletethumb/:tokenId", async (request,response)=>{
 app.get("/deleteimage/:tokenId", async (request,response)=>{
 
   s3.deleteObject({
-    Bucket: currentNetwork,
+    Bucket: getBucket(),
     Key: request.params.tokenId+".png"
   },function (err,data){
     console.log(err);
@@ -632,7 +642,7 @@ function buildData(hashes, tokenId, type){
     async function getImage(tokenId){
         const data =  s3.getObject(
           {
-              Bucket: currentNetwork,
+              Bucket: getBucket(),
               Key: tokenId+".png"
             }
 
@@ -647,7 +657,7 @@ app.get("/uploadplaceholders/:projectId/:totalImages", async (request, response)
     let imgNumber = Number(request.params.projectId)*1000000+i ;
 
     const params = {
-        Bucket: currentNetwork==="rinkeby"?"rinkthumb":"mainthumb",
+        Bucket: getThumbBucket(),
         Key: imgNumber +".png",
         ContentType: "image/png",
         Body: fs.readFileSync(file)
