@@ -972,12 +972,11 @@ async function getDetails(projectId) {
 async function getScript(projectId, scriptCount) {
   let scripts = [];
   for (let i = 0; i < scriptCount; i += 1) {
-      const newScript = contract.methods
-        .projectScriptByIndex(projectId, i)
-        .call();
-      scripts.push(newScript);
-    }
-  }
+		const newScript = contract.methods
+			.projectScriptByIndex(projectId, i)
+			.call();
+		scripts.push(newScript);
+	}
   scripts = await Promise.all(scripts);
   return scripts.join(" ");
 }
