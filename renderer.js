@@ -261,7 +261,6 @@ app.get("/generator/:tokenId", async (request, response) => {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
 		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
-		console.log("tokens: " + tokensOfProject);
     const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
 
     if (exists) {
@@ -688,6 +687,7 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
       Key: tokenKey,
       Body: videoFileContent,
       ContentType: "video/mp4",
+			ACL: "public-read"
     };
 
     try {
@@ -833,12 +833,14 @@ async function renderImage(tokenId, tokenKey, ratio) {
       Key: tokenKey,
       ContentType: "image/png",
       Body: image,
+			ACL: "public-read"
     };
     const params2 = {
       Bucket: getThumbBucket(),
       Key: tokenKey,
       ContentType: "image/png",
       Body: resizedImage,
+			ACL: "public-read"
     };
     await uploadToS3(params1, 10);
     await uploadToS3(params2, 10);
@@ -925,6 +927,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       Key: tokenKey,
       ContentType: "image/png",
       Body: image,
+			ACL: "public-read"
     };
 
     const params2 = {
@@ -932,6 +935,7 @@ async function serveScriptResultRefresh(tokenId, ratio) {
       Key: tokenKey,
       ContentType: "image/png",
       Body: resizedImage,
+			ACL: "public-read"
     };
 
     // Uploading files to the bucket
