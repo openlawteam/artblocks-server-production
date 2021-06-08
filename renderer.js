@@ -185,7 +185,7 @@ app.get("/token/:tokenId", async (request, response) => {
   } else {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
-		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+		const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
     // console.log(tokensOfProject);
     const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     console.log(`exists? ${exists}`);
@@ -260,7 +260,7 @@ app.get("/generator/:tokenId", async (request, response) => {
   } else {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
-		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+		const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
     const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
 
     if (exists) {
@@ -363,7 +363,7 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
   } else {
     const projectId = await getProjectId(request.params.tokenId);
     const project = await contract.methods.projectTokenInfo(projectId).call()
-    const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+    const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
     const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
@@ -568,7 +568,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
   } else {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
-    const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+    const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
     const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
@@ -1030,7 +1030,7 @@ async function getURIInfo(projectId) {
 
 async function getTokenDetails(projectId) {
 	const project = await contract.methods.projectTokenInfo(projectId).call()
-  const tokens = Array(project.invocations).fill().map((x,i)=>i);
+  const tokens = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
   const result = await contract.methods.projectTokenInfo(projectId).call();
   return {
     artistAddress: result[0],
@@ -1101,7 +1101,7 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
   const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
   const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
 	const project = await contract.methods.projectTokenInfo(projectId).call()
-  const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+  const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
   if (request.params.endId) {
     for (
       let i = Number(request.params.startId);
