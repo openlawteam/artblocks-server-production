@@ -187,7 +187,7 @@ app.get("/token/:tokenId", async (request, response) => {
 		const project = await contract.methods.projectTokenInfo(projectId).call()
 		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
     // console.log(tokensOfProject);
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     console.log(`exists? ${exists}`);
     console.log(`token request ${request.params.tokenId}`);
 
@@ -261,7 +261,8 @@ app.get("/generator/:tokenId", async (request, response) => {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
 		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
-    const exists = tokensOfProject.includes(request.params.tokenId);
+		console.log("tokens: " + tokensOfProject);
+    const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
 
     if (exists) {
       const tokenDetails = await getToken(request.params.tokenId);
@@ -569,7 +570,7 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     const projectId = await getProjectId(request.params.tokenId);
 		const project = await contract.methods.projectTokenInfo(projectId).call()
     const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
     // eslint-disable-next-line
