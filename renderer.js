@@ -50,7 +50,7 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.OSS_SECRET_KEY
 });
 
-const currentNetwork = "mainnet";
+const currentNetwork = process.env.NETWORK;
 const testing = false;
 const mediaUrl =
   currentNetwork === "mainnet"
@@ -69,7 +69,7 @@ const address =
 
 const contract = new web3.eth.Contract(abi, address);
 
-console.log(address, address2);
+console.log("contract address:" + address);
 
 function getBucket() {
 	currentNetwork === "mainnet"
@@ -355,8 +355,9 @@ app.get("/image/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
-    const exists = tokensOfProject.includes(request.params.tokenId);
+    const project = await contract.methods.projectTokenInfo(projectId).call()
+    const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
+    const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
     const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
     // eslint-disable-next-line
