@@ -5,4 +5,4 @@ COPY package-lock.json ./
 COPY . ./
 RUN npm install
 
-ENTRYPOINT ["npm", "run", "start"]
+ENTRYPOINT [ "sh", "-c", "npm run $SCRIPT_NAME" ]
