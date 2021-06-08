@@ -47,7 +47,8 @@ const API_KEY = process.env.INFURA_KEY || "e8eb764fee7a447889f1ee79d2f25934";
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.OSS_ACCESS_KEY,
-  secretAccessKey: process.env.OSS_SECRET_KEY
+  secretAccessKey: process.env.OSS_SECRET_KEY,
+	region: process.env.AWS_DEFAULT_REGION
 });
 
 const currentNetwork = process.env.NETWORK;
@@ -72,15 +73,19 @@ const contract = new web3.eth.Contract(abi, address);
 console.log("contract address:" + address);
 
 function getBucket() {
-	currentNetwork === "mainnet"
+	var bucket = currentNetwork === "mainnet"
 	  ? process.env.MEDIA_URL_MAINNET
 	  : process.env.MEDIA_URL_RINKEBY;
+	console.log("bucket: " + bucket);
+	return bucket;
 }
 
 function getThumbBucket() {
-	currentNetwork === "mainnet"
+	var bucket = currentNetwork === "mainnet"
 	  ? process.env.MEDIA_URL_THUMB_MAINNET
 	  : process.env.MEDIA_URL_THUMB_RINKEBY;
+	console.log("bucket: " + bucket);
+	return bucket;
 }
 
 app.set("views", "./views");
@@ -179,7 +184,8 @@ app.get("/token/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
+		const project = await contract.methods.projectTokenInfo(projectId).call()
+		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
     // console.log(tokensOfProject);
     const exists = tokensOfProject.includes(request.params.tokenId);
     console.log(`exists? ${exists}`);
@@ -253,7 +259,8 @@ app.get("/generator/:tokenId", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
+		const project = await contract.methods.projectTokenInfo(projectId).call()
+		const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
     const exists = tokensOfProject.includes(request.params.tokenId);
 
     if (exists) {
@@ -560,7 +567,8 @@ app.get("/video/:tokenId/:refresh?", async (request, response) => {
     response.send("invalid request");
   } else {
     const projectId = await getProjectId(request.params.tokenId);
-    const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
+		const project = await contract.methods.projectTokenInfo(projectId).call()
+    const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
     const exists = tokensOfProject.includes(request.params.tokenId);
     const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
     const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
@@ -792,7 +800,7 @@ async function renderImage(tokenId, tokenKey, ratio) {
       deviceScaleFactor: 2,
     });
     if (testing) {
-      await page.goto(`http://localhost:1234/generator/${tokenId}`);
+      await page.goto(process.env.API_URL_RINKEBY + `/generator/${tokenId}`);
     } else {
       url =
         currentNetwork === "rinkeby"
@@ -1016,7 +1024,8 @@ async function getURIInfo(projectId) {
 }
 
 async function getTokenDetails(projectId) {
-  const tokens = await contract.methods.projectShowAllTokens(projectId).call();
+	const project = await contract.methods.projectTokenInfo(projectId).call()
+  const tokens = Array(project.invocations).fill().map((x,i)=>i);
   const result = await contract.methods.projectTokenInfo(projectId).call();
   return {
     artistAddress: result[0],
@@ -1086,7 +1095,8 @@ app.get("/renderimagerange/:projectId/:startId/:endId?", async (request) => {
   const scriptInfo = await contract.methods.projectScriptInfo(projectId).call()
   const scriptJSON = scriptInfo[0] && JSON.parse(scriptInfo[0]);
   const ratio = eval(scriptJSON.aspectRatio ? scriptJSON.aspectRatio : 1);
-  const tokensOfProject = await contract.methods.projectShowAllTokens(projectId).call()
+	const project = await contract.methods.projectTokenInfo(projectId).call()
+  const tokensOfProject = Array(project.invocations).fill().map((x,i)=>i);
   if (request.params.endId) {
     for (
       let i = Number(request.params.startId);
