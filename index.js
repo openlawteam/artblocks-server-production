@@ -46,7 +46,7 @@ const s3 = new AWS.S3({
 	region: process.env.AWS_DEFAULT_REGION
 });
 
-const currentNetwork = "mainnet";
+const currentNetwork = process.env.NETWORK;
 const mediaUrl =
   currentNetwork === "mainnet"
     ? process.env.MEDIA_URL_MAINNET
@@ -186,41 +186,31 @@ app.get("/token/:tokenId", async (request, response) => {
       let hash = null;
       let scriptJSON = null;
 
-      if (existsData.source === "graph") {
-        const tokenProjectData = await getTokenAndProject(
-          request.params.tokenId
-        );
-        const { token } = tokenProjectData;
-        project = token.project;
-        hash = token.hash;
-        scriptJSON = JSON.parse(project.scriptJSON);
-      } else {
-        const tokenDetails = await getToken(request.params.tokenId);
-        const royalties = await getTokenRoyaltyInfo(request.params.tokenId);
-        const projectDetails = await getDetails(projectId);
+			const tokenDetails = await getToken(request.params.tokenId);
+			const royalties = await getTokenRoyaltyInfo(request.params.tokenId);
+			const projectDetails = await getDetails(projectId);
 
-        hash = Array.isArray(tokenDetails.hashes)
-          ? tokenDetails.hashes[0]
-          : tokenDetails.hashes;
-        scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
+			hash = Array.isArray(tokenDetails.hashes)
+				? tokenDetails.hashes[0]
+				: tokenDetails.hashes;
+			scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
 
-        project = {
-          name: projectDetails.projectDescription.projectName,
-          description: projectDetails.projectDescription.description,
-          artistName: projectDetails.projectDescription.artistName,
-          useHashString: Boolean(
-            projectDetails.projectScriptInfo.hashesPerToken
-          ),
-          baseUri: projectDetails.projectURIInfo.projectBaseURI,
-          artistAddress: royalties.artistAddress,
-          additionalPayee: royalties.additionalPayee,
-          additionalPayeePercentage: royalties.additionalPayeePercentage,
-          royaltyPercentage: royalties.royaltyFeeByID,
-          website: projectDetails.projectDescription.artistWebsite,
-          dynamic: projectDetails.projectDescription.dynamic,
-          license: projectDetails.projectDescription.license,
-        };
-      }
+			project = {
+				name: projectDetails.projectDescription.projectName,
+				description: projectDetails.projectDescription.description,
+				artistName: projectDetails.projectDescription.artistName,
+				useHashString: Boolean(
+					projectDetails.projectScriptInfo.hashesPerToken
+				),
+				baseUri: projectDetails.projectURIInfo.projectBaseURI,
+				artistAddress: royalties.artistAddress,
+				additionalPayee: royalties.additionalPayee,
+				additionalPayeePercentage: royalties.additionalPayeePercentage,
+				royaltyPercentage: royalties.royaltyFeeByID,
+				website: projectDetails.projectDescription.artistWebsite,
+				dynamic: projectDetails.projectDescription.dynamic,
+				license: projectDetails.projectDescription.license,
+			};
 
       // console.log(`Infura Hash: ${infuraHash} - TheGraph Hash: ${hash}`);
 
@@ -405,28 +395,17 @@ app.get("/generator/:tokenId/:svg?", async (request, response) => {
       let script = null;
       let scriptJSON = null;
 
-      if (existsData.source === "graph") {
-        const tokenProjectData = await getTokenAndProject(
-          request.params.tokenId
-        );
-        const { token } = tokenProjectData;
-        project = token.project;
-        hash = token.hash;
-        scriptJSON = JSON.parse(project.scriptJSON);
-        script = project.script;
-      } else {
-        const tokenDetails = await getToken(request.params.tokenId);
+			const tokenDetails = await getToken(request.params.tokenId);
 
-        const projectDetails = await getDetails(projectId);
-        script = await getScript(
-          tokenDetails.projectId,
-          projectDetails.projectScriptInfo.scriptCount
-        );
-        hash = Array.isArray(tokenDetails.hashes)
-          ? tokenDetails.hashes[0]
-          : tokenDetails.hashes;
-        scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
-      }
+			const projectDetails = await getDetails(projectId);
+			script = await getScript(
+				tokenDetails.projectId,
+				projectDetails.projectScriptInfo.scriptCount
+			);
+			hash = Array.isArray(tokenDetails.hashes)
+				? tokenDetails.hashes[0]
+				: tokenDetails.hashes;
+			scriptJSON = projectDetails.projectScriptInfo.scriptJSON;
 
       console.log(
         "Generator running for token " +
@@ -631,10 +610,6 @@ async function checkTokenExists(tokenId) {
   const tokenAndProjectData = await getTokenAndProject(tokenId);
 
   const existsGraph = tokenAndProjectData.token;
-
-  if (existsGraph) {
-    return { exists: true, source: "graph", data: tokenAndProjectData };
-  }
 
   let providerHash = await getTokenHashes(tokenId);
   // extract if is array

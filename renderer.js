@@ -253,106 +253,6 @@ app.get("/token/:tokenId", async (request, response) => {
   }
 });
 
-app.get("/generator/:tokenId", async (request, response) => {
-  if (!Number.isInteger(Number(request.params.tokenId))) {
-    console.log("not integer");
-    response.send("invalid request");
-  } else {
-    const projectId = await getProjectId(request.params.tokenId);
-		const project = await contract.methods.projectTokenInfo(projectId).call()
-		const tokensOfProject = Array(parseInt(project.invocations)).fill().map((x,i)=>i);
-    const exists = tokensOfProject.includes(parseInt(request.params.tokenId));
-
-    if (exists) {
-      const tokenDetails = await getToken(request.params.tokenId);
-      const projectDetails = await getDetails(tokenDetails.projectId);
-      const script = await getScript(
-        tokenDetails.projectId,
-        projectDetails.projectScriptInfo.scriptCount
-      );
-      const data = buildData(tokenDetails.hashes, request.params.tokenId);
-
-      console.log(
-        "Generator running for token " +
-          request.params.tokenId +
-          " using hash: " +
-          tokenDetails.hashes
-      );
-
-      if (projectDetails.projectScriptInfo.scriptJSON.type === "p5js") {
-        response.render("generator_p5js", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "processing"
-      ) {
-        response.render("generator_processing", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "a-frame"
-      ) {
-        response.render("generator_aframe", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "megavox"
-      ) {
-        response.render("generator_megavox", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "vox") {
-        response.render("generator_vox", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "js") {
-        response.render("generator_js", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "svg") {
-        response.render("generator_svg", { script, data });
-      } else if (
-        projectDetails.projectScriptInfo.scriptJSON.type === "custom"
-      ) {
-        response.render("generator_js", { script, data });
-      } else if (projectDetails.projectScriptInfo.scriptJSON.type === "regl") {
-        response.render("generator_regl", { script, data });
-      } else {
-        response.render("generator_threejs", { script, data });
-      }
-    } else {
-      response.send("token does not exist");
-    }
-  }
-});
-
-// app.get("/vox/:tokenId", async (request, response) => {
-//   if (!Number.isInteger(Number(request.params.tokenId))) {
-//     console.log("not integer");
-//     response.send("invalid request");
-//   } else {
-//     const projectId = await getProjectId(request.params.tokenId);
-//     const tokensOfProject =
-//       projectId < 3
-//         ? await contract.methods.projectShowAllTokens(projectId).call()
-//         : await contract2.methods.projectShowAllTokens(projectId).call();
-//     const exists = tokensOfProject.includes(request.params.tokenId);
-//     console.log("exists? " + exists);
-//     console.log("vox request for token: " + request.params.tokenId);
-
-//     if (exists) {
-//       let tokenDetails = await getToken(request.params.tokenId);
-//       let projectDetails = await getDetails(tokenDetails.projectId);
-//       if (
-//         projectDetails.projectScriptInfo.scriptJSON.type === "vox" ||
-//         projectDetails.projectScriptInfo.scriptJSON.type === "megavox"
-//       ) {
-//         let script = await getScript(
-//           tokenDetails.projectId,
-//           projectDetails.projectScriptInfo.scriptCount
-//         );
-//         let data = buildData(tokenDetails.hashes, request.params.tokenId);
-//         let scriptAndData = `${data}${script}`;
-//         var evalScript = eval(scriptAndData);
-//         let array = voxx.export();
-//         response.send(toBuffer(array));
-//       } else {
-//         response.send("token not a vox file");
-//       }
-//     } else {
-//       response.send("token does not exist");
-//     }
-//   }
-// });
-
 app.get("/image/:tokenId/:refresh?", async (request, response) => {
   let blockNumber = await web3.eth.getBlockNumber();
   console.log(blockNumber);
@@ -676,8 +576,8 @@ async function renderAndUploadVideo(tokenId, tokenKey, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
-          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
+          ? process.env.URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.URL_MAINNET + `/generator/${tokenId}`;
     }
 
     const video = await renderVideo(url, 10, width, height);
@@ -805,8 +705,8 @@ async function renderImage(tokenId, tokenKey, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
-          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
+          ? process.env.URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.URL_MAINNET + `/generator/${tokenId}`;
       await page.goto(url);
     }
 
@@ -902,8 +802,8 @@ async function serveScriptResultRefresh(tokenId, ratio) {
     } else {
       url =
         currentNetwork === "rinkeby"
-          ? process.env.API_URL_RINKEBY + `/generator/${tokenId}`
-          : process.env.API_URL_MAINNET + `/generator/${tokenId}`;
+          ? process.env.URL_RINKEBY + `/generator/${tokenId}`
+          : process.env.URL_MAINNET + `/generator/${tokenId}`;
       await page.goto(url);
     }
 
